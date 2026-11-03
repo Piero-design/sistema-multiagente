@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(./knowledge/**)",
+      "Read(./examples/**)",
+      "Read(./demo/**)",
+      "Read(./contextos/**)",
+      "Read(./salidas/**)",
+      "Write(./salidas/**)",
+      "Edit(./salidas/**)",
+      "Bash(date:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.ib-data/**)",
+      "Read(./config/**)",
+      "Write(./knowledge/**)",
+      "Write(./.claude/**)",
+      "Write(./demo/**)",
+      "Write(./contextos/**)"
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+# Despliegue detrás de Traefik + tinyauth (VPS de rvaldiviase.com).
+# Se copia como docker-compose.yml a ~/server-data/incidentes/ junto con el código.
+# Credencial: poner GEMINI_API_KEY, GROQ_API_KEY, CLAUDE_CODE_OAUTH_TOKEN o ANTHROPIC_API_KEY en un .env de esa carpeta,
+# o pegarla en la página (Ajustes > Conexión). Sin tinyauth: el acceso es público (ver advertencias en el README del despliegue).
+services:
+  agente:
+    build: .
+    image: incidentes-brechas
+    container_name: incidentes-brechas
+    restart: unless-stopped
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      HOST: 0.0.0.0
+      PORT: "3100"
+    volumes:
+      - salidas:/app/salidas
+      - contextos:/app/contextos
+      - ib-data:/app/.ib-data
+      - claude-home:/home/node/.claude
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_proxy
+      - traefik.http.routers.incidentes.entrypoints=web,websecure
+      - traefik.http.routers.incidentes.middlewares=tinyauth
+      - traefik.http.routers.incidentes.rule=Host(`incidentes.rvaldiviase.com`)
+      - traefik.http.routers.incidentes.tls=true
+      - traefik.http.routers.incidentes.tls.certresolver=cloudflare
+      - traefik.http.services.incidentes.loadbalancer.server.port=3100
+    networks:
+      - traefik_proxy
+
+volumes:
+  salidas:
+  contextos:
+  ib-data:
+  claude-home:
+
+networks:
+  traefik_proxy:
+    external: true

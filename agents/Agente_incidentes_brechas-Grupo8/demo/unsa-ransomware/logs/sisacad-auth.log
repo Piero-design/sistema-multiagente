@@ -1,0 +1,8 @@
+2026-10-10 21:30:12 INFO  rdp session opened from=10.9.0.14 to=SRV-SISACAD-APP user=Administrador (contraseña local compartida)
+2026-10-10 22:05:41 INFO  user=Administrador created account svc_mant (group: Administradores)
+2026-10-10 23:40:03 INFO  user=svc_mant pg_dump sisacad_prod started
+2026-10-11 00:05:50 INFO  user=svc_mant pg_dump sisacad_prod finished size=5.1GB
+2026-10-11 00:09:12 INFO  user=svc_mant export \\SRV-ARCH\actas -> actas.7z size=5.1GB
+2026-10-11 00:50:00 WARN  audit log rotation disabled by user=svc_mant
+2026-10-11 04:40:10 INFO  rdp session closed user=Administrador
+2026-10-11 05:10:20 ERROR database service stopped; data files encrypted

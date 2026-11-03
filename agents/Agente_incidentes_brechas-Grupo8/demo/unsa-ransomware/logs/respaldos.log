@@ -1,0 +1,4 @@
+2026-09-27 22:00:10 NAS-BKP-01 full backup OK size=212GB
+2026-10-04 22:00:09 NAS-BKP-01 full backup OK size=214GB
+2026-10-11 05:30:44 NAS-BKP-01 volume mounted on SRV-SISACAD-DB; 100% of files renamed to .lck (encrypted)
+2026-10-11 05:31:00 NAS-BKP-01 no snapshots or offline copies configured

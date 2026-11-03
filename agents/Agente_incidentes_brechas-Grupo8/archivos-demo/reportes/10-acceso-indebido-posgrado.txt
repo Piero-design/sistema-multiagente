@@ -1,0 +1,13 @@
+Reporte de incidente - Escuela de Posgrado, UNSA (ESCENARIO SIMULADO)
+
+ESCENARIO SIMULADO para fines academicos: los nombres de oficinas y sistemas salen de fuentes publicas de la UNSA; el incidente, las cifras internas, los controles y las personas son inventados y no describen hechos reales de la universidad.
+
+De: Direccion de la Escuela de Posgrado
+Para: Oficial de Datos Personales
+Fecha del correo: 2026-10-13, 10:20
+
+Esta manana, al revisar el reporte semanal de accesos del sistema de gestion de la Escuela de Posgrado, vi que la cuenta de una secretaria administrativa (usuario secretaria2) abrio los expedientes de 85 maestrandos y doctorandos entre el 5 y el 12 de octubre. Su funcion es solo registrar matriculas y no deberia consultar expedientes completos.
+
+Los expedientes tienen nombres, DNI, correo, telefono, grado y programa, tema y asesor de tesis, y constancias de aptitud medica de algunos postulantes. Entre los consultados hay docentes de la universidad y dos autoridades.
+
+No hay evidencia de que haya copiado o enviado informacion, pero tampoco hay registros de descargas. Cuando la cite dijo que "era curiosidad". Hoy es el primer dia que lo sabemos en la Escuela. Todavia no la hemos suspendido.

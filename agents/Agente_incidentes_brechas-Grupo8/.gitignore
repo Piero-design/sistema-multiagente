@@ -1,0 +1,29 @@
+# Salidas locales de prueba: se versionan solo las que se elijan como evidencia
+salidas/*
+!salidas/.gitkeep
+!salidas/README.md
+
+# Claude Code: configuración local personal
+.claude/settings.local.json
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Contextos subidos desde la interfaz (pueden contener datos reales de una organización)
+contextos/*
+!contextos/.gitkeep
+!contextos/README.md
+
+# Credenciales guardadas desde la interfaz y artefactos de build
+.ib-data/
+.env
+web/client/node_modules/
+web/client/dist/
+node_modules/
+
+# Conectores con credenciales de la organización y buzón de quejas recibido
+config/conectores.json
+buzon/*
+!buzon/.gitkeep
