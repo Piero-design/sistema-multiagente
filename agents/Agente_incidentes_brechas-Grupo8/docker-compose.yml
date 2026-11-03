@@ -1,0 +1,32 @@
+# Uso:  cp .env.example .env   (poner una credencial)   y luego:   docker compose up --build
+# Abrir http://localhost:3100
+services:
+  agente:
+    build: .
+    image: tif-agente-incidentes-brechas
+    ports:
+      - "127.0.0.1:3100:3100"        # solo accesible desde este equipo
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      BUZON_WEBHOOK_TOKEN: ${BUZON_WEBHOOK_TOKEN:-}
+      AUTONOMIA: ${AUTONOMIA:-0}
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
+      HOST: 0.0.0.0
+      PORT: "3100"
+    volumes:
+      - salidas:/app/salidas            # expedientes generados
+      - contextos:/app/contextos        # contextos subidos desde la interfaz
+      - buzon:/app/buzon                # quejas depositadas por webhook
+      - ./config:/app/config:ro         # conectores (copie conectores.ejemplo.json a conectores.json)
+      - ib-data:/app/.ib-data           # credencial guardada desde la interfaz
+      - claude-home:/home/node/.claude  # estado de Claude Code
+    restart: unless-stopped
+
+volumes:
+  salidas:
+  contextos:
+  buzon:
+  ib-data:
+  claude-home:

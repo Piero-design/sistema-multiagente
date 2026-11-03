@@ -1,0 +1,21 @@
+{
+  "autonomia": {
+    "intervalo_seg": 60,
+    "max_por_hora": 6,
+    "desde_dias": 7,
+    "contexto_defecto": "demo/unsa-base"
+  },
+  "conocimiento": [
+    { "id": "normativa", "tipo": "carpeta", "ruta": "knowledge", "descripcion": "Ley 29733, reglamento, ISO 27035/27001/27701, metodología ENISA y taxonomía de incidentes" },
+    { "id": "unsa-politicas", "tipo": "carpeta", "ruta": "demo/unsa-base", "descripcion": "Inventario de activos, contactos, documento de seguridad y plan de respuesta de la UNSA (escenario simulado)" },
+    { "id": "casos-previos", "tipo": "carpeta", "ruta": "salidas", "descripcion": "Expedientes de incidentes ya analizados" }
+  ],
+  "sistemas": [
+    { "id": "sisacad-auditoria", "tipo": "archivos", "ruta": "demo/unsa-notas/logs", "descripcion": "Registro de auditoría del Sistema Académico (SISACAD): cambios de notas y accesos de docentes" },
+    { "id": "portal-admision", "tipo": "archivos", "ruta": "demo/unsa-admision/logs", "descripcion": "Accesos y errores del portal web de admisión" },
+    { "id": "seguridad-perimetral", "tipo": "archivos", "ruta": "demo/unsa-ransomware/logs", "descripcion": "VPN, firewall, antivirus, autenticación y respaldos del Registro Académico" }
+  ],
+  "buzones": [
+    { "id": "quejas-web", "tipo": "webhook", "ruta": "buzon/quejas-web", "descripcion": "Formulario web de quejas y reclamos" }
+  ]
+}

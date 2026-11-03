@@ -1,0 +1,8 @@
+2026-10-10 20:50:02 VPN auth FAIL user=jperez.docente src=203.0.113.50
+2026-10-10 20:50:09 VPN auth FAIL user=jperez.docente src=203.0.113.50
+2026-10-10 20:51:44 VPN auth FAIL user=mquispe.admin src=203.0.113.50
+2026-10-10 21:12:31 VPN auth FAIL user=jperez.docente src=203.0.113.50 (198 intentos fallidos desde 20:50)
+2026-10-10 21:14:08 VPN auth OK   user=jperez.docente src=203.0.113.50 pool=10.9.0.14
+2026-10-10 21:14:09 VPN ALERT inicio de sesión inusual (país distinto, fuera de horario); aviso enviado a seguridad@unsa.example
+2026-10-10 21:15:00 VPN INFO  no hay bloqueo por intentos fallidos configurado
+2026-10-11 04:40:55 VPN session closed user=jperez.docente

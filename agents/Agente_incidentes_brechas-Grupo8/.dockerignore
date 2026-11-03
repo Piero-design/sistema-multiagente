@@ -1,0 +1,12 @@
+.git
+.env
+.ib-data
+node_modules
+web/client/node_modules
+web/client/dist
+salidas
+contextos
+docs
+pruebas
+presentacion
+**/.DS_Store

@@ -1,0 +1,8 @@
+2026-10-06 22:41:05 user=rgutierrez(cuenta docente inactiva desde 2024) ip=10.20.5.33 action=LOGIN
+2026-10-06 22:44:20 user=rgutierrez ip=10.20.5.33 action=UPDATE nota curso=EST-2024-II-114 est=ID-0412 antes=08 despues=14
+2026-10-06 22:46:02 user=rgutierrez ip=10.20.5.33 action=UPDATE nota curso=EST-2024-II-114 est=ID-0419 antes=07 despues=13
+2026-10-06 23:10:33 user=rgutierrez ip=10.20.5.33 action=UPDATE nota curso=EST-2024-II-131 est=ID-0455 antes=09 despues=15
+2026-10-07 00:02:11 user=rgutierrez ip=10.20.5.33 action=UPDATE nota (20 modificaciones más entre 22:44 del 06/10 y 00:40 del 07/10; total 23, una misma escuela profesional)
+2026-10-07 00:41:50 user=rgutierrez ip=10.20.5.33 action=LOGOUT
+2026-10-07 --:--:-- no hay registro de consultas masivas; solo se auditan modificaciones
+2026-10-12 11:20:00 user=oti action=cuenta rgutierrez BLOQUEADA
