@@ -141,6 +141,12 @@ class G3(AgentAdapter):
                 for t in sorted(self.TOOLS)]
 
     async def _call(self, tool: str | None, args: dict | None = None):
+        try:
+            return await self._call_raw(tool, args)
+        except BaseExceptionGroup as eg:  # surface the real cause, not the TaskGroup wrapper
+            raise eg.exceptions[0]
+
+    async def _call_raw(self, tool: str | None, args: dict | None = None):
         from mcp import ClientSession
         from mcp.client.streamable_http import streamablehttp_client
         async with streamablehttp_client(self.url) as (rd, wr, _):
@@ -150,6 +156,8 @@ class G3(AgentAdapter):
                     return [t.name for t in (await s.list_tools()).tools]
                 res = await s.call_tool(tool, args or {})
                 txt = "".join(getattr(c, "text", "") for c in res.content)
+                if getattr(res, "isError", False):
+                    raise RuntimeError(f"G3 tool error: {txt[:300]}")
                 try:
                     return json.loads(txt)
                 except ValueError:
