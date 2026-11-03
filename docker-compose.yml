@@ -161,6 +161,64 @@ services:
     depends_on: {llm-gateway: {condition: service_healthy}}
     networks: [internal]
 
+  agent-g5:
+    build:
+      context: ./agents/Agente_terceros_dpa-Grupo5
+      dockerfile: ../../docker/agents/g5.Dockerfile
+      additional_contexts: {wrap: ./docker/agents}
+    restart: unless-stopped
+    environment:
+      GATEWAY_V1_URL: http://llm-gateway:8080/v1
+      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
+      N8N_USER_FOLDER: /n8n-home
+    volumes:
+      - g5n8n:/n8n-home
+      - g5datos:/app/g5/datos
+      - g5orgs:/app/g5/organizaciones
+    depends_on: {llm-gateway: {condition: service_healthy}}
+    networks: [internal]
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:-qdrant_dev_key}
+    volumes: [qdrantdata:/qdrant/storage]
+    networks: [internal]            # no published port
+
+  agent-g2:
+    build:
+      context: ./agents/Agente_evaluacion_riesgos-Grupo2
+      dockerfile: ../../docker/agents/g2.Dockerfile
+      additional_contexts: {wrap: ./docker/agents}
+    restart: unless-stopped
+    environment:
+      GATEWAY_V1_URL: http://llm-gateway:8080/v1
+      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
+      LLM_EMBED_MODEL: ${LLM_EMBED_MODEL:-gemini-embedding-001}
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-qdrant_dev_key}
+      # The group's own human review gate. Left false until someone reviews the workflows (see docs).
+      SCOPE_N8N_REVIEWED: ${G2_SCOPE_N8N_REVIEWED:-false}
+      # Gemini Vision stays disabled: it would bypass the gateway.
+      GEMINI_VISION_API_KEY: ""
+    volumes:
+      - g2n8n:/root/.n8n
+    depends_on:
+      llm-gateway: {condition: service_healthy}
+      qdrant: {condition: service_started}
+    networks: [internal]
+
+  # One-shot tool: docker compose --profile tools run --rm -e X=1 ocr   (PDF stays outside the repo, read-only)
+  ocr:
+    profiles: [tools]
+    build:
+      context: .
+      dockerfile: docker/tools/ocr.Dockerfile
+    volumes:
+      - ${NORM_PDF_PATH:-./norma-no-configurada.pdf}:/in/norma.pdf:ro
+      - ./ocr_output:/out
+    networks: [internal]
+
   # ---- Optional profile: only for the machine that runs Ollama ----
   ollama:
     profiles: [ollama]
@@ -202,6 +260,11 @@ networks:
 volumes:
   pgdata:
   g1data:
+  g2n8n:
+  qdrantdata:
+  g5n8n:
+  g5datos:
+  g5orgs:
   g8salidas:
   g8buzon:
   g8contextos:
