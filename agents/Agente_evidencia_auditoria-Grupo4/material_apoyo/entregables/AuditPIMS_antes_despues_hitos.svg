@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="#87939e"/></marker></defs><rect width="1920" height="1080" fill="#f4f5f2"/>
+<text x="72" y="62" font-family="Arial, sans-serif" font-size="21" fill="#596b75" font-weight="700">AUDITPIMS  /  GRUPO 04  /  AUDITORÍA DE SISTEMAS</text>
+<text x="72" y="125" font-family="Arial, sans-serif" font-size="49" fill="#142b38" font-weight="700">De una skill de auditoría a un agente con herramientas</text>
+<text x="72" y="170" font-family="Arial, sans-serif" font-size="27" fill="#596b75" font-weight="400">Hito 1: trabajo realizado     →     Hito 2: evolución propuesta</text>
+<rect x="72" y="210" width="842" height="656" rx="22" fill="#ffffff" stroke="#dbe2df"/>
+<rect x="1006" y="210" width="842" height="656" rx="22" fill="#ffffff" stroke="#dbe2df"/>
+<rect x="104" y="240" width="198" height="35" rx="16" fill="#e7eeeb" stroke="none"/>
+<text x="120" y="265" font-family="Arial, sans-serif" font-size="20" fill="#365e52" font-weight="700">ANTES · HITO 1</text>
+<rect x="1038" y="240" width="261" height="35" rx="16" fill="#e5eef6" stroke="none"/>
+<text x="1054" y="265" font-family="Arial, sans-serif" font-size="20" fill="#305c81" font-weight="700">DESPUÉS · HITO 2</text>
+<text x="104" y="322" font-family="Arial, sans-serif" font-size="35" fill="#183c32" font-weight="700">Asistente funcional + skill</text>
+<text x="104" y="359" font-family="Arial, sans-serif" font-size="24" fill="#596b75" font-weight="400">El usuario inicia y guía cada evaluación.</text>
+<text x="1038" y="322" font-family="Arial, sans-serif" font-size="33" fill="#244e72" font-weight="700">Agente con autonomía supervisada</text>
+<text x="1038" y="359" font-family="Arial, sans-serif" font-size="24" fill="#596b75" font-weight="400">Un evento o una meta activa el trabajo.</text>
+<rect x="104" y="390" width="778" height="80" rx="12" fill="#eff4f1" stroke="none"/>
+<text x="120" y="425" font-family="Arial, sans-serif" font-size="23" fill="#365e52" font-weight="700">01</text>
+<text x="169" y="422" font-family="Arial, sans-serif" font-size="26" fill="#233243" font-weight="700">El auditor entrega la evidencia</text>
+<text x="169" y="452" font-family="Arial, sans-serif" font-size="22" fill="#596b75" font-weight="400">Carga o pega el documento y define la tarea.</text>
+<line x1="137" y1="472" x2="137" y2="486" stroke="#87939e" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="104" y="489" width="778" height="80" rx="12" fill="#eff4f1" stroke="none"/>
+<text x="120" y="524" font-family="Arial, sans-serif" font-size="23" fill="#365e52" font-weight="700">02</text>
+<text x="169" y="521" font-family="Arial, sans-serif" font-size="26" fill="#233243" font-weight="700">La IA aplica la skill de auditoría</text>
+<text x="169" y="551" font-family="Arial, sans-serif" font-size="22" fill="#596b75" font-weight="400">M1 Planificar · M2 Evaluar · M3 Consolidar</text>
+<line x1="137" y1="571" x2="137" y2="585" stroke="#87939e" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="104" y="588" width="778" height="80" rx="12" fill="#eff4f1" stroke="none"/>
+<text x="120" y="623" font-family="Arial, sans-serif" font-size="23" fill="#365e52" font-weight="700">03</text>
+<text x="169" y="620" font-family="Arial, sans-serif" font-size="26" fill="#233243" font-weight="700">Se preparan los resultados</text>
+<text x="169" y="650" font-family="Arial, sans-serif" font-size="22" fill="#596b75" font-weight="400">Ficha, hallazgos, matriz e informe.</text>
+<line x1="137" y1="670" x2="137" y2="684" stroke="#87939e" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="104" y="687" width="778" height="80" rx="12" fill="#eff4f1" stroke="none"/>
+<text x="120" y="722" font-family="Arial, sans-serif" font-size="23" fill="#365e52" font-weight="700">04</text>
+<text x="169" y="719" font-family="Arial, sans-serif" font-size="26" fill="#233243" font-weight="700">El auditor revisa y decide</text>
+<text x="169" y="749" font-family="Arial, sans-serif" font-size="22" fill="#596b75" font-weight="400">Valida, ajusta o solicita evidencia adicional.</text>
+<rect x="1038" y="390" width="778" height="80" rx="12" fill="#eef3f8" stroke="none"/>
+<text x="1054" y="425" font-family="Arial, sans-serif" font-size="23" fill="#305c81" font-weight="700">01</text>
+<text x="1103" y="422" font-family="Arial, sans-serif" font-size="26" fill="#233243" font-weight="700">Detecta o recibe una nueva evidencia</text>
+<text x="1103" y="452" font-family="Arial, sans-serif" font-size="22" fill="#596b75" font-weight="400">Consulta una carpeta, repositorio o API.</text>
+<line x1="1071" y1="472" x2="1071" y2="486" stroke="#87939e" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1038" y="489" width="778" height="80" rx="12" fill="#eef3f8" stroke="none"/>
+<text x="1054" y="524" font-family="Arial, sans-serif" font-size="23" fill="#305c81" font-weight="700">02</text>
+<text x="1103" y="521" font-family="Arial, sans-serif" font-size="26" fill="#233243" font-weight="700">Planifica y usa herramientas</text>
+<text x="1103" y="551" font-family="Arial, sans-serif" font-size="22" fill="#596b75" font-weight="400">Recopila documentos y registra su procedencia.</text>
+<line x1="1071" y1="571" x2="1071" y2="585" stroke="#87939e" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1038" y="588" width="778" height="80" rx="12" fill="#eef3f8" stroke="none"/>
+<text x="1054" y="623" font-family="Arial, sans-serif" font-size="23" fill="#305c81" font-weight="700">03</text>
+<text x="1103" y="620" font-family="Arial, sans-serif" font-size="26" fill="#233243" font-weight="700">Evalúa y da seguimiento</text>
+<text x="1103" y="650" font-family="Arial, sans-serif" font-size="22" fill="#596b75" font-weight="400">Reutiliza la skill, guarda estados y emite alertas.</text>
+<line x1="1071" y1="670" x2="1071" y2="684" stroke="#87939e" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1038" y="687" width="778" height="80" rx="12" fill="#eef3f8" stroke="none"/>
+<text x="1054" y="722" font-family="Arial, sans-serif" font-size="23" fill="#305c81" font-weight="700">04</text>
+<text x="1103" y="719" font-family="Arial, sans-serif" font-size="26" fill="#233243" font-weight="700">Solicita validación y continúa</text>
+<text x="1103" y="749" font-family="Arial, sans-serif" font-size="22" fill="#596b75" font-weight="400">El auditor aprueba; el agente verifica pendientes.</text>
+<text x="104" y="825" font-family="Arial, sans-serif" font-size="21" fill="#365e52" font-weight="700">Base actual: referencias + plantillas + dashboard/API + SHA-256</text>
+<text x="1038" y="825" font-family="Arial, sans-serif" font-size="21" fill="#305c81" font-weight="700">Propuesto: conexiones + monitoreo + historial + seguimiento</text>
+<line x1="928" y1="538" x2="990" y2="538" stroke="#87939e" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="931" y="579" font-family="Arial, sans-serif" font-size="12" fill="#596b75" font-weight="700">EVOLUCIÓN</text>
+<rect x="72" y="895" width="1776" height="112" rx="18" fill="#142b38" stroke="none"/>
+<text x="104" y="938" font-family="Arial, sans-serif" font-size="30" fill="#ffffff" font-weight="700">La skill se conserva: es el procedimiento que utiliza el agente.</text>
+<text x="104" y="979" font-family="Arial, sans-serif" font-size="25" fill="#cfdddF" font-weight="400">El salto del hito 2 es conectar, actuar y dar seguimiento. La decisión final sigue siendo del auditor humano.</text>
+<text x="72" y="1047" font-family="Arial, sans-serif" font-size="20" fill="#596b75" font-weight="400">Hito 1: artefactos presentes en el proyecto. Hito 2: propuesta pendiente de implementar y validar.</text>
+</svg>
