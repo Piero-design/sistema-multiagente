@@ -1,0 +1,71 @@
+{
+  "format_version": 2,
+  "corpus": "knowledge/guide",
+  "corpus_sha256": "e42538ff69b9ee40c7de638a8dfb932e9a9238033b2de72db0ec54e0fe1696ba",
+  "dense": {
+    "model": "BAAI/bge-m3",
+    "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "dimension": 1024,
+    "count": 8,
+    "vectors_file": "vectors.npy",
+    "vectors_sha256": "8c12c176bf62601264acaab74425bdba16bf3e7a985b32cabeb461719e4f31fd"
+  },
+  "chunks": [
+    {
+      "chunk_id": "guia-de-uso-01",
+      "source": "guia-de-uso.md",
+      "section": "Guía de uso del agente DSAR",
+      "sha256": "afb26639a4205f47c5cfbd9949d8f0755bd57b6925928abca4b29b9ff284146f",
+      "text": "Esta guía describe las pantallas y los pasos de la aplicación. Es documentación de uso, no normativa: explica dónde se hace cada cosa. El agente prepara expedientes y borradores; las decisiones las toma una persona."
+    },
+    {
+      "chunk_id": "guia-de-uso-02",
+      "source": "guia-de-uso.md",
+      "section": "Registrar una solicitud",
+      "sha256": "399b4e8a72952086659b2ffdbedf4d59121665ed66e0b4a3f86b503ff75852f1",
+      "text": "En **Inicio** se cargan los casos de demostración con «Cargar caso». Para una solicitud propia, abre **Nueva solicitud**, escribe el identificador sintético del titular, elige el perfil de jurisdicción, marca los derechos pedidos, indica la fecha de recepción (por defecto, hoy), marca la identidad solo si fue verificada por el canal autorizado y pulsa «Registrar y tramitar». El motor calcula el estado, los plazos y los registros; el asistente no registra solicitudes por ti."
+    },
+    {
+      "chunk_id": "guia-de-uso-03",
+      "source": "guia-de-uso.md",
+      "section": "Revisar y decidir un expediente (aprobar o rechazar)",
+      "sha256": "54f7ce8a3a23fc994fe1b9c88988f737af43e577756cf7f446e57dbb020a6be8",
+      "text": "Desde el expediente, pulsa «Revisión y decisión». Abajo está el panel **Decisión humana**:\n\n1. Escribe en «Persona que decide» el nombre de quien decide; el aprobador designado se muestra encima (por ejemplo, el Oficial de Datos Personales).\n2. Elige **Aprobar** o **Rechazar** (no hay opción preseleccionada).\n3. Escribe la justificación.\n4. Marca la casilla de confirmación de que revisaste el expediente, los motivos de revisión humana y el borrador.\n5. Pulsa «Registrar decisión».\n\nSolo una persona puede registrar la decisión; el asistente no aprueba, rechaza ni cierra casos, aunque quien pregunte sea el DPO. Un expediente con la identidad pendiente (`IDENTITY_PENDING`) no se puede decidir hasta completar la verificación. Al aprobar se generan los handoffs a otros agentes (evidencia y, según el caso, terceros e inventario) y se muestra el resultado; ninguna acción se ejecuta: siguen siendo propuestas."
+    },
+    {
+      "chunk_id": "guia-de-uso-04",
+      "source": "guia-de-uso.md",
+      "section": "Solicitar una prórroga",
+      "sha256": "382a52e2b0026d0347c7e37dcaf4b490aaa340af88ed42e6e98ec83a7059d916",
+      "text": "En «Revisión y decisión» despliega «Solicitar prórroga». Elige el derecho: el formulario muestra el plazo vigente, la prórroga máxima, el nuevo vencimiento, el tope legal y hasta cuándo debe comunicarse al titular. Escribe los días de prórroga (hasta el máximo), quién decide y el motivo, y pulsa «Registrar prórroga». Se puede una sola vez por derecho y por un plazo igual al legal como máximo (D.S. 016-2024-JUS, art. 71); no aplica al derecho de información."
+    },
+    {
+      "chunk_id": "guia-de-uso-05",
+      "source": "guia-de-uso.md",
+      "section": "Redactar y exportar el borrador",
+      "sha256": "5805878e6bf4ea992e2e34bccf671b3c416048059ebe30941b5e9b64dd53dda4",
+      "text": "En «Revisión y decisión», «Redactar con el asistente» genera el borrador con el modo elegido arriba («Respuestas»: guiado, Ollama, Gemini o Claude Code). El motor pone la estructura y los hechos; un modelo solo redacta la carta al titular. Puedes editarlo en «Editar Markdown», verlo en «Vista previa» y guardarlo con «Exportar expediente». Si ya editaste el borrador, pide confirmación antes de reemplazarlo."
+    },
+    {
+      "chunk_id": "guia-de-uso-06",
+      "source": "guia-de-uso.md",
+      "section": "Usar el asistente (chat)",
+      "sha256": "9c0670c58cf61b9bc3254fedee4369d9faed1cf6b9fb3edf74782512670e4a5e",
+      "text": "En **Asistente** puedes preguntar sin expediente (normativa, definiciones) o elegir uno en «Expediente de contexto» para preguntar por su estado, plazos, motivos de revisión, aprobador, controles, prórroga, campos retirados o sistemas. El asistente no muestra datos personales del titular, no aprueba ni ejecuta nada y rechaza lo que no trata de derechos de los titulares."
+    },
+    {
+      "chunk_id": "guia-de-uso-07",
+      "source": "guia-de-uso.md",
+      "section": "Política de la organización",
+      "sha256": "1239289ba3170c0a3e2cbfd5a8fd3f7d980a0bcc2af37ac230044f9968151102",
+      "text": "En **Organización** se ve y se edita la política (plazos internos más estrictos que la ley, aprobadores, campos confidenciales y sistemas a consultar) y el procedimiento interno. «Validar y guardar» pide confirmación: la API rechaza una política que alargue un plazo legal y la versión anterior queda en el historial. Se aplica a los expedientes que se creen desde ese momento y cuyo perfil coincide con el de la política."
+    },
+    {
+      "chunk_id": "guia-de-uso-08",
+      "source": "guia-de-uso.md",
+      "section": "Auditoría",
+      "sha256": "1fd9bd97fbeb2ed76237c9841eea96e132072c26de60cf2f8f5e165805b87fd5",
+      "text": "En **Auditoría** están la huella del skill, la consulta directa al RAG, la bitácora de llamadas a modelos (solo con el hash del prompt) y los handoffs, con el expediente al que pertenece cada uno."
+    }
+  ]
+}

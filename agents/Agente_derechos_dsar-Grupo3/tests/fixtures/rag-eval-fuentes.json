@@ -1,0 +1,167 @@
+{
+  "descripcion": "Conjunto NUEVO (no se usó para fijar los umbrales de relevancia): por pregunta, los fragmentos que la responden (`answers`; basta mostrar uno) y fragmentos sin relación que no deben mostrarse (`unrelated`). Mide si las fuentes del chat son coherentes con lo que se pregunta. Corrección de etiquetas (2026-10-25): iso-control-map-04 también responde f04 (dice que en Perú es gratuito, art. 67); estaba mal etiquetado como no respuesta.",
+  "queries": [
+    {
+      "id": "f01",
+      "query": "¿Qué es una solicitud DSAR?",
+      "answers": [
+        "demo-questions-01"
+      ],
+      "unrelated": [
+        "case-schema-01",
+        "case-schema-03",
+        "iso-control-map-03"
+      ]
+    },
+    {
+      "id": "f02",
+      "query": "¿Cuánto tarda la respuesta a un pedido de acceso en Perú?",
+      "answers": [
+        "perfil-pe-ley29733-03"
+      ],
+      "unrelated": [
+        "perfil-lab-03",
+        "case-schema-03"
+      ]
+    },
+    {
+      "id": "f03",
+      "query": "¿Quién aprueba una supresión?",
+      "answers": [
+        "organizacion-politica-interna-06"
+      ],
+      "unrelated": [
+        "iso-control-map-03",
+        "perfil-pe-ley29733-07"
+      ]
+    },
+    {
+      "id": "f04",
+      "query": "¿Se puede cobrar por atender una solicitud?",
+      "answers": [
+        "perfil-pe-ley29733-06",
+        "iso-control-map-04"
+      ],
+      "unrelated": [
+        "workflow-and-states-02",
+        "case-schema-04"
+      ]
+    },
+    {
+      "id": "f05",
+      "query": "¿Qué pasa si no se verifica la identidad?",
+      "answers": [
+        "demo-questions-02",
+        "organizacion-politica-interna-04",
+        "workflow-and-states-04"
+      ],
+      "unrelated": [
+        "perfil-pe-ley29733-07",
+        "iso-control-map-03"
+      ]
+    },
+    {
+      "id": "f06",
+      "query": "¿Cómo se pide una prórroga del plazo?",
+      "answers": [
+        "perfil-pe-ley29733-04"
+      ],
+      "unrelated": [
+        "organizacion-politica-interna-09",
+        "case-schema-05"
+      ]
+    },
+    {
+      "id": "f07",
+      "query": "¿Qué controles de ISO 27701 cubre el agente?",
+      "answers": [
+        "iso-control-map-01",
+        "iso-control-map-02",
+        "iso-control-map-03"
+      ],
+      "unrelated": [
+        "perfil-pe-ley29733-10",
+        "organizacion-politica-interna-03"
+      ]
+    },
+    {
+      "id": "f08",
+      "query": "¿Qué tono debe tener la carta al titular?",
+      "answers": [
+        "organizacion-politica-interna-09"
+      ],
+      "unrelated": [
+        "perfil-pe-ley29733-11",
+        "case-schema-02"
+      ]
+    },
+    {
+      "id": "f09",
+      "query": "¿Qué es el derecho de oposición?",
+      "answers": [
+        "perfil-pe-ley29733-10"
+      ],
+      "unrelated": [
+        "case-schema-03",
+        "perfil-lab-02"
+      ]
+    },
+    {
+      "id": "f10",
+      "query": "¿Cuándo se puede denegar una solicitud?",
+      "answers": [
+        "perfil-pe-ley29733-11"
+      ],
+      "unrelated": [
+        "organizacion-politica-interna-08",
+        "perfil-lab-01"
+      ]
+    },
+    {
+      "id": "f11",
+      "query": "¿Qué sistemas se consultan para buscar los datos del titular?",
+      "answers": [
+        "organizacion-politica-interna-08"
+      ],
+      "unrelated": [
+        "perfil-pe-ley29733-12",
+        "iso-control-map-04"
+      ]
+    },
+    {
+      "id": "f12",
+      "query": "¿Qué estados puede tener un expediente?",
+      "answers": [
+        "workflow-and-states-01",
+        "workflow-and-states-02"
+      ],
+      "unrelated": [
+        "perfil-pe-ley29733-08",
+        "perfil-pe-ley29733-12"
+      ]
+    },
+    {
+      "id": "f13",
+      "query": "¿Qué canales hay para presentar una solicitud?",
+      "answers": [
+        "organizacion-politica-interna-03",
+        "perfil-pe-ley29733-05"
+      ],
+      "unrelated": [
+        "iso-control-map-02",
+        "workflow-and-states-04"
+      ]
+    },
+    {
+      "id": "f14",
+      "query": "¿Qué es la portabilidad?",
+      "answers": [
+        "perfil-pe-ley29733-07"
+      ],
+      "unrelated": [
+        "organizacion-politica-interna-09",
+        "case-schema-05"
+      ]
+    }
+  ]
+}

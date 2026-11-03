@@ -1,0 +1,130 @@
+{
+  "descripcion": "Segundo conjunto reservado: escrito antes de medir cualquier modelo de embeddings; solo valida la decision final.",
+  "queries": [
+    {
+      "id": "r01",
+      "query": "si me niegan lo que pedí, a dónde puedo acudir",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-11"
+      ]
+    },
+    {
+      "id": "r02",
+      "query": "puedo mudarme con mis datos a un competidor",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-07"
+      ]
+    },
+    {
+      "id": "r03",
+      "query": "quiero que corrijan el apellido que figura mal",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-08"
+      ]
+    },
+    {
+      "id": "r04",
+      "query": "cuánto cuesta ejercer estos derechos",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-06"
+      ]
+    },
+    {
+      "id": "r05",
+      "query": "se puede pedir más tiempo para contestar",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-04"
+      ]
+    },
+    {
+      "id": "r06",
+      "query": "qué sistemas internos revisan cuando alguien pide su información",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-08"
+      ]
+    },
+    {
+      "id": "r07",
+      "query": "no hay ningún dato de la persona en el CRM, qué se comunica",
+      "kind": "parafrasis",
+      "relevant": [
+        "demo-questions-06",
+        "organizacion-politica-interna-08"
+      ]
+    },
+    {
+      "id": "r08",
+      "query": "puede el departamento legal frenar un borrado por obligaciones tributarias",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-06",
+        "perfil-pe-ley29733-09"
+      ]
+    },
+    {
+      "id": "r09",
+      "query": "se muestra la puntuación de riesgo comercial al cliente",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-07"
+      ]
+    },
+    {
+      "id": "r10",
+      "query": "qué canales acepta la empresa para recibir pedidos",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-03"
+      ]
+    },
+    {
+      "id": "r11",
+      "query": "cómo se prueba que la persona es quien dice ser",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-04",
+        "demo-questions-02"
+      ]
+    },
+    {
+      "id": "r12",
+      "query": "la política de la empresa puede dar más días que la ley",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-02"
+      ]
+    },
+    {
+      "id": "r13",
+      "query": "qué diferencia hay entre los perfiles de práctica académica",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-lab-02",
+        "perfil-lab-01"
+      ]
+    },
+    {
+      "id": "r14",
+      "query": "qué dice el estándar internacional sobre avisar a quienes recibieron los datos",
+      "kind": "parafrasis",
+      "relevant": [
+        "iso-control-map-04"
+      ]
+    },
+    {
+      "id": "r15",
+      "query": "por qué un humano debe revisar antes de borrar algo",
+      "kind": "parafrasis",
+      "relevant": [
+        "demo-questions-03",
+        "workflow-and-states-03"
+      ]
+    }
+  ]
+}

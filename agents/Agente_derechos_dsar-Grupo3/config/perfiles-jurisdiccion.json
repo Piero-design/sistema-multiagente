@@ -1,0 +1,67 @@
+{
+  "LAB-30": {
+    "label": "Política académica de 30 días",
+    "jurisdiction": "LAB",
+    "day_type": "calendar",
+    "response_days": 30,
+    "legal_review_required": false,
+    "disclaimer": "Configuración ficticia para la demostración; no constituye un plazo legal."
+  },
+  "LAB-15-REVIEW": {
+    "label": "Política académica de 15 días con revisión",
+    "jurisdiction": "LAB",
+    "day_type": "calendar",
+    "response_days": 15,
+    "legal_review_required": true,
+    "disclaimer": "Configuración ficticia que exige revisión especializada."
+  },
+  "PE-LEY29733": {
+    "label": "Perú - Ley 29733 y Reglamento D.S. 016-2024-JUS",
+    "jurisdiction": "PE",
+    "day_type": "business",
+    "supported_rights": ["information", "access", "portability", "rectification", "erasure", "objection"],
+    "response_days_by_right": {
+      "information": 8,
+      "access": 20,
+      "portability": 20,
+      "rectification": 10,
+      "erasure": 10,
+      "objection": 10
+    },
+    "legal_basis": {
+      "information": "D.S. 016-2024-JUS, art. 69.1",
+      "access": "D.S. 016-2024-JUS, art. 69.2",
+      "portability": "D.S. 016-2024-JUS, art. 76.1 (manifestación del acceso; se aplica el plazo del art. 69.2)",
+      "rectification": "D.S. 016-2024-JUS, arts. 69.3 y 80",
+      "erasure": "D.S. 016-2024-JUS, arts. 69.3 y 82-85 (cancelación)",
+      "objection": "D.S. 016-2024-JUS, arts. 69.3 y 86"
+    },
+    "extension": {
+      "allowed": true,
+      "max_times": 1,
+      "max_days": "igual al plazo legal",
+      "excluded_rights": ["information"],
+      "basis": "D.S. 016-2024-JUS, art. 71; la ampliación se comunica dentro del plazo que se amplía (art. 71.2) y requiere HITL"
+    },
+    "additional_information": {
+      "request_within_days": 7,
+      "principal_response_days": 10,
+      "basis": "D.S. 016-2024-JUS, art. 70; el plazo de respuesta se suspende mientras el titular atiende el requerimiento"
+    },
+    "request_correction": {
+      "observe_within_days": 5,
+      "cure_days": 5,
+      "basis": "D.S. 016-2024-JUS, art. 66.2; si no se subsana, la solicitud se tiene por no presentada"
+    },
+    "holidays": {
+      "2026": [
+        "2026-01-01", "2026-04-02", "2026-04-03", "2026-05-01", "2026-06-07",
+        "2026-06-29", "2026-07-23", "2026-07-28", "2026-07-29", "2026-08-06",
+        "2026-08-30", "2026-10-08", "2026-11-01", "2026-12-08", "2026-12-09",
+        "2026-12-25"
+      ]
+    },
+    "legal_review_required": false,
+    "disclaimer": "Plazos del D.S. 016-2024-JUS (arts. 69 y 71) en días hábiles para una demostración académica; feriados nacionales 2026. No sustituye asesoría legal."
+  }
+}

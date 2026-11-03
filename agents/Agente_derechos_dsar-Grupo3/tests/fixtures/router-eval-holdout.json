@@ -1,0 +1,25 @@
+{
+  "descripcion": "Conjunto reservado del enrutador: escrito DESPUES de ajustar classify_task con router-eval.json y evals.json, y medido una sola vez sin retocar las senales.",
+  "preguntas": [
+    {"id": "H01", "tarea": "T1", "texto": "Una clienta escribió pidiendo que dejen de usar sus datos, ¿qué hago con esa solicitud?"},
+    {"id": "H02", "tarea": "T1", "texto": "Tramita la solicitud de portabilidad que llegó por el formulario web."},
+    {"id": "H03", "tarea": "T1", "texto": "Necesito dar de alta un pedido de acceso de un trabajador."},
+    {"id": "H04", "tarea": "T1", "texto": "El titular person-003 quiere rectificar su apellido, ¿cómo lo proceso?"},
+    {"id": "H05", "tarea": "T2", "texto": "¿Qué exige la ISO 27701 sobre la verificación de identidad?"},
+    {"id": "H06", "tarea": "T2", "texto": "¿Según la ley se puede cobrar por entregar una copia?"},
+    {"id": "H07", "tarea": "T2", "texto": "¿En qué casos la normativa permite negar la cancelación?"},
+    {"id": "H08", "tarea": "T2", "texto": "¿Qué dice el artículo 76 sobre la portabilidad?"},
+    {"id": "H09", "tarea": "T3", "texto": "Arma el borrador de la comunicación de rechazo."},
+    {"id": "H10", "tarea": "T3", "texto": "Escribe la respuesta que recibirá el titular sobre su rectificación."},
+    {"id": "H11", "tarea": "T3", "texto": "Redáctame una nota para el titular pidiéndole un documento adicional."},
+    {"id": "H12", "tarea": "T3", "texto": "Prepara una carta breve confirmando la recepción de la solicitud."},
+    {"id": "H13", "tarea": "T4", "texto": "¿Hasta qué día tengo para contestar una solicitud recibida el 15/10/2026?"},
+    {"id": "H14", "tarea": "T4", "texto": "¿Cuántos días hay para una portabilidad?"},
+    {"id": "H15", "tarea": "T4", "texto": "¿Qué pasa con el plazo si pido información adicional al titular?"},
+    {"id": "H16", "tarea": "T4", "texto": "¿El sábado cuenta como día hábil para el vencimiento?"},
+    {"id": "H17", "tarea": "T5", "texto": "¿Por qué este expediente necesita revisión de Asesoría Legal?"},
+    {"id": "H18", "tarea": "T5", "texto": "¿Qué sigue con el caso después de la verificación?"},
+    {"id": "H19", "tarea": "T5", "texto": "Explícame por qué se retiró el campo manager_email."},
+    {"id": "H20", "tarea": "T5", "texto": "¿En qué estado está el caso y quién decide?"}
+  ]
+}

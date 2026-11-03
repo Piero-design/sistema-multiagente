@@ -1,0 +1,316 @@
+{
+  "format_version": 2,
+  "corpus": "knowledge/references",
+  "corpus_sha256": "02bc66b3f356506c5ef7fbdd9034ad31863e5dc0cdcd433d24bed207b4458eb1",
+  "dense": {
+    "model": "BAAI/bge-m3",
+    "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "dimension": 1024,
+    "count": 43,
+    "vectors_file": "vectors.npy",
+    "vectors_sha256": "4fd38cf2c9b5da6d6e7398aebf7817de5c33edf7229d013089ee3a1924f9b2d2"
+  },
+  "chunks": [
+    {
+      "chunk_id": "case-schema-01",
+      "source": "case-schema.md",
+      "section": "Solicitud de entrada",
+      "sha256": "d7995394945529a10e59acc0e5362aa6df5a0482914bc785259a192d0826ed7e",
+      "text": "Campos obligatorios:\n\n```json\n{\n  \"request_id\": \"DSAR-DEMO-001\",\n  \"principal_id\": \"person-001\",\n  \"request_types\": [\"access\", \"rectification\"],\n  \"received_at\": \"2026-10-01\",\n  \"policy_id\": \"PE-LEY29733\",\n  \"identity_verification\": {\n    \"status\": \"verified\",\n    \"method\": \"portal-demo\",\n    \"reference\": \"verification-demo-001\"\n  }\n}\n```\n\n`request_types` es una lista con uno o mas derechos: `information`, `access`, `portability`, `rectification`, `erasure` u `objection`. Por compatibilidad se acepta `request_type` con un solo derecho. El perfil decide cuales admite (`information` solo existe en `PE-LEY29733`). El texto libre puede guardarse como contexto, pero nunca se ejecuta ni se interpreta como una instruccion del sistema."
+    },
+    {
+      "chunk_id": "case-schema-02",
+      "source": "case-schema.md",
+      "section": "Perfil de jurisdiccion (politica)",
+      "sha256": "e940a46635912797a602d50cc2d36e2ccd0cbb18e37f728e21852d7e5f779eeb",
+      "text": "```json\n{\n  \"PE-LEY29733\": {\n    \"label\": \"Perú - Ley 29733 y Reglamento D.S. 016-2024-JUS\",\n    \"jurisdiction\": \"PE\",\n    \"day_type\": \"business\",\n    \"supported_rights\": [\"information\", \"access\", \"portability\", \"rectification\", \"erasure\", \"objection\"],\n    \"response_days_by_right\": {\"information\": 8, \"access\": 20, \"rectification\": 10},\n    \"legal_basis\": {\"access\": \"D.S. 016-2024-JUS, art. 69.2\"},\n    \"extension\": {\"allowed\": true, \"max_times\": 1},\n    \"holidays\": {\"2026\": [\"2026-10-08\"]},\n    \"legal_review_required\": false,\n    \"disclaimer\": \"Plazos del D.S. 016-2024-JUS para demostracion academica.\"\n  },\n  \"LAB-30\": {\n    \"label\": \"Política académica de 30 días\",\n    \"day_type\": \"calendar\",\n    \"response_days\": 30,\n    \"legal_review_required\": false,\n    \"disclaimer\": \"Configuracion ficticia; no constituye plazo legal.\"\n  }\n}\n```\n\n- `day_type`: `business` (excluye sabados, domingos y `holidays`) o `calendar`.\n- `response_days_by_right` tiene prioridad sobre `response_days`.\n- Sin `supported_rights`, el perfil admite los cinco derechos clasicos (sin `information`)."
+    },
+    {
+      "chunk_id": "case-schema-03",
+      "source": "case-schema.md",
+      "section": "Registro sintetico",
+      "sha256": "d13660ec2d88c0c11a8819b6e5a0d666251d425f41ebb95614cfbb57ded07b7b",
+      "text": "```json\n{\n  \"principal_id\": \"person-001\",\n  \"record_id\": \"crm-001\",\n  \"source_system\": \"crm-demo\",\n  \"category\": \"contact\",\n  \"sensitive\": false,\n  \"data\": {\"email\": \"demo@example.test\"},\n  \"third_party_fields\": []\n}\n```"
+    },
+    {
+      "chunk_id": "case-schema-04",
+      "source": "case-schema.md",
+      "section": "Expediente generado",
+      "sha256": "95b7d6f56c8c35ae165c1b86dc411949eede6f5bebc9e1b94101ff8ecc879768",
+      "text": "El expediente incluye como minimo:\n\n- `case_id`, `request_type` (primer derecho), `request_types`, `status` y `deadline_at` (plazo mas cercano);\n- `deadlines`: por derecho, `days`, `day_type`, `deadline_at` y `legal_basis`;\n- `policy` con `jurisdiction`, `day_type` y `extension`;\n- resumen de verificacion de identidad, sin documento identificatorio;\n- `discovered_records` con procedencia;\n- `hitl.required` y sus razones;\n- `proposed_action` (primer derecho) y `proposed_actions` (uno por derecho), todos con `executed: false`;\n- `audit_trail` ordenado;\n- hashes SHA-256 de los archivos de entrada;\n- `rag` con consulta, metodo y fragmentos recuperados;\n- advertencia de que se trata de una demostracion academica."
+    },
+    {
+      "chunk_id": "case-schema-05",
+      "source": "case-schema.md",
+      "section": "Contexto RAG",
+      "sha256": "c4a6bafab2710a59a64b9cd696861cfe7555cdbe69421d17ff958cceb4bad3d8",
+      "text": "El bloque `rag` identifica el método de recuperación (`retrieval_method`), el modelo, el almacén de fragmentos y su huella. El almacén se guarda en `rag/store/`; el método por defecto (`auto`) es híbrido: fusiona BM25 (raíces de palabras, sinónimos del dominio y títulos) con embeddings densos multilingües (`BAAI/bge-m3`); si el modelo no está disponible usa solo BM25 y lo deja anotado en `fallback_reason`. Los fragmentos y sus metadatos están en `rag/store/chunks.json` y los vectores en `rag/store/vectors.npy`.\n\nCada fragmento recuperado conserva evidencia suficiente para reproducir la consulta:\n\n```json\n{\n  \"rank\": 1,\n  \"score\": 4.281,\n  \"chunk_id\": \"iso-control-map-02\",\n  \"source\": \"iso-control-map.md\",\n  \"section\": \"Controles principales\",\n  \"sha256\": \"huella-de-64-caracteres\",\n  \"excerpt\": \"Fragmento recuperado para fundamentar el borrador.\"\n}\n```\n\nEl contenido recuperado es contexto de apoyo. No constituye por si mismo una decision legal ni autoriza ejecutar acciones sobre sistemas."
+    },
+    {
+      "chunk_id": "demo-questions-01",
+      "source": "demo-questions.md",
+      "section": "Qué es una solicitud DSAR",
+      "sha256": "a9e5139a0000c77f3f2c391858a4d1165941f32c4ac490ff87f14a903c57940f",
+      "text": "Una solicitud DSAR permite que una persona ejerza derechos sobre sus datos personales. Este agente prepara expedientes de información, acceso, rectificación, supresión o cancelación, portabilidad y oposición, también combinados en una misma solicitud. El acceso permite conocer y solicitar una copia de la información; la rectificación propone corregir información; la supresión pide evaluar su eliminación; la portabilidad propone una copia estructurada; la oposición pide revisar una finalidad de tratamiento. Las condiciones concretas requieren una política aprobada y revisión competente."
+    },
+    {
+      "chunk_id": "demo-questions-02",
+      "source": "demo-questions.md",
+      "section": "Identidad y bloqueo del descubrimiento",
+      "sha256": "29a74f8474e0a880d78775890f723d27a23f717aa5a5dbc544ded683ddd4843c",
+      "text": "La identidad debe verificarse por un canal autorizado antes de descubrir registros de una persona. Una identidad pendiente produce IDENTITY_PENDING y cero registros localizados. El asistente no verifica documentos: consulta el estado externo. La casilla de la interfaz representa ese estado solo para la simulación. Recuperar referencias procedimentales del RAG no es descubrir datos personales."
+    },
+    {
+      "chunk_id": "demo-questions-03",
+      "source": "demo-questions.md",
+      "section": "Revisión humana y siguiente paso del expediente",
+      "sha256": "98abe5ce8723a569984df7852a0eff928cccd899573f36fd19060d4bdf8c1243",
+      "text": "La supresión, rectificación y oposición pueden modificar o restringir el tratamiento y requieren revisión humana. También requieren revisión los datos sensibles, datos de terceros, restricciones de conservación o políticas que exigen evaluación especializada. En IDENTITY_PENDING se completa la identidad por el canal autorizado. En APPROVAL_REQUIRED se revisan los motivos pendientes. En REVIEW se revisa el borrador. Registrar una revisión simulada no ejecuta el derecho ni envía la respuesta."
+    },
+    {
+      "chunk_id": "demo-questions-04",
+      "source": "demo-questions.md",
+      "section": "Plazos, perfiles de jurisdicción y política académica",
+      "sha256": "3792d743ffb34c1a4f64659726db4e8351e73c53b7b09cb65b5a09147f8880c6",
+      "text": "El plazo de cada derecho se calcula desde el día siguiente a la recepción con el perfil seleccionado. El perfil PE-LEY29733 usa días hábiles del Reglamento D.S. 016-2024-JUS: información 8 días, acceso y portabilidad 20 días, rectificación, cancelación y oposición 10 días; excluye sábados, domingos y feriados nacionales. LAB-30 usa 30 días naturales y LAB-15-REVIEW 15 días con revisión especializada; son configuraciones ficticias. ISO/IEC 27701 no fija un plazo universal: exige definirlo. La fecha exacta se obtiene del expediente, no del modelo de lenguaje."
+    },
+    {
+      "chunk_id": "demo-questions-05",
+      "source": "demo-questions.md",
+      "section": "Fuentes, RAG y skill",
+      "sha256": "cdc03b71750f197c8ae74d01efec48f8a56b0e925a1d19475b5e0d64c74c2a4d",
+      "text": "El skill define identidad, activación, pasos y límites del asistente. El RAG divide las referencias en fragmentos y recupera los más relevantes con una búsqueda híbrida: BM25 (raíces de palabras, sinónimos del dominio y títulos de sección) combinada con embeddings multilingües que capturan el significado, de modo que una pregunta con otras palabras puede encontrar el fragmento correcto. La respuesta muestra el archivo, sección y SHA-256. Si el modelo de embeddings no está disponible, se usa solo BM25 y el motivo queda registrado; aun así una paráfrasis sin palabras en común puede no recuperarse. Ollama utiliza las instrucciones del skill y el contexto recuperado para explicar o redactar; el motor DSAR conserva el control sobre los estados y las acciones propuestas."
+    },
+    {
+      "chunk_id": "demo-questions-06",
+      "source": "demo-questions.md",
+      "section": "Borrador y ausencia de registros",
+      "sha256": "a6aea1cd775b48e342d0929d5202fdadd1483f1a45494883a160f4318ff4b180",
+      "text": "Una respuesta preparada sigue siendo un borrador para revisión. Si la identidad está pendiente, informa que no se inició la búsqueda. Si no se encuentran registros, describe ese resultado sin inventar información ni afirmar que no existe dato alguno fuera de las fuentes consultadas. El borrador distingue acción propuesta de acción ejecutada. No se envían correos ni se eliminan datos desde la demostración."
+    },
+    {
+      "chunk_id": "iso-control-map-01",
+      "source": "iso-control-map.md",
+      "section": "Mapa de controles ISO/IEC 27701:2025 para DSAR",
+      "sha256": "bd40a94de9e544a77c49e69a3c2a662aa8b66f6b1f15cea0d9d7c94e6c1b4fc1",
+      "text": "Verificado contra ISO/IEC 27701:2025 (segunda edición, 2025-10): Anexo A, tablas A.1 y A.3, y guía de implementación del Anexo B, apartado B.1.3. Es un resumen para el skill, no reproduce la norma."
+    },
+    {
+      "chunk_id": "iso-control-map-02",
+      "source": "iso-control-map.md",
+      "section": "Controles principales",
+      "sha256": "903e0e48836db6294d446be3a238563a24eb11113b41f5dbf5c1cef93525fcea",
+      "text": "| Control | Título | Qué exige | Cómo lo cumple el skill |\n|---|---|---|---|\n| A.1.3.7 | Access, correction or erasure | Políticas, procedimientos o mecanismos para que el titular acceda, corrija o borre su PII sin demora indebida (B.1.3.7) | Tareas T1 y T3; rectificación y supresión siempre con HITL |\n| A.1.3.9 | Providing copy of PII processed | Entregar copia en formato estructurado y de uso común, solo del titular correcto; portabilidad legible por máquina donde la ley lo pida (B.1.3.9) | Filtro por `principal_id`, retiro de terceros, derecho `portability` |\n| A.1.3.10 | Handling requests | Definir y documentar políticas y procedimientos para responder solicitudes legítimas dentro de tiempos definidos (B.1.3.10) | Perfil de jurisdicción, `deadlines`, expediente y validador |"
+    },
+    {
+      "chunk_id": "iso-control-map-03",
+      "source": "iso-control-map.md",
+      "section": "Controles complementarios",
+      "sha256": "c87a760d5565c146e7df6707cbc12f88a5f242c3bea399101d3673908b7bd8ee",
+      "text": "| Control | Título | Aplicación en el skill |\n|---|---|---|\n| A.1.3.2 | Determining and fulfilling obligations to PII principals | Paso 1 del skill: fijar el perfil legal antes de decidir |\n| A.1.3.3 / A.1.3.4 | Determining / providing information to PII principals | Derecho `information` (PE) y estilo claro del borrador (B.1.3.4) |\n| A.1.3.5 | Mechanism to modify or withdraw consent | Retiro de consentimiento como causa de cancelación (PE, art. 82.1) |\n| A.1.3.6 | Mechanism to object to PII processing | Derecho `objection`, con HITL |\n| A.1.3.8 | PII controllers' obligations to inform third parties | Rectificación, supresión u oposición sobre datos compartidos → derivar al Agente de Terceros y monitorear el acuse (B.1.3.8) |\n| A.1.3.11 | Automated decision making | Las decisiones automatizadas se derivan al DPO; el agente nunca decide solo |\n| A.1.4.8 / A.1.4.9 | Retention / Disposal | Restricciones de conservación en los registros → HITL antes de proponer supresión |\n| A.1.5.4 / A.1.5.5 | Records of transfer / of disclosures to third parties | Saber a quién notificar las correcciones y supresiones |\n| A.3.9 | Access rights | Mínimo privilegio para el agente y sus herramientas |\n| A.3.14 | Protection of records | Expediente con hashes SHA-256 y rastro de auditoría continuo |\n| A.3.25 | Logging | `audit_trail` de cada paso y decisión |\n| A.3.31 | Test information | Solo datos sintéticos (`example.test`) en pruebas y demostraciones |"
+    },
+    {
+      "chunk_id": "iso-control-map-04",
+      "source": "iso-control-map.md",
+      "section": "Interpretación aplicada",
+      "sha256": "ac940452bb688027a66f4942ffb69c61de3365da0c46e5b0da5e2150692b7d5e",
+      "text": "- La norma exige definir un tiempo de respuesta y atender dentro de él (B.1.3.7 y B.1.3.10), pero **no fija un número de días**. El número lo pone la ley del perfil.\n- Toda corrección o supresión debe difundirse a los usuarios autorizados y a los terceros a quienes se transfirió la PII (B.1.3.7 y B.1.3.8).\n- Si los datos ya se suprimieron por la política de conservación, se informa al titular que fueron eliminados (B.1.3.9).\n- No se re-identifica a un titular solo para atender la solicitud cuando sus datos fueron desidentificados (B.1.3.9).\n- Algunas jurisdicciones permiten cobrar por solicitudes excesivas o repetitivas (B.1.3.10). En Perú, sector privado, es gratuito (art. 67).\n- Las excepciones legales no las deduce el modelo: vienen del perfil y las aprueba una persona."
+    },
+    {
+      "chunk_id": "organizacion-politica-interna-01",
+      "source": "organizacion-politica-interna.md",
+      "section": "Política interna DSAR: Comercial Andina S.A.C. (ficticia)",
+      "sha256": "caa7928377e70c36defc581196a781126e270a06939f1c1ee357364974932ad7",
+      "text": "Versión 1.0, vigente desde el 2026-09-01. Perfil legal de referencia: PE-LEY29733. Organización ficticia para la demostración académica; reemplazar este archivo por el procedimiento real de la organización."
+    },
+    {
+      "chunk_id": "organizacion-politica-interna-02",
+      "source": "organizacion-politica-interna.md",
+      "section": "Precedencia frente a la ley",
+      "sha256": "a9d01964a30decb7e5a0d626d527e17dacfe30165769e0544a17bf04b923c094",
+      "text": "La política interna puede ser más estricta que la Ley 29733 y su Reglamento, nunca más permisiva. Si un plazo interno supera el legal, el motor rechaza la política y la deja pendiente de revisión del Oficial de Datos Personales, que debe corregirla antes de tramitar casos. Ante un conflicto entre este procedimiento y la ley, prevalece la ley."
+    },
+    {
+      "chunk_id": "organizacion-politica-interna-03",
+      "source": "organizacion-politica-interna.md",
+      "section": "Canales de recepción",
+      "sha256": "aeb657b6212a843bf6c974fab0e1771d7d7adef5b2b0bb5334f386a7509f4c75",
+      "text": "Las solicitudes se reciben en privacidad@andina.example.test y en el formulario web de derechos. Una solicitud recibida por otro canal (tienda, call center) se registra el mismo día y se traslada al Oficial de Datos Personales."
+    },
+    {
+      "chunk_id": "organizacion-politica-interna-04",
+      "source": "organizacion-politica-interna.md",
+      "section": "Verificación de identidad",
+      "sha256": "ee4ffa7ad7eabc13ec168976295dba85a382eaba5de4adabc10839f1dbc1294c",
+      "text": "Métodos aceptados: correo de confirmación enviado a la dirección registrada, o validación presencial con documento de identidad. No se guardan copias del documento; solo el método, la fecha y la referencia de la verificación. Las solicitudes de representantes requieren poder vigente."
+    },
+    {
+      "chunk_id": "organizacion-politica-interna-05",
+      "source": "organizacion-politica-interna.md",
+      "section": "Plazos internos",
+      "sha256": "d30888000f12d2447f30a12870fc76b2165150ad0dd3f5c932392bb4162254ee",
+      "text": "Comercial Andina responde antes del plazo legal, en días hábiles: información 5, acceso 15, portabilidad 15, rectificación 7, cancelación 10 y oposición 10. El acuse de recibo se envía el mismo día hábil."
+    },
+    {
+      "chunk_id": "organizacion-politica-interna-06",
+      "source": "organizacion-politica-interna.md",
+      "section": "Aprobadores",
+      "sha256": "3243c20d7eef3274e51ad0fb2e4851eaaa28002f640ee9738545e9d3c517b62d",
+      "text": "El Oficial de Datos Personales aprueba toda respuesta. La cancelación (supresión) y la oposición requieren además la revisión de Asesoría Legal, porque pueden chocar con obligaciones de conservación contractuales o tributarias."
+    },
+    {
+      "chunk_id": "organizacion-politica-interna-07",
+      "source": "organizacion-politica-interna.md",
+      "section": "Información confidencial",
+      "sha256": "c990594624f8b4f8ceadd08ecf8b077d80ff643384dac727dd1b31950b482696",
+      "text": "El campo de puntaje interno de riesgo comercial (`internal_risk_score`) se considera secreto comercial y nunca se incluye en la respuesta al titular; se informa su existencia de forma genérica. Los datos de otros clientes o empleados se retiran siempre."
+    },
+    {
+      "chunk_id": "organizacion-politica-interna-08",
+      "source": "organizacion-politica-interna.md",
+      "section": "Sistemas que deben consultarse",
+      "sha256": "7b3b5b9cd26e04e322577012dc27853ee7adf33a6f249760511d117f67132d82",
+      "text": "Toda búsqueda cubre el CRM comercial, el sistema de beneficios y el sistema de recursos humanos (HRIS). Si un sistema no devuelve registros, se confirma con el Agente de Inventario que el titular realmente no figura en él antes de responder."
+    },
+    {
+      "chunk_id": "organizacion-politica-interna-09",
+      "source": "organizacion-politica-interna.md",
+      "section": "Tono de la respuesta",
+      "sha256": "fdba83a6296e763b96d4ac4ebbb57803d41f6b9c6e3326f355d8ff899e99ba9b",
+      "text": "Formal, claro y en español, en segunda persona. Siempre se indican la referencia del caso, el plazo, los derechos del titular y la vía de reclamación ante la Autoridad Nacional de Protección de Datos Personales."
+    },
+    {
+      "chunk_id": "perfil-lab-01",
+      "source": "perfil-lab.md",
+      "section": "Perfiles LAB: demostración académica",
+      "sha256": "16ddff656c7fb8133986864fcbd87908a2757db0ba0f1ab76aa5deaa25593f76",
+      "text": "`LAB-30` y `LAB-15-REVIEW` son políticas ficticias para probar el agente sin depender de una ley real. Úsalos cuando el profesor o la evaluación pidan una configuración neutral."
+    },
+    {
+      "chunk_id": "perfil-lab-02",
+      "source": "perfil-lab.md",
+      "section": "Características",
+      "sha256": "f9d6d601e31b3241874c79fed1c705fff5b64aec422ca3667c03c4f2d6efe912",
+      "text": "| Perfil | Plazo | Tipo de día | Revisión especializada |\n|---|---|---|---|\n| `LAB-30` | 30 días | Naturales | No |\n| `LAB-15-REVIEW` | 15 días | Naturales | Sí: todo caso con identidad verificada pasa a `APPROVAL_REQUIRED` |\n\n- Derechos admitidos: acceso, rectificación, supresión, portabilidad y oposición. El derecho de información no existe en estos perfiles.\n- No citan artículos de ninguna ley. Si la pregunta es legal, responde que el perfil es ficticio y sugiere el perfil `PE-LEY29733`.\n- El plazo se cuenta desde el día siguiente a la recepción, igual que en el perfil PE, para que los resultados sean comparables."
+    },
+    {
+      "chunk_id": "perfil-lab-03",
+      "source": "perfil-lab.md",
+      "section": "Cómo quitar o cambiar una jurisdicción",
+      "sha256": "ae2f235b33c80683dfe050593006db7df096dca1c3486a1cacbfe2012ec16c5b",
+      "text": "Toda la lógica legal vive en el perfil (`config/perfiles-jurisdiccion.json`) y en su referencia. Para usar otra ley se agrega un perfil nuevo con `supported_rights`, `response_days_by_right`, `day_type`, `holidays` y `legal_basis`, más su archivo `perfil-*.md`. El motor no cambia."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-01",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Perfil PE-LEY29733: Perú",
+      "sha256": "b8405587ae47fbf943a96487ce88286506478b2bdf6c459f8f504df9a24b04e8",
+      "text": "Marco: Ley N.° 29733, Ley de Protección de Datos Personales, y su Reglamento aprobado por D.S. N.° 016-2024-JUS (publicado el 30-11-2024, vigente desde el 30-03-2025). Autoridad: Autoridad Nacional de Protección de Datos Personales (ANPD), del Ministerio de Justicia y Derechos Humanos.\n\nResumen académico de los artículos aplicables. No sustituye el texto oficial ni la asesoría legal."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-02",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Derechos admitidos y su código en el motor",
+      "sha256": "91eeea272e6c0a02b9cda75990aba8312c2435fe33a3785c5496affea357b763",
+      "text": "| Derecho (Perú) | Código | Ley 29733 |\n|---|---|---|\n| Información | `information` | art. 18 |\n| Acceso | `access` | art. 19 |\n| Portabilidad (manifestación del acceso) | `portability` | Reglamento, art. 76 |\n| Actualización, inclusión y rectificación | `rectification` | art. 20 |\n| Cancelación o supresión | `erasure` | art. 20 |\n| Oposición | `objection` | art. 22 |\n\nEl tratamiento objetivo (decisiones automatizadas, art. 23 de la Ley) no lo tramita el motor: se deriva al DPO como HITL con el control A.1.3.11."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-03",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Plazos de respuesta (días hábiles)",
+      "sha256": "ce94043f3321cae18eb58d2f9db16d170cc5100888bfcaaa8d66eb2174f099df",
+      "text": "Se cuentan desde el día siguiente a la presentación de la solicitud (Reglamento, art. 69).\n\n| Derecho | Plazo | Base |\n|---|---|---|\n| Información | 8 días hábiles | art. 69.1 |\n| Acceso | 20 días hábiles | art. 69.2 |\n| Portabilidad | 20 días hábiles | art. 76.1 + art. 69.2 (se aplica el plazo del acceso) |\n| Rectificación, cancelación, oposición | 10 días hábiles | art. 69.3 |"
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-04",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Prórroga, requerimientos y subsanación",
+      "sha256": "122de3773494a6512dc80c5d526cf4092adec1c3304e960191f3fe0a14bd95ca",
+      "text": "- **Prórroga (art. 71):** una sola vez, por un plazo igual como máximo, si las circunstancias lo justifican. Debe comunicarse dentro del plazo que se amplía. No aplica al derecho de información.\n- **Información adicional (art. 70):** el responsable puede requerirla dentro de 7 días; el titular tiene 10 días para atenderla. El plazo de respuesta se suspende mientras tanto.\n- **Solicitud incompleta (art. 66.2):** observación en 5 días desde el día siguiente a la recepción; el titular tiene hasta 5 días para subsanar. Si no lo hace, la solicitud se tiene por no presentada.\n- **Recepción por el encargado (art. 66.4):** debe trasladarla al responsable en 3 días.\n\nEl motor calcula la prórroga, la suspensión del art. 70 y la subsanación del art. 66.2, pero solo las aplica una persona."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-05",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Requisitos de la solicitud (art. 64)",
+      "sha256": "9dcbcc8c170c06cf1d085d3ace430b2e44f801cc469f1821efa84f70a46fc48d",
+      "text": "Identidad del titular y, si lo hay, de su representante con su acreditación; petición concreta; domicilio o dirección electrónica para notificaciones; fecha y firma; documentos que sustenten la petición, si corresponden."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-06",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Gratuidad (art. 67)",
+      "sha256": "e433025a806bca12a53b6bfc047472269ecbe1654b20e7096393d79ab0be0d19",
+      "text": "En el sector privado el ejercicio de los derechos es gratuito, salvo normas especiales, y no puede generar ingresos adicionales al responsable."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-07",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Portabilidad (art. 76)",
+      "sha256": "c2b2c8a5fa006d5c1650c6a728082f4dd66579c3a6c199a0415f8741657ebdc2",
+      "text": "- Procede cuando el tratamiento se basa en el consentimiento o en un contrato, o se realiza por medios automatizados.\n- Entrega en formato estructurado, de uso común y legible por máquina.\n- Transmisión directa a otro responsable cuando sea técnicamente posible y no imponga una carga excesiva; quien alegue imposibilidad técnica debe poder demostrarla ante la Autoridad.\n- Los datos derivados o inferidos son portables solo si el responsable lo determina."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-08",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Rectificación (arts. 79-81)",
+      "sha256": "03ff24250b31acd1a546c139d94c7a768d936f53cdb53a1fe0b89371ec379185",
+      "text": "Corrige datos inexactos, erróneos o falsos; actualiza datos modificados; incluye datos faltantes con interés fundado. La solicitud debe indicar qué dato corregir y aportar el sustento."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-09",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Cancelación o supresión (arts. 82-85)",
+      "sha256": "789834c62c57c088eb701a8d1c4e92b027535ea0a251d159c2995565e14e4d10",
+      "text": "- Procede cuando los datos ya no son necesarios, venció su plazo, se revocó el consentimiento o el tratamiento incumple la Ley (art. 82.1).\n- Mientras se evalúa, los datos se **bloquean**: cesa su tratamiento (art. 82.3).\n- Se documenta el cumplimiento y se indica a quién se transfirieron los datos suprimidos (art. 83). Esto se deriva al Agente de Terceros (A.1.3.8).\n- No procede cuando deben conservarse por razones históricas, estadísticas, científicas o contractuales, entre otras (art. 84).\n- Si se deniega, se usan medios de disociación o anonimización cuando sea posible (art. 85)."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-10",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Oposición (art. 86)",
+      "sha256": "c36f651cf38a90ae83042547401492526b85905a5d585259b17b8fddcdcee879",
+      "text": "El titular puede oponerse en cualquier momento al tratamiento, en especial cuando no consintió la recopilación. Requiere HITL porque restringe el tratamiento."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-11",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Denegación y tutela (art. 73; Ley, art. 24)",
+      "sha256": "53ed9acfac6ccb13ef63c2fb2eb7b0a1c3c28475bfc915f8adeaac2a8a4e0ae2",
+      "text": "Toda denegación total o parcial debe motivarse e indicar que el titular puede reclamar ante la Autoridad (Dirección de Protección de Datos Personales) o acudir al Poder Judicial mediante hábeas data."
+    },
+    {
+      "chunk_id": "perfil-pe-ley29733-12",
+      "source": "perfil-pe-ley29733.md",
+      "section": "Oficial de Datos Personales",
+      "sha256": "fe9961b2a54128e6cc1fc079aa102304e0d62c1d952d2a472902d2aaf34c7b9b",
+      "text": "El Reglamento crea la figura del Oficial de Datos Personales, que puede ser el canal de atención de solicitudes. En este skill cumple el papel de aprobador HITL junto al DPO."
+    },
+    {
+      "chunk_id": "workflow-and-states-01",
+      "source": "workflow-and-states.md",
+      "section": "Estados",
+      "sha256": "acb4f46abd811b7b4a4cea4a4e45afeb04d4b1116f6448118b39c4cd2c05012b",
+      "text": "| Estado | Significado |\n|---|---|\n| `RECEIVED` | Solicitud registrada. |\n| `TRIAGED` | Derechos, perfil de jurisdiccion y plazos por derecho clasificados. |\n| `IDENTITY_PENDING` | No se permite buscar PII hasta completar la verificacion. |\n| `VERIFIED` | La verificacion externa fue confirmada. |\n| `DISCOVERY` | Se localizaron fuentes y registros del titular. |\n| `REVIEW` | El expediente y el borrador esperan revision humana ordinaria. |\n| `APPROVAL_REQUIRED` | Existe una decision sensible o una accion que exige autorizacion. |\n| `APPROVED` | La persona autorizada aprobo el plan. |\n| `FULFILLED` | La accion fue ejecutada fuera del prototipo y existe evidencia. |\n| `CLOSED` | El caso fue comunicado y cerrado. |\n| `ON_HOLD` | El plazo o la actividad se encuentra suspendido conforme a una politica. |\n| `REJECTED` | Se rechazo la solicitud con fundamento documentado. |\n| `PARTIALLY_FULFILLED` | Solo una parte pudo atenderse y se explicaron los motivos. |\n| `ESCALATED` | Requiere intervencion del DPO, responsable o asesoria competente. |\n| `CANCELLED` | El titular retiro la solicitud o se aplico otra causa documentada. |"
+    },
+    {
+      "chunk_id": "workflow-and-states-02",
+      "source": "workflow-and-states.md",
+      "section": "Transiciones del prototipo",
+      "sha256": "7f8f656aefd5ce71e4f74ad259d216bb2e43f907df476105f440cb1b48eccf64",
+      "text": "```text\nRECEIVED -> TRIAGED\nTRIAGED -> IDENTITY_PENDING\nTRIAGED -> VERIFIED -> DISCOVERY\nDISCOVERY -> REVIEW\nDISCOVERY -> APPROVAL_REQUIRED\n```\n\nEl motor termina en `IDENTITY_PENDING`, `REVIEW` o `APPROVAL_REQUIRED`. `ON_HOLD` (plazo suspendido), `APPROVED`, `REJECTED` y `CANCELLED` solo se alcanzan con una decision humana registrada; los demas estados representan integraciones futuras."
+    },
+    {
+      "chunk_id": "workflow-and-states-03",
+      "source": "workflow-and-states.md",
+      "section": "Casos que requieren HITL",
+      "sha256": "3b71b292ad6861ec8a1a4fff050076ecaf09c8b8ae7f4800f7a1aa13cb26fecb",
+      "text": "- supresion, rectificacion, restriccion u oposicion que modifique el tratamiento;\n- rechazo total o parcial;\n- datos sensibles o de categorias especiales;\n- datos de terceros o secretos que deban redactarse;\n- conflicto con retencion, contrato, investigacion o mandato aplicable;\n- identidad dudosa, representacion, menores o controversia;\n- solicitud combinada (varios derechos en una misma solicitud);\n- ampliacion/suspension del plazo (prorroga, requerimiento de informacion adicional);\n- transferencia directa a otra organizacion;\n- cualquier comunicacion externa definitiva."
+    },
+    {
+      "chunk_id": "workflow-and-states-04",
+      "source": "workflow-and-states.md",
+      "section": "Invariantes",
+      "sha256": "c8775ce9dadc82d95ad0cb21d81c15d3ee2d59c47483e57a72407716974bbe2f",
+      "text": "1. Una identidad distinta de `verified` produce cero registros descubiertos.\n2. Ninguna accion (`proposed_action` ni `proposed_actions`) contiene `executed: true` en esta fase.\n3. El plazo procede del perfil configurado, no del conocimiento del modelo. Cada derecho tiene su plazo en `deadlines` y `deadline_at` es el mas cercano.\n4. Cada registro entregable conserva `source_system` y `record_id`.\n5. Los campos listados en `third_party_fields` no aparecen en la vista preparada para el titular.\n6. Si cualquiera de los derechos solicitados es `rectification`, `erasure` u `objection`, `hitl.required` es verdadero."
+    }
+  ]
+}

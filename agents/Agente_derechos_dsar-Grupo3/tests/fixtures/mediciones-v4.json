@@ -1,0 +1,181 @@
+{
+  "descripcion": "Mediciones de v4 (dsar-agente-entrega/PROYECTO) tomadas el 2026-10-21 ejecutando su codigo en una copia, con BAAI/bge-m3 revision 5617a9f6. Son el minimo que v5 no puede empeorar.",
+  "rag": {
+    "rag-eval.json": {
+      "tfidf": {
+        "n": 36,
+        "hit@1": 0.388889,
+        "hit@3": 0.416667,
+        "mrr": 0.402778
+      },
+      "bm25-stem-syn-title": {
+        "n": 36,
+        "hit@1": 0.638889,
+        "hit@3": 0.833333,
+        "mrr": 0.722222
+      },
+      "dense": {
+        "n": 36,
+        "hit@1": 0.833333,
+        "hit@3": 0.944444,
+        "mrr": 0.884259
+      },
+      "hybrid": {
+        "n": 36,
+        "hit@1": 0.833333,
+        "hit@3": 0.944444,
+        "mrr": 0.87963
+      }
+    },
+    "rag-eval-holdout.json": {
+      "tfidf": {
+        "n": 14,
+        "hit@1": 0.642857,
+        "hit@3": 0.714286,
+        "mrr": 0.678571
+      },
+      "bm25-stem-syn-title": {
+        "n": 14,
+        "hit@1": 0.428571,
+        "hit@3": 0.928571,
+        "mrr": 0.654762
+      },
+      "dense": {
+        "n": 14,
+        "hit@1": 0.642857,
+        "hit@3": 0.785714,
+        "mrr": 0.714286
+      },
+      "hybrid": {
+        "n": 14,
+        "hit@1": 0.714286,
+        "hit@3": 0.785714,
+        "mrr": 0.738095
+      }
+    },
+    "rag-eval-holdout2.json": {
+      "tfidf": {
+        "n": 15,
+        "hit@1": 0.333333,
+        "hit@3": 0.466667,
+        "mrr": 0.388889
+      },
+      "bm25-stem-syn-title": {
+        "n": 15,
+        "hit@1": 0.466667,
+        "hit@3": 0.8,
+        "mrr": 0.6
+      },
+      "dense": {
+        "n": 15,
+        "hit@1": 0.933333,
+        "hit@3": 0.933333,
+        "mrr": 0.933333
+      },
+      "hybrid": {
+        "n": 15,
+        "hit@1": 0.866667,
+        "hit@3": 0.933333,
+        "mrr": 0.9
+      }
+    }
+  },
+  "guard": {
+    "con_semantica": {
+      "bypass-eval.json": {
+        "evasiones": 38,
+        "bloqueadas": 38,
+        "legitimas": 31,
+        "falsos_positivos": 0
+      },
+      "bypass-eval-holdout.json": {
+        "evasiones": 35,
+        "bloqueadas": 35,
+        "legitimas": 32,
+        "falsos_positivos": 0
+      },
+      "bypass-eval-holdout2.json": {
+        "evasiones": 36,
+        "bloqueadas": 35,
+        "legitimas": 36,
+        "falsos_positivos": 2
+      },
+      "bypass-eval-holdout3.json": {
+        "evasiones": 40,
+        "bloqueadas": 40,
+        "legitimas": 40,
+        "falsos_positivos": 1
+      },
+      "bypass-eval-holdout4.json": {
+        "evasiones": 40,
+        "bloqueadas": 37,
+        "legitimas": 40,
+        "falsos_positivos": 4
+      }
+    },
+    "solo_reglas": {
+      "bypass-eval.json": {
+        "evasiones": 38,
+        "bloqueadas": 38,
+        "legitimas": 31,
+        "falsos_positivos": 0
+      },
+      "bypass-eval-holdout.json": {
+        "evasiones": 35,
+        "bloqueadas": 15,
+        "legitimas": 32,
+        "falsos_positivos": 0
+      },
+      "bypass-eval-holdout2.json": {
+        "evasiones": 36,
+        "bloqueadas": 15,
+        "legitimas": 36,
+        "falsos_positivos": 1
+      },
+      "bypass-eval-holdout3.json": {
+        "evasiones": 40,
+        "bloqueadas": 18,
+        "legitimas": 40,
+        "falsos_positivos": 1
+      },
+      "bypass-eval-holdout4.json": {
+        "evasiones": 40,
+        "bloqueadas": 22,
+        "legitimas": 40,
+        "falsos_positivos": 3
+      }
+    }
+  },
+  "scope": {
+    "con_semantica": {
+      "dominio": 93,
+      "dominio_aceptadas": 90,
+      "ajenas": 24,
+      "ajenas_rechazadas": 24,
+      "cercanas": 8,
+      "cercanas_rechazadas": 5
+    },
+    "sin_semantica": {
+      "dominio": 93,
+      "dominio_aceptadas": 57,
+      "ajenas": 24,
+      "ajenas_rechazadas": 23,
+      "cercanas": 8,
+      "cercanas_rechazadas": 5
+    }
+  },
+  "router": {
+    "evals.json": {
+      "n": 12,
+      "aciertos": 12
+    },
+    "router-eval.json": {
+      "n": 31,
+      "aciertos": 31
+    },
+    "router-eval-holdout.json": {
+      "n": 20,
+      "aciertos": 18
+    }
+  }
+}

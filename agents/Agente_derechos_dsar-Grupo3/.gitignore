@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.env
+# Datos que genera el agente al ejecutarse (relativos a esta carpeta)
+/data/
+/handoffs/
+/exports/
+/salidas/
+/mail/

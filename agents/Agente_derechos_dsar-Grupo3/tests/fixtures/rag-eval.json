@@ -1,0 +1,307 @@
+{
+  "descripcion": "Conjunto de evaluación del RAG: cada consulta con los chunk_id que la responden (basta recuperar uno). 'parafrasis' evita las palabras del texto; 'literal' las comparte.",
+  "queries": [
+    {
+      "id": "p01",
+      "query": "borrar mis datos personales",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-09"
+      ]
+    },
+    {
+      "id": "p02",
+      "query": "quiero que eliminen mi información",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-09"
+      ]
+    },
+    {
+      "id": "p03",
+      "query": "cuánto tiempo tienen para contestarme",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-03",
+        "demo-questions-04",
+        "organizacion-politica-interna-05",
+        "perfil-lab-02"
+      ]
+    },
+    {
+      "id": "p04",
+      "query": "arreglar un dato incorrecto",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-08"
+      ]
+    },
+    {
+      "id": "p05",
+      "query": "negarme a que usen mis datos",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-10"
+      ]
+    },
+    {
+      "id": "p06",
+      "query": "llevarme mis datos a otra empresa",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-07"
+      ]
+    },
+    {
+      "id": "p07",
+      "query": "puedo reclamar si me rechazan la solicitud",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-11",
+        "organizacion-politica-interna-09"
+      ]
+    },
+    {
+      "id": "p08",
+      "query": "tengo que pagar por pedir mis datos",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-06"
+      ]
+    },
+    {
+      "id": "p09",
+      "query": "quién autoriza las respuestas que se envían",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-06",
+        "perfil-pe-ley29733-12"
+      ]
+    },
+    {
+      "id": "p10",
+      "query": "qué pasa si no puedo demostrar quién soy",
+      "kind": "parafrasis",
+      "relevant": [
+        "demo-questions-02",
+        "organizacion-politica-interna-04",
+        "workflow-and-states-04"
+      ]
+    },
+    {
+      "id": "p11",
+      "query": "se puede alargar el tiempo de atención",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-04"
+      ]
+    },
+    {
+      "id": "p12",
+      "query": "qué papeles hay que presentar para pedir mis derechos",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-05"
+      ]
+    },
+    {
+      "id": "p13",
+      "query": "qué información de la empresa no se entrega al cliente",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-07"
+      ]
+    },
+    {
+      "id": "p14",
+      "query": "en qué sistemas buscan mis datos",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-08"
+      ]
+    },
+    {
+      "id": "p15",
+      "query": "cómo debe sonar la carta de respuesta",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-09"
+      ]
+    },
+    {
+      "id": "p16",
+      "query": "por qué una persona debe revisar el caso",
+      "kind": "parafrasis",
+      "relevant": [
+        "demo-questions-03",
+        "workflow-and-states-03"
+      ]
+    },
+    {
+      "id": "p17",
+      "query": "qué estados puede tener un expediente",
+      "kind": "parafrasis",
+      "relevant": [
+        "workflow-and-states-01",
+        "workflow-and-states-02"
+      ]
+    },
+    {
+      "id": "p18",
+      "query": "por dónde puedo mandar mi solicitud",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-03"
+      ]
+    },
+    {
+      "id": "p19",
+      "query": "la empresa puede ser más flexible que la ley",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-02"
+      ]
+    },
+    {
+      "id": "p20",
+      "query": "qué norma internacional respalda esto",
+      "kind": "parafrasis",
+      "relevant": [
+        "iso-control-map-01",
+        "iso-control-map-02"
+      ]
+    },
+    {
+      "id": "p21",
+      "query": "qué exige la norma sobre el tiempo de respuesta",
+      "kind": "parafrasis",
+      "relevant": [
+        "iso-control-map-04"
+      ]
+    },
+    {
+      "id": "p22",
+      "query": "cómo cambiar el país cuya ley se aplica",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-lab-03"
+      ]
+    },
+    {
+      "id": "p23",
+      "query": "qué significa la sigla DSAR",
+      "kind": "parafrasis",
+      "relevant": [
+        "demo-questions-01"
+      ]
+    },
+    {
+      "id": "p24",
+      "query": "qué campos debe traer una solicitud",
+      "kind": "parafrasis",
+      "relevant": [
+        "case-schema-01",
+        "perfil-pe-ley29733-05"
+      ]
+    },
+    {
+      "id": "l01",
+      "query": "plazo acceso dias habiles",
+      "kind": "literal",
+      "relevant": [
+        "perfil-pe-ley29733-03"
+      ]
+    },
+    {
+      "id": "l02",
+      "query": "derecho de supresión",
+      "kind": "literal",
+      "relevant": [
+        "perfil-pe-ley29733-09"
+      ]
+    },
+    {
+      "id": "l03",
+      "query": "rectificación arts 79-81",
+      "kind": "literal",
+      "relevant": [
+        "perfil-pe-ley29733-08"
+      ]
+    },
+    {
+      "id": "l04",
+      "query": "portabilidad art 76",
+      "kind": "literal",
+      "relevant": [
+        "perfil-pe-ley29733-07"
+      ]
+    },
+    {
+      "id": "l05",
+      "query": "oposición art 86",
+      "kind": "literal",
+      "relevant": [
+        "perfil-pe-ley29733-10"
+      ]
+    },
+    {
+      "id": "l06",
+      "query": "control A.1.3.7 acceso corrección",
+      "kind": "literal",
+      "relevant": [
+        "iso-control-map-02"
+      ]
+    },
+    {
+      "id": "l07",
+      "query": "IDENTITY_PENDING cero registros",
+      "kind": "literal",
+      "relevant": [
+        "workflow-and-states-04",
+        "demo-questions-02"
+      ]
+    },
+    {
+      "id": "l08",
+      "query": "Oficial de Datos Personales",
+      "kind": "literal",
+      "relevant": [
+        "perfil-pe-ley29733-12",
+        "organizacion-politica-interna-06"
+      ]
+    },
+    {
+      "id": "l09",
+      "query": "gratuidad del ejercicio de derechos",
+      "kind": "literal",
+      "relevant": [
+        "perfil-pe-ley29733-06"
+      ]
+    },
+    {
+      "id": "l10",
+      "query": "internal_risk_score confidencial",
+      "kind": "literal",
+      "relevant": [
+        "organizacion-politica-interna-07"
+      ]
+    },
+    {
+      "id": "l11",
+      "query": "perfil LAB-15-REVIEW",
+      "kind": "literal",
+      "relevant": [
+        "perfil-lab-01",
+        "perfil-lab-02"
+      ]
+    },
+    {
+      "id": "l12",
+      "query": "prórroga art. 71 información adicional",
+      "kind": "literal",
+      "relevant": [
+        "perfil-pe-ley29733-04"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "descripcion": "Conjunto reservado (holdout): escrito despues de congelar el diccionario de sinonimos; no se uso para ajustar nada.",
+  "queries": [
+    {
+      "id": "h01",
+      "query": "puedo pedir que dejen de tratar mis datos para publicidad",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-10"
+      ]
+    },
+    {
+      "id": "h02",
+      "query": "mis datos están mal escritos, cómo los modifico",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-08"
+      ]
+    },
+    {
+      "id": "h03",
+      "query": "en cuántos días hábiles me responden si pido una copia",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-03",
+        "organizacion-politica-interna-05"
+      ]
+    },
+    {
+      "id": "h04",
+      "query": "la empresa me puede cobrar por atender mi pedido",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-06"
+      ]
+    },
+    {
+      "id": "h05",
+      "query": "quién tiene la última palabra sobre una cancelación",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-06"
+      ]
+    },
+    {
+      "id": "h06",
+      "query": "se guardan fotocopias de mi cédula",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-04"
+      ]
+    },
+    {
+      "id": "h07",
+      "query": "qué hacen si el sistema no tiene nada mío",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-08",
+        "demo-questions-06"
+      ]
+    },
+    {
+      "id": "h08",
+      "query": "puedo recibir mis datos en un archivo que lea el computador",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-07"
+      ]
+    },
+    {
+      "id": "h09",
+      "query": "qué sucede con los datos de otros clientes que aparecen en mi expediente",
+      "kind": "parafrasis",
+      "relevant": [
+        "organizacion-politica-interna-07",
+        "workflow-and-states-03"
+      ]
+    },
+    {
+      "id": "h10",
+      "query": "cuáles son los estados del flujo antes de la aprobación final",
+      "kind": "parafrasis",
+      "relevant": [
+        "workflow-and-states-01",
+        "workflow-and-states-02"
+      ]
+    },
+    {
+      "id": "h11",
+      "query": "qué recomienda la ISO sobre avisar a terceros tras una corrección",
+      "kind": "parafrasis",
+      "relevant": [
+        "iso-control-map-04"
+      ]
+    },
+    {
+      "id": "h12",
+      "query": "ante quién reclamo si no me contestan",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-pe-ley29733-11"
+      ]
+    },
+    {
+      "id": "h13",
+      "query": "las políticas ficticias de laboratorio de 15 días",
+      "kind": "parafrasis",
+      "relevant": [
+        "perfil-lab-02",
+        "perfil-lab-01"
+      ]
+    },
+    {
+      "id": "h14",
+      "query": "cómo sé si mi caso quedó bloqueado por falta de verificación",
+      "kind": "parafrasis",
+      "relevant": [
+        "demo-questions-02",
+        "workflow-and-states-01",
+        "workflow-and-states-04"
+      ]
+    }
+  ]
+}

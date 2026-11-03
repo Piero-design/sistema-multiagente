@@ -1,0 +1,24 @@
+{
+  "org_id": "ORG-ANDINA-001",
+  "name": "Comercial Andina S.A.C. (ficticia)",
+  "version": "1.0",
+  "effective_date": "2026-09-01",
+  "legal_profile": "PE-LEY29733",
+  "internal_response_days_by_right": {
+    "information": 5,
+    "access": 15,
+    "portability": 15,
+    "rectification": 7,
+    "erasure": 10,
+    "objection": 10
+  },
+  "approvers": {
+    "default": "Oficial de Datos Personales",
+    "erasure": "Oficial de Datos Personales y Asesoría Legal",
+    "objection": "Oficial de Datos Personales y Asesoría Legal"
+  },
+  "always_confidential_fields": ["internal_risk_score"],
+  "systems_to_query": ["crm-demo", "benefits-demo", "hris-demo"],
+  "channels": ["privacidad@andina.example.test", "formulario web /derechos"],
+  "identity_methods": ["Correo de confirmación desde la dirección registrada", "Validación presencial con documento"]
+}

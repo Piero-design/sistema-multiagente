@@ -1,0 +1,13 @@
+{
+  "request_id": "DSAR-DEMO-004",
+  "principal_id": "person-001",
+  "request_types": ["rectification", "access"],
+  "received_at": "2026-10-01",
+  "policy_id": "PE-LEY29733",
+  "request_text": "Solicito acceder a mis datos y corregir mi correo electronico.",
+  "identity_verification": {
+    "status": "verified",
+    "method": "portal-demo",
+    "reference": "verification-demo-004"
+  }
+}

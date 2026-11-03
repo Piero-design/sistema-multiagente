@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools==84.2.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsar"
+version = "5.0.0.dev0"
+description = "Agente de Derechos DSAR v5 (ISO/IEC 27701, Ley 29733)"
+requires-python = ">=3.12"
+# dsar.core solo usa la biblioteca estándar; estas dependencias son de la API y el MCP (fase 3).
+dependencies = [
+    "fastapi==0.159.1",
+    "uvicorn==0.54.0",
+    "pydantic==2.14.1",
+    "mcp==2.3.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1", "httpx==0.28.1"]
+# RAG denso (opcional). Instala antes torch solo CPU para no descargar CUDA:
+#   pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+dense = [
+    "torch==2.14.1",
+    "numpy==2.5.4",
+    "sentence-transformers==6.1.0",
+    "transformers==5.20.2",
+    "huggingface_hub==1.33.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"dsar.assistant" = ["guard_examples.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+addopts = "--import-mode=importlib"
