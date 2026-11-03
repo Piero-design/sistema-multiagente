@@ -310,7 +310,7 @@ class G8(_HttpAdapter):
         job = r.json()["job"]
         for _ in range(int(TIMEOUT // 3)):
             st = (await _get(f"{self.base}/api/job/{job}", timeout=15)).json()
-            if st.get("estado") in ("terminado", "completado", "error", "cancelado") or st.get("done"):
+            if st.get("status") not in ("running", "queued", None):   # native job fields: status/eventos/resultado/error
                 return {"output": st, "native_status": 200}
             await asyncio.sleep(3)
         raise TimeoutError("G8: el análisis no terminó a tiempo")

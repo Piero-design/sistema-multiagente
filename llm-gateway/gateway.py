@@ -146,6 +146,7 @@ async def probe():
 
 # ---- OpenAI-compatible ----
 @app.post("/v1/chat/completions")
+@app.post("/openai/v1/chat/completions")  # groq-sdk base-URL layout (Group 8)
 async def oa_chat(req: Request):
     try:
         return await _chat(await req.json())

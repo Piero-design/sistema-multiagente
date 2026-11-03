@@ -141,6 +141,26 @@ services:
     depends_on: {llm-gateway: {condition: service_healthy}}
     networks: [internal]
 
+  agent-g8:
+    build:
+      context: ./agents/Agente_incidentes_brechas-Grupo8
+      dockerfile: Dockerfile                      # the group's own Dockerfile, unmodified
+    restart: unless-stopped
+    environment:
+      # Its Groq branch speaks OpenAI format; groq-sdk reads GROQ_BASE_URL. No GEMINI/ANTHROPIC key is set,
+      # so the agent can only select this gateway-bound provider.
+      GROQ_API_KEY: gateway-managed
+      GROQ_BASE_URL: http://llm-gateway:8080
+      GROQ_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
+      HOST: 0.0.0.0
+      PORT: "3100"
+    volumes:
+      - g8salidas:/app/salidas
+      - g8buzon:/app/buzon
+      - g8contextos:/app/contextos
+    depends_on: {llm-gateway: {condition: service_healthy}}
+    networks: [internal]
+
   # ---- Optional profile: only for the machine that runs Ollama ----
   ollama:
     profiles: [ollama]
@@ -182,5 +202,8 @@ networks:
 volumes:
   pgdata:
   g1data:
+  g8salidas:
+  g8buzon:
+  g8contextos:
   g3data:
   ollama:
