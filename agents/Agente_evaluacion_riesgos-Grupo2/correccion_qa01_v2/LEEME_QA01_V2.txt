@@ -1,0 +1,20 @@
+ISO STUDIO 7.2 - HOTFIX QA-01 V2
+Fecha: 28 de octubre de 2026
+
+Corrige la regresión de la primera versión del parche QA-01: mencionar «página del PDF» ya no clasifica una consulta sobre la cláusula 6.1.2 como GR-06. Debe clasificarse como GR-03. Solo una petición explícita para CREAR un artefacto conserva la categoría GR-06.
+
+Qué modifica:
+- server/lib/scope.js
+- tests/scope-qa01.test.js
+Qué no modifica: n8n, Qdrant, .env, credenciales, corpus, datos, controles de alcance GR-01..GR-06.
+
+El script hace un respaldo, ejecuta los 4 archivos de pruebas de alcance y revierte todo si algo falla. Como el primer parche revirtió automáticamente, no es necesario restaurar nada manualmente.
+
+INSTALACIÓN (PowerShell):
+cd 'C:\Auditoria Agente'
+Expand-Archive "$env:USERPROFILE\Downloads\ISO_STUDIO_72_CORRECCION_QA01_V2.zip" -DestinationPath '.\correccion_qa01_v2' -Force
+python '.\correccion_qa01_v2\APLICAR_QA01_FILTRO_V2.py'
+
+Cuando las pruebas terminen en PASS, reinicia solamente el servidor Node 4317. No es necesario reinstalar RAG ni reiniciar Docker. Mantén el túnel abierto si quieres conservar el enlace público.
+
+NOTA: Este paquete corrige la puerta Express que daba HTTP 403. NO certifica la recuperación RAG de Qdrant. Verifica la ejecución del workflow PUBLICADO en n8n, el nodo Qdrant Vector Store y la presencia de los fragmentos de 6.1.2 (páginas PDF 13-14).

@@ -1,0 +1,22 @@
+ISO Studio 7.2 - QA-05: Mermaid seguro
+
+PROBLEMA:
+Cuando Gemini crea un diagrama Mermaid con etiquetas sin comillas y parentesis,
+Mermaid 11 puede agregar enormes SVG de error al final de la pagina.
+
+SOLUCION:
+- mermaid.parse(suppressErrors:true) valida antes del renderizado.
+- Correccion conservadora de las etiquetas comunes cuando la sintaxis falla.
+- suppressErrorRendering evita SVG globales de error.
+- Mensaje compacto en el chat si el diagrama sigue siendo invalido.
+- Exportaciones PDF/Word que capturan diagramas comparten la misma validacion.
+
+INSTALACION (PowerShell):
+cd 'C:\Auditoria Agente'
+Expand-Archive "$env:USERPROFILE\Downloads\ISO_STUDIO_72_MERMAID_QA05.zip" -DestinationPath '.\qa05_mermaid' -Force
+python '.\qa05_mermaid\APLICAR_MERMAID_SEGURO.py'
+
+El instalador conserva respaldos, ejecuta 6 pruebas y npm run build.
+Si falla, restaura archivos; no toca n8n, Qdrant, .env o el backend.
+Despues usar Ctrl+Shift+R en el navegador y solicitar otro diagrama.
+Si el servidor Node.js 4317 sigue activo, basta refrescar; Cloudflare conserva su enlace.

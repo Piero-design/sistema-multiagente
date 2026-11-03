@@ -1,0 +1,14 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {triageScopeMessage as triage} from '../server/lib/intent-triage.js';
+const at=Date.now();
+const check=(message,kind,pending=null)=>assert.equal(triage(message,{pending}).kind,kind,message);
+for(const q of ['BB Cat','Droguería de gatos, 1000 empleados','Botica Misti, 12 locales y 85 trabajadores'])test('QA08 consulta ambigua '+q,()=>check(q,'clarify'));
+for(const q of ['Evalúa los riesgos de Droguería de Gatos, 1000 empleados','Crea una matriz 5x5 para Droguería de gatos, 1000 empleados'])test('QA08 faltan datos '+q,()=>check(q,'clarify'));
+for(const q of ['Es mi bb cat','Mi gato tiene hambre','Mi bb cat no come','Mi bb cat se va a morir si no come','Se murio mi bb cat','¿Cómo activo trucos en mi videojuego favorito?','Dame una receta de pizza','Dibuja un gato que hable de riesgos','Todo es tu culpa no me ayudaste'])test('QA08 fuera de alcance '+q,()=>check(q,'deny'));
+for(const q of ['Crea una matriz 5x5 para matrícula ficticia y explica supuestos','Según ISO/IEC 27701:2025, explica la cláusula 6.1.2','Botica Misti trata DNI y recetas medicas, utiliza nube y sistema de ventas para clientes. Haz una matriz 5x5 de riesgos de privacidad'])test('QA08 válido '+q,()=>check(q,'pass'));
+test('QA08 añade contexto GR-06 a matriz ficticia para n8n',()=>{const r=triage('Crea una matriz 5x5 para matrícula ficticia y explica supuestos');assert.equal(r.kind,'pass');assert.match(r.forward,/RIESGOS DE PRIVACIDAD/);assert.match(r.forward,/Solicitud del usuario:/)});
+test('QA08 evita bucle: BB Cat después de 2 aclaraciones',()=>{const p={at,rounds:2,context:'BB Cat\nAclaración: es un bb cat'};check('es un bb cat','deny',p)});
+test('QA08 responde con urgencia veterinaria sin preguntar PIMS',()=>{const r=triage('mi bb cat no come, se va a morir');assert.equal(r.kind,'deny');assert.match(r.reason,/veterinaria/);assert.doesNotMatch(r.reason,/PIMS/)});
+test('QA08 mantiene respuesta al siguiente paso de droguería',()=>{const p={context:'Droguería de gatos, 1000 empleados',rounds:1,at};check('Evalúa los riesgos', 'clarify',p);const r=triage('Tenemos un sistema de ventas que trata DNI y teléfonos de clientes; crea la matriz de riesgos',{pending:p});assert.equal(r.kind,'pass');assert.match(r.forward,/Droguería de gatos/)});
+test('QA08 siempre cierra peticiones explícitamente externas tras aclaración',()=>{const p={context:'BB Cat',rounds:1,at};check('Mi gato tiene hambre','deny',p);check('Quiero trucos de un videojuego','deny',p)});

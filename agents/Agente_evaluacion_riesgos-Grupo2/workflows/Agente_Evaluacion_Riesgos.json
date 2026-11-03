@@ -1,0 +1,198 @@
+{
+  "name": "Agente_Evaluacion_Riesgos",
+  "nodes": [
+    {
+      "parameters": {
+        "public": false,
+        "options": {}
+      },
+      "id": "baf815b5-8b92-4f7c-8e86-d888b0658d29",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        208
+      ],
+      "webhookId": "35a4bf70-a831-45b5-b52b-36fd4bcdf879"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres un asistente especialista en evaluación de riesgos según ISO/IEC 27701:2025. Respondes en el idioma del usuario.\nCuando el usuario describa un sistema, un proceso, un proveedor o una actividad, o pida evaluar, identificar o tratar riesgos:\n1. Llama PRIMERO a la herramienta obtener_skill_evaluacion y sigue al pie de la letra el procedimiento que devuelve.\n2. Usa la herramienta buscar_iso27701 antes de afirmar cualquier requisito, cláusula o control, y cita la cláusula. Si no la encuentras, dilo; no inventes.\nPara saludos o preguntas generales, responde directamente. Si la consulta no tiene relación con evaluación de riesgos o ISO 27701, indícalo amablemente."
+        }
+      },
+      "id": "dd7f5201-daa3-4355-9539-e2073a7d3316",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        352,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "5288525a-8387-4f78-9743-11dd3aa29afe",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        432
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "7e69859a-813a-4604-a26d-3960e3f9839e",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        304,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Busca requisitos, cláusulas y controles de la norma ISO/IEC 27701",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "iso27701",
+          "cachedResultName": "iso27701"
+        },
+        "topK": 5
+      },
+      "id": "6bb01716-37aa-4b53-a14c-ab7343a20348",
+      "name": "buscar_iso27701",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        432
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "145b28bd-1201-4b00-b666-8d028a4254fe",
+      "name": "Embeddings Google Gemini",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        480,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Úsala SIEMPRE que el usuario describa un sistema, proceso, proveedor o actividad, o pida evaluar o tratar riesgos. Devuelve el procedimiento y el formato de evaluación.",
+        "workflowId": {
+          "__rl": true,
+          "value": "jyuH4AQedEGPgS6W",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/jyuH4AQedEGPgS6W",
+          "cachedResultName": "Skill_Evaluacion_Riesgos_27701"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "f6a89c5b-bf24-49e1-8cdc-ded48d0eaf40",
+      "name": "obtener_skill_evaluacion",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        368
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_iso27701": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "buscar_iso27701",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "obtener_skill_evaluacion": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}

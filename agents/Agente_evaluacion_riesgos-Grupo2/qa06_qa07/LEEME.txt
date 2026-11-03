@@ -1,0 +1,14 @@
+ISO STUDIO 7.2 - QA06 y QA07
+QA06: reconoce consultas ambiguas y pide información antes de elaborar matrices organizacionales insuficientes; conserva preguntas generales ISO verificadas y rechazo de temas ajenos.
+QA07: contiene errores React con Error Boundary y aviso breve de errores JavaScript no controlados. No altera la generación Mermaid de QA05.
+
+INSTALACION (después de QA04 + QA05):
+cd 'C:\Auditoria Agente'
+Expand-Archive "$env:USERPROFILE\Downloads\ISO_STUDIO_72_QA06_QA07_DIALOGO_GUIADO.zip" -DestinationPath '.\qa06_qa07' -Force
+python '.\qa06_qa07\INSTALAR_QA06_QA07.py'
+
+Reinicia node server/index.js en otra consola y Ctrl+Shift+R en el navegador.
+Estado SCOPE_N8N_REVIEWED=false no cambia. Qdrant y n8n no se modifican.
+IMPORTANTE: pruebas automáticas NO prueban respuestas reales de Gemini ni la lectura de PDF.
+Prueba inicial: 'BB Cat' -> solicita datos. 'Droguería de gatos, 1000 empleados' -> solicita datos. Solicitud real sin contexto -> pide datos. Caso ficticio con supuestos -> permite. Trucos de videojuegos -> rechaza.
+Tras recuperar claridad, el nodo Code de n8n debe conservar la especialización GR-01..06, ya que el backend no protege webhooks expuestos directamente.
