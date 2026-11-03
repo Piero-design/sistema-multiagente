@@ -1,0 +1,237 @@
+{
+  "agent_id": "inventario",
+  "agent_directory": "Agente_inventario_datos-Grupo6",
+  "contract_version": "1.0",
+  "status": "ok",
+  "accion": "registrar_activos",
+  "request_id": "demo-grupo06-001",
+  "motor": "reglas_locales",
+  "simulado": false,
+  "data": {
+    "activos": [
+      {
+        "id": "ACT-a4cc95caaef59cfefbecc30a",
+        "organizacion": "UNSA-DEMO",
+        "sistema": "Matrícula",
+        "fuente": {
+          "id": "matricula-formulario-v1",
+          "nombre": "Formulario de matrícula (ficticio)",
+          "formato": "csv",
+          "sha256": "d8dda83c9072b2d606665ef722f16c894051d1888d61c870bd700f8130860dc0"
+        },
+        "campos": [
+          {
+            "nombre": "nombre_completo",
+            "categoria": "Identificación",
+            "es_pii": true,
+            "sensibilidad": "Por determinar",
+            "clasificacion": "inferida_por_nombre",
+            "confianza": "Coincidencia de taxonomía; no probabilidad",
+            "requiere_validacion": true,
+            "evidencia": {
+              "fuente_id": "matricula-formulario-v1",
+              "ubicacion": "cabecera.columna[1]",
+              "campo": "nombre_completo",
+              "tipo": "campo_en_fuente"
+            }
+          },
+          {
+            "nombre": "dni",
+            "categoria": "Identificación",
+            "es_pii": true,
+            "sensibilidad": "Por determinar",
+            "clasificacion": "inferida_por_nombre",
+            "confianza": "Coincidencia de taxonomía; no probabilidad",
+            "requiere_validacion": true,
+            "evidencia": {
+              "fuente_id": "matricula-formulario-v1",
+              "ubicacion": "cabecera.columna[2]",
+              "campo": "dni",
+              "tipo": "campo_en_fuente"
+            }
+          },
+          {
+            "nombre": "correo_institucional",
+            "categoria": "Contacto",
+            "es_pii": true,
+            "sensibilidad": "Por determinar",
+            "clasificacion": "inferida_por_nombre",
+            "confianza": "Coincidencia de taxonomía; no probabilidad",
+            "requiere_validacion": true,
+            "evidencia": {
+              "fuente_id": "matricula-formulario-v1",
+              "ubicacion": "cabecera.columna[3]",
+              "campo": "correo_institucional",
+              "tipo": "campo_en_fuente"
+            }
+          },
+          {
+            "nombre": "fecha_nacimiento",
+            "categoria": "Demográficos",
+            "es_pii": true,
+            "sensibilidad": "Por determinar",
+            "clasificacion": "inferida_por_nombre",
+            "confianza": "Coincidencia de taxonomía; no probabilidad",
+            "requiere_validacion": true,
+            "evidencia": {
+              "fuente_id": "matricula-formulario-v1",
+              "ubicacion": "cabecera.columna[4]",
+              "campo": "fecha_nacimiento",
+              "tipo": "campo_en_fuente"
+            }
+          }
+        ],
+        "contexto": {
+          "finalidad": {
+            "valor": "Gestionar la matrícula (declaración ficticia para la demostración)",
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.finalidad"
+          },
+          "base_juridica": {
+            "valor": "Por determinar",
+            "origen": "pendiente",
+            "evidencia": null
+          },
+          "titulares": {
+            "valor": [
+              "Estudiantes"
+            ],
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.titulares"
+          },
+          "responsable": {
+            "valor": "Secretaría académica (ficticia)",
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.responsable"
+          },
+          "accesos": {
+            "valor": [
+              "Personal autorizado de matrícula"
+            ],
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.accesos"
+          },
+          "almacenamiento": {
+            "valor": "Base de matrícula (ficticia)",
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.almacenamiento"
+          },
+          "transferencias": {
+            "valor": [
+              "Sistema académico (ficticio)"
+            ],
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.transferencias"
+          },
+          "retencion": {
+            "valor": "Por determinar",
+            "origen": "pendiente",
+            "evidencia": null
+          }
+        },
+        "estado": "pendiente_validacion",
+        "requiere_validacion": true,
+        "motor": "reglas_locales",
+        "simulado": false,
+        "revision_sha256": "6190c795104a35a25be95c20b985169478f96322f4b6aa3f416afaa0e732b802"
+      }
+    ],
+    "total_activos": 1,
+    "total_campos": 4,
+    "advertencias": [],
+    "requiere_validacion": true,
+    "tratamientos": [
+      {
+        "id": "TRAT-a4cc95caaef59cfefbecc30a",
+        "activo_id": "ACT-a4cc95caaef59cfefbecc30a",
+        "sistema": "Matrícula",
+        "datos": [
+          "nombre_completo",
+          "dni",
+          "correo_institucional",
+          "fecha_nacimiento"
+        ],
+        "categorias": [
+          "Contacto",
+          "Demográficos",
+          "Identificación"
+        ],
+        "contexto": {
+          "finalidad": {
+            "valor": "Gestionar la matrícula (declaración ficticia para la demostración)",
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.finalidad"
+          },
+          "base_juridica": {
+            "valor": "Por determinar",
+            "origen": "pendiente",
+            "evidencia": null
+          },
+          "titulares": {
+            "valor": [
+              "Estudiantes"
+            ],
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.titulares"
+          },
+          "responsable": {
+            "valor": "Secretaría académica (ficticia)",
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.responsable"
+          },
+          "accesos": {
+            "valor": [
+              "Personal autorizado de matrícula"
+            ],
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.accesos"
+          },
+          "almacenamiento": {
+            "valor": "Base de matrícula (ficticia)",
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.almacenamiento"
+          },
+          "transferencias": {
+            "valor": [
+              "Sistema académico (ficticio)"
+            ],
+            "origen": "declarado_en_solicitud",
+            "evidencia": "fuente[matricula-formulario-v1].contexto.transferencias"
+          },
+          "retencion": {
+            "valor": "Por determinar",
+            "origen": "pendiente",
+            "evidencia": null
+          }
+        },
+        "pendientes": [
+          "base_juridica",
+          "retencion"
+        ],
+        "estado": "borrador",
+        "flujos": [
+          {
+            "origen": "Matrícula",
+            "destino": "Sistema académico (ficticio)",
+            "campos": [
+              "nombre_completo",
+              "dni",
+              "correo_institucional",
+              "fecha_nacimiento"
+            ],
+            "evidencia": "fuente[matricula-formulario-v1].contexto.transferencias",
+            "estado": "declarado_pendiente_validacion"
+          }
+        ],
+        "requiere_validacion": true
+      }
+    ],
+    "persistido": true,
+    "registro": {
+      "creados": 1,
+      "actualizados": 0,
+      "sin_cambios": 0
+    }
+  },
+  "error": null
+}

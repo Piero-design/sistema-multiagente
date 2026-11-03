@@ -1,85 +1,110 @@
-# Grupo 6 · PII Privacy Assistant
+# Grupo 06 · Agente de Inventario de Datos Personales
 
-Inventario de datos personales para el TIF de Auditoría de Sistemas de la UNSA. Esta carpeta reúne el material recibido, una aplicación HTML que funciona localmente y el contexto para que otra IA continúe el proyecto.
+Implementación ejecutable de **Agente_inventario_datos-Grupo6** para `Piero-design/sistema-multiagente`. Registra activos, clasifica campos y prepara el mapa de tratamientos. Incluye skill de dominio, CLI, API FastAPI, herramientas MCP, SQLite propia y panel de demostración.
 
-## Abrir y probar
+**Motor actual: reglas locales, sin LLM.** Calcula resultados a partir de la entrada; no usa respuestas prefabricadas. Las fuentes del ejemplo y el expediente DSAR de prueba son ficticios. La integración con el orquestador central sigue pendiente porque ese ejecutor no existe en el repositorio inspeccionado.
 
-Abre [index.html](index.html) en un navegador. No requiere instalación, claves ni conexión a Internet.
+## Instalación
 
-1. Entra en **Analizar fuente** y pulsa **Cargar texto de ejemplo**.
-2. Pulsa **Generar inventario**. Deben reconocerse cuatro campos: nombre, DNI, correo y fecha de nacimiento. La huella dactilar está negada en el ejemplo y se omite.
-3. Abre **Inventario**, revisa la evidencia en el detalle y completa únicamente contexto confirmado. Puedes editar la finalidad, responsables, accesos y demás campos.
-4. Exporta CSV o JSON. Ambos contienen los registros que coinciden con los filtros activos; limpia los filtros para exportar todo.
-5. Si deseas conservar el inventario al recargar, activa **Guardar inventario en este navegador**. Desactivarlo elimina esa copia local. Sin esta opción los cambios duran hasta cerrar o recargar.
-
-El primer análisis con resultados reemplaza la muestra ficticia. Los siguientes agregan campos de otras fuentes. Repetir contenido, nombre de fuente, sistema y campo omite duplicados cuando SHA-256 está disponible. **Cargar inventario de muestra** reemplaza el inventario actual previa confirmación.
-
-Para un origen local estable, también puedes ejecutar desde la raíz del repositorio:
+Desde la raíz del repositorio, con Python 3.11 o superior:
 
 ```bash
-python3 -m http.server 8006 --bind 127.0.0.1 --directory agents/Agente_inventario_datos-Grupo6
+cd agents/Agente_inventario_datos-Grupo6
+python -m venv .venv
 ```
 
-Abre `http://127.0.0.1:8006`. El almacenamiento pertenece al origen del navegador: un archivo local y esta URL no comparten necesariamente inventario. El comportamiento de almacenamiento en `file://` depende del navegador; exporta una copia antes de mover el archivo.
+Activa el entorno: Windows `.venv\Scripts\activate`; macOS/Linux `source .venv/bin/activate`. Después:
 
-## Archivos y autoría
+```bash
+python -m pip install -r requirements.txt
+```
 
-- [index.html](index.html): versión funcional añadida para apoyar al grupo 6, a partir del diseño recibido.
-- [originales/PII Privacy Assistant.html](originales/PII%20Privacy%20Assistant.html): HTML recibido, sin modificaciones.
-- [originales/Auditoria.pdf](originales/Auditoria.pdf): informe recibido, sin modificaciones.
-- Este Markdown: guía de uso, revisión y encargo para la siguiente IA.
+No requiere claves, Ollama ni una base compartida. Se comprobó con Python 3.13.5, FastAPI 0.136.3, Pydantic 2.13.4 y MCP 1.27.2. Usa un entorno propio: el Grupo 3 declara otra versión mayor del SDK MCP y ambos servicios pueden comunicarse sin mezclar sus dependencias.
 
-Integrantes según la portada del informe recibido:
+## Ejecutar y exponer en clase
 
-- Pacheco Esquinarila Milene Yamilet.
-- Viviano Bustamante Adrian Uriel.
-- Almanza Mamani Edgar Raúl.
-- Puma Larico Cristhian Willians.
+```bash
+python -m uvicorn inventario.api:app --host 127.0.0.1 --port 8006
+```
 
-La identificación como grupo 6 fue indicada por el usuario. Esta carpeta pertenece al agente de inventario del repositorio `Piero-design/sistema-multiagente`. El descriptor previo [Agente_inventario_datos-Grupo6.md](Agente_inventario_datos-Grupo6.md) conserva las responsabilidades y las skills previstas. Esta aplicación funciona de forma independiente y todavía no se conecta al orquestador ni a la base de datos compartida.
+Abre [el panel local](http://127.0.0.1:8006), pulsa **Cargar ejemplo**, **Analizar sin guardar** y después **Registrar activos**. Consulta **Inventario guardado**, **Mapa de tratamientos** y **Cobertura de ejemplo**. El contrato navegable está en [Swagger](http://127.0.0.1:8006/docs).
 
-## Qué se revisó
+El ejemplo reconoce un activo de Matrícula con cuatro campos: nombre, DNI, correo y fecha de nacimiento. El contexto ficticio declara una finalidad, responsable y transferencia. La retención y base jurídica permanecen `Por determinar`. La cobertura distingue Matrícula inventariada de Biblioteca sin activos y siempre solicita validación; no busca personas.
 
-El informe de 15 páginas define cuatro fases: pasar del prompt a un procedimiento, especificar la Skill **PII Inventory Analyzer**, configurar **PII Privacy Assistant** y describir el prompt maestro. La regla central consiste en separar evidencia e inferencia y dejar pendiente lo que la fuente no documenta.
+Por consola, desde esta misma carpeta:
 
-El HTML recibido era un prototipo visual: navegación, fases, inventario ficticio editable, filtros y copia del prompt. No contenía un analizador de entradas ni persistencia. Su exportación dependía del entorno Claude y ofrecía copiar el CSV como alternativa fuera de él. Su inventario mostraba cinco columnas de datos, mientras que el informe proponía un esquema más completo.
+```bash
+python agent.py --estado
+python agent.py --entrada examples/registro_matricula.json
+python agent.py --entrada examples/consulta.json
+python agent.py --entrada examples/cobertura.json
+python agent.py --entrada examples/handoff_dsar.json --handoff --organizacion UNSA-DEMO
+```
 
-La versión funcional mantiene el diseño y las secciones conceptuales originales, y añade:
+Los comandos usan la misma SQLite que la API: `data/inventario.sqlite3`, relativa a esta carpeta, no al directorio desde el que arrancó el proceso. Para aislar una demostración, usa `--db data/demo.sqlite3`; en API/MCP puedes configurar `INVENTARIO_DB_PATH`. CLI y MCP también aceptan `--db`.
 
-- Texto pegado o archivos UTF-8 TXT, Markdown, CSV, JSON y SQL; máximo 1 MB por archivo y 200 000 caracteres de entrada.
-- Reconocimiento de nombres de campos en español y algunos alias técnicos en inglés mediante reglas locales, sin extraer los valores de personas.
-- Categorías de identificación, contacto, demografía, economía, academia, empleo, salud, biometría y genética. Las categorías son sugerencias por nombre, sujetas a revisión.
-- Evidencia con campo reconocido y número de línea; hash SHA-256 del texto analizado cuando el navegador lo permite.
-- Detalle y edición del contexto: sensibilidad, sistema, finalidad, categoría de titular, responsable, accesos, almacenamiento, transferencia, retención, confianza y observaciones. Lo desconocido queda pendiente.
-- Revisión manual declarada y fecha al marcar un registro como Validado. No existe autenticación ni firma de un revisor.
-- Persistencia opcional de metadatos en `localStorage`, borrado y exportaciones CSV/JSON completas. El CSV neutraliza celdas que empiezan con operadores de fórmula.
-- Recursos de interfaz locales, sin llamadas a servicios externos ni fuentes remotas.
+## Herramientas MCP para el integrador
 
-## Límites de esta versión
+```bash
+python mcp_server.py
+# Alternativa HTTP local independiente de FastAPI:
+python mcp_server.py --http --port 8007
+```
 
-El motor **no es un modelo de IA**. Busca alias literales; puede producir falsos positivos o dejar de detectar campos desconocidos. Un resultado vacío no demuestra ausencia de PII. No determina obligaciones legales ni certifica cumplimiento.
+El servidor real se llama `inventario-agent`; el alias de destinatario que usa DSAR es `inventario`. Expone seis herramientas: `inventario_ejecutar`, `inventario_registrar_activos`, `inventario_consultar`, `inventario_clasificar_datos`, `inventario_mapear_tratamientos` e `inventario_confirmar_cobertura`. Carga [SKILL.md](SKILL.md) y las tres skills de dominio como instrucciones para el modelo cliente. No hay un LLM incorporado al servidor.
 
-El tratamiento de negaciones es conservador: omite cláusulas con palabras como «no», «sin» o «excepto». Puede omitir una afirmación válida en una cláusula mixta. CSV y JSON se leen como texto; no hay todavía un parser estructural ni rutas de celda o propiedad. La confianza describe el método usado, no una probabilidad calibrada.
+El cliente puede leer los recursos MCP `inventario://contrato` e `inventario://ejemplo` para consultar el contrato y una entrada ficticia sin acceder al disco del servidor.
 
-PDF, Word, imágenes y OCR no se procesan. El PDF de esta carpeta es material de referencia para el proyecto. Los campos de finalidad, responsable, retención o base jurídica no se deducen automáticamente. Las referencias normativas del material original no se verificaron jurídicamente en esta implementación.
+Ejemplo de configuración **para un cliente MCP**, sustituyendo ambas rutas por rutas absolutas de la máquina donde se ejecute:
 
-El contenido completo pegado queda en la caja de texto hasta limpiarla o cerrar la página; no se guarda en `localStorage`. Sí pueden quedar nombres de fuente, sistemas y contexto escrito por el usuario en el inventario. El guardado local no está cifrado ni sincronizado. Usa datos ficticios para la exposición y exporta antes de borrar o reemplazar un inventario.
+```json
+{
+  "mcpServers": {
+    "inventario": {
+      "command": "/RUTA/AL/GRUPO6/.venv/bin/python",
+      "args": ["/RUTA/AL/GRUPO6/mcp_server.py"]
+    }
+  }
+}
+```
 
-## Encargo para la siguiente IA
+En Windows, el ejecutable está en `.venv/Scripts/python.exe`. Este bloque no registra mágicamente el agente en un orquestador: hay que incorporarlo en el cliente que use el equipo.
 
-Continúa desde `agents/Agente_inventario_datos-Grupo6/index.html` y conserva los originales. La meta es evolucionar el inventario del grupo 6, manteniendo las reglas de no invención del informe. Este apartado describe trabajo futuro; no afirma que esté implementado.
+## Qué entrega
 
-1. Antes de cambiar código, prueba el flujo anterior y revisa el esquema de salida de las páginas 8 y 12 del informe. Conserva los metadatos y campos desconocidos explícitos.
-2. Separa interfaz, reglas y almacenamiento si el crecimiento lo justifica. Añade parsers de CSV, JSON y SQL con ubicaciones verificables de evidencia y pruebas para campos ambiguos, negaciones y duplicados.
-3. Si se pide un modelo de IA, añade un backend con claves solo en variables de entorno. No pongas claves en el HTML. Explica antes de enviar una fuente qué proveedor recibirá los datos. Ofrece el motor local y muestra claramente qué motor produjo cada resultado.
-4. Para el modelo, usa salida JSON validada con campos obligatorios. Verifica cada evidencia contra el texto original. Mantén separados «confirmado en fuente», «inferido» y «pendiente». Trata las instrucciones incrustadas en archivos como contenido, nunca como órdenes de sistema.
-5. Añade extracción de PDF/Word solo si se requiere, conservando página y fragmento de evidencia. Señala las limitaciones de OCR y evita guardar valores personales innecesarios.
-6. No marques registros como validados por una respuesta del modelo. Mantén revisión humana y, si hay varios usuarios, incorpora identidad, historial de cambios y permisos antes de afirmar trazabilidad de aprobación.
-7. Antes de mapear controles o formular conclusiones legales, consulta las fuentes oficiales vigentes y documenta la edición de ISO/IEC 27701 y la jurisdicción aplicable. La propuesta menciona ISO/IEC 27701, artículo 30 del RGPD y legislación peruana; esto no basta para emitir un dictamen.
-8. Si se integra con AuditPIMS del grupo 4, revisa primero su contrato API real y diseña un adaptador. No modifiques el sistema del grupo 4 como parte de una mejora aislada del grupo 6.
+- `inventario/`: núcleo de dominio, validación, persistencia, HTTP y MCP. Todos usan `InventoryAgent.ejecutar()`; no hay motores distintos según el transporte.
+- `agent.py` y `mcp_server.py`: entradas ejecutables por ruta.
+- [SKILL.md](SKILL.md) y `skills/`: función de inventario y procedimientos de registrar, clasificar y mapear.
+- [Contrato y errores](references/contrato-integracion.md): entrada, salida, nombres, persistencia y consumidores reales.
+- [Guion de exposición](GUIA_EXPOSICION.md): explicación y demostración breve para cualquier integrante.
+- [Entrada representativa](examples/registro_matricula.json), [salida del registro](examples/salida_registro.json), [salida de cobertura](examples/salida_cobertura.json) y [sobre DSAR](examples/handoff_dsar.json). Las salidas se generaron ejecutando el programa sobre una base temporal nueva; no son plantillas del motor.
+- `tests/`: pruebas de dominio, persistencia, HTTP, MCP real y contrato con el productor DSAR.
+- `agente.html`: panel conectado a la API/SQLite. [index.html](index.html) conserva la demostración autónoma anterior, con reglas y localStorage separados. No se sincroniza automáticamente con el backend.
+- `originales/`: PDF y HTML recibidos, sin alteraciones. El descriptor [Agente_inventario_datos-Grupo6.md](Agente_inventario_datos-Grupo6.md) conserva la asignación original.
 
-Criterios de aceptación de la próxima versión: entrada real con evidencia rastreable, desconocidos explícitos, clasificaciones inferidas identificadas, ausencia de secretos en el cliente, exportación sin pérdida de campos y pruebas de persistencia, errores y texto hostil. Actualiza esta guía para distinguir lo implementado de lo pendiente.
+## Persistencia y revisión
 
-## Verificación realizada · 3 de noviembre de 2026
+Un activo se identifica por organización, sistema normalizado e ID de fuente. Repetir una revisión devuelve `sin_cambios`; actualizarla cambia la vista actual y conserva su historial. El lote de fuentes se analiza completo antes de una transacción de registro. SQLite usa tablas `inv6_assets` e `inv6_revisions` y no modifica otros agentes.
 
-Se revisaron las 15 páginas del PDF y el JavaScript original. La aplicación se comprobó con Chromium automatizado: navegación, fases, análisis del ejemplo, negaciones, alias SQL/CSV, deduplicación, evidencia y hash, filtros, edición, guardado y recuperación, exportación CSV/JSON, neutralización de fórmulas, texto HTML tratado como texto, borrado y visualización móvil. Todas estas comprobaciones pasaron, sin errores de JavaScript ni solicitudes de red. Se revisó visualmente la pantalla de análisis en escritorio y móvil. No se probaron Safari o Firefox.
+El agente conserva nombres de campos, sus ubicaciones, hashes y contexto declarado; descarta los valores originales de CSV/JSON y el contenido completo de las fuentes. Los nombres de fuente, claves JSON y contexto también pueden ser confidenciales: usa esquemas con nombres de campo y ejemplos ficticios. No suministres documentos JSON indexados por nombres o identificadores de personas como si fueran esquemas.
+
+Todos los activos y tratamientos quedan pendientes de validación. El servicio no autentica revisores ni emite aprobación legal. La separación por `organizacion` es un filtro lógico, no un control de acceso; estos servidores se arrancan en loopback para uso local.
+
+## Verificación y pendientes
+
+Para ejecutar las pruebas:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+```
+
+Se comprobaron 16 pruebas: clasificación, desconocidos, potencial sensibilidad, no conservación de valores, CSV/JSON, negaciones, entrada hostil como datos, registro idempotente, historial, aislamiento lógico por organización, atomicidad ante fuente inválida, fallos de almacenamiento, cobertura, exportación para auditoría, HTTP y cliente MCP real por stdio. También se llamó a la CLI con registro y recepción de handoff. El test del productor DSAR necesita un checkout que incluya `agents/Agente_derechos_dsar-Grupo3/src/dsar/storage/handoffs.py`; si solo se descarga esta carpeta, esa prueba se omite explícitamente.
+
+La prueba de interoperabilidad DSAR usa el generador real del Grupo 3 sobre un expediente ficticio. No ejecuta una aprobación real ni el ciclo completo de DSAR. No se ejecutó un coordinador central, un modelo ni una conexión Gestitel/SQLite compartida. Los transportes y las operaciones de inventario comprobados son reales.
+
+El panel se probó contra un servidor Uvicorn real en Chromium: análisis sin guardar, registro, consulta de SQLite, mapa, cobertura y descarga JSON. Se revisó en escritorio y móvil, sin desborde horizontal ni errores JavaScript.
+
+Queda pendiente: elegir y configurar el ejecutor central; acordar permisos y modelo de datos compartido; revisión humana autenticada; conectar consumidores de riesgos/incidentes/terceros a las consultas; probar el flujo completo en el entorno del equipo. Un LLM, PDF/Word/OCR y una extracción semántica de contexto no están implementados. Las reglas de texto pueden omitir cláusulas mixtas por su tratamiento conservador de negaciones. CSV/JSON tienen parsers estructurales; SQL solo puede inspeccionarse como texto de forma limitada.
+
+Las referencias normativas del informe se conservan como contexto académico; esta entrega no realizó un dictamen jurídico. El grupo debe revisar esas fuentes antes de presentar conclusiones legales.

@@ -1,0 +1,38 @@
+{
+  "agent_id": "inventario",
+  "agent_directory": "Agente_inventario_datos-Grupo6",
+  "contract_version": "1.0",
+  "status": "ok",
+  "accion": "confirmar_cobertura",
+  "request_id": null,
+  "motor": "reglas_locales",
+  "simulado": false,
+  "data": {
+    "organizacion": "UNSA-DEMO",
+    "sistemas": [
+      {
+        "sistema": "Matrícula",
+        "estado": "inventariado_pendiente_validacion",
+        "activo_ids": [
+          "ACT-a4cc95caaef59cfefbecc30a"
+        ],
+        "categorias": [
+          "Contacto",
+          "Demográficos",
+          "Identificación"
+        ]
+      },
+      {
+        "sistema": "Biblioteca",
+        "estado": "sin_activos_en_inventario",
+        "activo_ids": [],
+        "categorias": []
+      }
+    ],
+    "found_systems_dsar": [],
+    "requiere_validacion": true,
+    "modifica_expediente_dsar": false,
+    "advertencia": "Inventariar un sistema no demuestra que contenga registros de un titular ni resuelve la cobertura DSAR."
+  },
+  "error": null
+}

@@ -1,0 +1,22 @@
+{
+  "accion": "registrar_activos",
+  "organizacion": "UNSA-DEMO",
+  "request_id": "demo-grupo06-001",
+  "fuentes": [
+    {
+      "id": "matricula-formulario-v1",
+      "nombre": "Formulario de matrícula (ficticio)",
+      "sistema": "Matrícula",
+      "formato": "csv",
+      "contenido": "nombre_completo,dni,correo_institucional,fecha_nacimiento\nPersona de prueba,00000000,ejemplo@example.invalid,2000-01-01",
+      "contexto": {
+        "finalidad": "Gestionar la matrícula (declaración ficticia para la demostración)",
+        "titulares": ["Estudiantes"],
+        "responsable": "Secretaría académica (ficticia)",
+        "accesos": ["Personal autorizado de matrícula"],
+        "almacenamiento": "Base de matrícula (ficticia)",
+        "transferencias": ["Sistema académico (ficticio)"]
+      }
+    }
+  ]
+}
