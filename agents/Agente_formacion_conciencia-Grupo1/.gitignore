@@ -1,0 +1,172 @@
+# ============================================================
+# GITIGNORE - AGENTE FORMACIÓN UNSA (PIMS ISO 27701)
+# ============================================================
+
+# ----------------------------------------
+# Python
+# ----------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ----------------------------------------
+# Entornos virtuales
+# ----------------------------------------
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ----------------------------------------
+# Base de datos SQLite
+# ----------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+agente.db
+agente.db-journal
+
+# ----------------------------------------
+# ChromaDB (base vectorial)
+# ----------------------------------------
+chroma_db/
+.chroma/
+*.chroma
+
+# ----------------------------------------
+# Evidencias generadas (certificados, PDFs)
+# ----------------------------------------
+evidencias/
+*.pdf
+!knowledge_base/**/*.pdf
+!docs/**/*.pdf
+
+# ----------------------------------------
+# Variables de entorno (CRÍTICO - contiene API keys)
+# ----------------------------------------
+.env
+.env.local
+.env.*.local
+*.env.backup
+secrets/
+*.key
+*.pem
+
+# ----------------------------------------
+# Logs
+# ----------------------------------------
+*.log
+logs/
+*.log.*
+
+# ----------------------------------------
+# Node.js / Frontend
+# ----------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+dist/
+dist-ssr/
+*.local
+
+# Vite
+.vite/
+.vite-cache/
+
+# ----------------------------------------
+# IDE / Editores
+# ----------------------------------------
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ----------------------------------------
+# Sistema operativo
+# ----------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# ----------------------------------------
+# Testing / Coverage
+# ----------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+
+# ----------------------------------------
+# Jupyter
+# ----------------------------------------
+.ipynb_checkpoints/
+
+# ----------------------------------------
+# Archivos temporales del proyecto
+# ----------------------------------------
+contexto_backend.md
+contexto_proyecto.txt
+*.bak
+*.old
+*.tmp
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# ----------------------------------------
+# Documentos pesados (opcional)
+# Descomenta si no quieres subir los PDFs originales
+# ----------------------------------------
+# knowledge_base/**/*.pdf
+# knowledge_base/**/*.docx
+# knowledge_base/**/*.html
+
+# ----------------------------------------
+# Lock files
+# ----------------------------------------
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+requirements.lock
