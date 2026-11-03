@@ -1,0 +1,131 @@
+# Default run (laptop, no Ollama):  docker compose up --build -d
+# Other computer with Ollama:        docker compose --profile ollama up --build -d
+# Only the frontend publishes a port. Agent services are added in Step 7.
+
+x-llm-env: &llm-env
+  LLM_MODE: ${LLM_MODE:-cloud}
+  LLM_API_KEY: ${LLM_API_KEY:-}
+  LLM_BASE_URL: ${LLM_BASE_URL-https://generativelanguage.googleapis.com/v1beta/openai}
+  LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
+  LLM_EMBED_MODEL: ${LLM_EMBED_MODEL:-gemini-embedding-001}
+  LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-120}
+  LLM_MAX_CONCURRENCY: ${LLM_MAX_CONCURRENCY:-4}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gestitel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gestitel_dev_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-gestitel}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  db-init:
+    image: postgres:17-alpine
+    restart: "no"
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gestitel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gestitel_dev_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-gestitel}
+      ORCHESTRATOR_DB_PASSWORD: ${ORCHESTRATOR_DB_PASSWORD:-orch_dev_pw}
+    volumes:
+      - ./database:/database:ro
+      - ./docker/scripts/db-init.sh:/db-init.sh:ro
+    entrypoint: ["sh", "/db-init.sh"]
+    networks: [internal]
+
+  llm-gateway:
+    build:
+      context: .
+      dockerfile: docker/gateway.Dockerfile
+    restart: unless-stopped
+    environment: *llm-env
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db-init: {condition: service_completed_successfully}
+      llm-gateway: {condition: service_healthy}
+    environment:
+      DB_HOST: postgres
+      DB_NAME: ${POSTGRES_DB:-gestitel}
+      DB_USER: orchestrator_rw
+      DB_PASSWORD: ${ORCHESTRATOR_DB_PASSWORD:-orch_dev_pw}
+      GATEWAY_URL: http://llm-gateway:8080
+      # Agent base URLs (services added in Step 7); an unreachable agent is reported as "caido".
+      AGENT_G1_URL: http://agent-g1:8000
+      AGENT_G2_URL: http://agent-g2:4317
+      AGENT_G3_URL: http://agent-g3:8001/mcp
+      AGENT_G4_URL: http://agent-g4:8004
+      AGENT_G5_URL: http://agent-g5:5678
+      AGENT_G7_URL: http://agent-g7:5007
+      AGENT_G8_URL: http://agent-g8:3100
+    networks: [internal, public]
+    ports:
+      - "${FRONTEND_PORT:-8080}:8000"   # until the frontend service exists, the backend serves /api
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  # ---- Optional profile: only for the machine that runs Ollama ----
+  ollama:
+    profiles: [ollama]
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # Optional GPU (uncomment on a machine with NVIDIA Container Toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - {driver: nvidia, count: all, capabilities: [gpu]}
+
+  ollama-init:
+    profiles: [ollama]
+    image: ollama/ollama:latest
+    restart: "no"
+    depends_on:
+      ollama: {condition: service_healthy}
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5:7b}
+      LLM_EMBED_MODEL: ${LLM_EMBED_MODEL:-nomic-embed-text}
+    entrypoint: ["sh", "-c", "ollama pull \"$$LLM_MODEL\" && ollama pull \"$$LLM_EMBED_MODEL\""]
+    networks: [internal]
+
+networks:
+  internal:
+    internal: false
+  public: {}
+
+volumes:
+  pgdata:
+  ollama:

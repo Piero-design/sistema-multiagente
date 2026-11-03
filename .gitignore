@@ -1,1 +1,14 @@
 .env
+
+# integration
+.env.*
+!.env.example
+!.env.ollama.example
+*.pdf
+!agents/**/*.pdf
+/ocr_output/
+/data/
+__pycache__/
+*.pyc
+node_modules/
+.venv/
