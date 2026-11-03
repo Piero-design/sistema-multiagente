@@ -1,0 +1,16 @@
+ISO Studio 7.2: compartir SIN contraseña durante las pruebas de compañeros
+
+1. Detener npm run dev (Ctrl+C) para liberar 4317.
+2. Extraer este paquete en C:\Auditoria Agente\publicar_iso\.
+3. Ejecutar:
+   powershell -NoProfile -ExecutionPolicy Bypass -File 'C:\Auditoria Agente\publicar_iso\PUBLICAR_ISO_STUDIO.ps1'
+4. Copiar del terminal la URL https://xxxxx.trycloudflare.com
+5. Enviar a compañeros:
+   Web: https://xxxxx.trycloudflare.com
+   Word: https://xxxxx.trycloudflare.com/PLAN_PRUEBAS_ISO_STUDIO_7_2.docx
+
+Este modo es publico: CUALQUIER PERSONA que conozca la URL puede usar la app y consumir tokens o cuotas de Gemini/Tavily.
+NO publica n8n ni Qdrant. El mismo sistema redirige desde Cloudflare al servidor local puerto 4317.
+La bandera SCOPE_N8N_REVIEWED sigue en false. El estado public_testing significa pruebas; NO certificacion.
+Cierra cloudflared (Ctrl+C) cuando acaben. La URL deja de funcionar al cerrarse.
+Para revertir bandera publica: CERRAR_ACCESO_PUBLICO.ps1 y reiniciar Node.

@@ -1,0 +1,63 @@
+{
+  "name": "Skill_Artefactos_ISO_Studio",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "ced58979-606d-4e8b-939a-ba50629750a4",
+      "name": "When executed by another workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "skill-field",
+              "name": "skill",
+              "value": "SKILL: Artefactos ISO Studio 7.2 — Gestión de Riesgos (GR-01...GR-06).\n\nOBJETIVO EXCLUSIVO: crear PDF, Word, Excel, infografías y diagramas Mermaid SOLO cuando la solicitud y el contenido traten de gestión de riesgos de información y privacidad en organizaciones. Consulta el System Message GR 7.2 del agente principal, que se aplica sin excepción. No desarrollar programación, redes, marketing, cocina, imagen artística, política u otros temas generales. Ante solicitudes mezcladas: rechazo o pide reformular solo la parte autorizada.\n\nALCANCE AUTORIZADO: GR-01 conceptos; GR-02 contexto; GR-03 identificación y evaluación; GR-04 tratamiento y controles; GR-05 seguimiento y mejora; GR-06 matrices, ejercicios ficticios y entregables sobre los cinco anteriores. Ninguna solicitud sobre otra ISO, BIA integral, pentesting independiente u otros temas se autoriza por invocar esta Skill.\n\nFUENTES: ISO/IEC 27701:2025 extracto 20 páginas, sin anexos completos, es la única norma ISO autorizada. CISA (2024) es contexto conceptual y únicamente secciones filtradas. No citar páginas ni cláusulas sin evidencias RAG verificables. No inventar requisitos ISO ni declarar auditorías o certificaciones reales.\n\nDOCUMENTOS: entregar Markdown completo con título, secciones y tablas Markdown. El servidor produce el fichero; la Skill no afirma generarlo por sí sola. Las puntuaciones de riesgo son ejemplos con supuestos y escalas explícitas. Diagramas Mermaid en bloques de código cuando se soliciten, no más de 25 nodos salvo necesidad justificada. Imágenes solo como material ilustrativo relacionado con Gestión de Riesgos. La salida externa debe revisarse por la política del servidor antes de exportarse.\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "404e3e6a-2f2e-47d2-8470-b62395bac4d0",
+      "name": "Edit Fields (Set)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When executed by another workflow": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields (Set)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "id": "de6f7850-dbe7-4e8d-9b7e-622701c58f30",
+  "tags": []
+}

@@ -1,0 +1,30 @@
+# Secrets / personal configuration
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.p12
+*.key
+*credentials*.json
+
+# JS / frontend
+**/node_modules/
+**/dist/
+**/.local-artifacts/
+**/.vite/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local backups (do not publish)
+*.sqlite
+*.db
+**/backups/
+**/secrets/

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 2,
+  "phase": "approved",
+  "scopeId": "ISO-GR-2026",
+  "topic": "Gestión de Riesgos",
+  "topicDescription": "Gestión de riesgos de información y privacidad en organizaciones; no temas ISO generales",
+  "allowedIsoStandards": [
+    "ISO/IEC 27701:2025"
+  ],
+  "authorizedSources": [
+    {
+      "id": "ISO27701_2025_EXTRACT",
+      "filename": "ISO 27701-2025-1-20.pdf",
+      "role": "normative",
+      "pagesReceived": 20,
+      "limitations": "No se recibió contenido de anexos"
+    },
+    {
+      "id": "CISA_2024_EXTRACT",
+      "filename": "CISA Official Review Manual (2024)-170-577.pdf",
+      "role": "academic_support",
+      "pagesReceived": 408,
+      "limitations": "Extracto de manual mayor, solo secciones autorizadas"
+    }
+  ],
+  "allowedSubtopics": [
+    "GR-01",
+    "GR-02",
+    "GR-03",
+    "GR-04",
+    "GR-05",
+    "GR-06"
+  ],
+  "allowExtensions": false,
+  "forbiddenExtensions": [
+    "GR-X1",
+    "GR-X2"
+  ],
+  "allowedExternalVerification": true,
+  "approval": {
+    "state": "approved_by_user",
+    "date": "2026-10-28",
+    "basis": "Propuesta v0.2 aprobada expresamente en conversación"
+  },
+  "sourcePages": {
+    "GR-01": {
+      "iso": [
+        8,
+        9,
+        10
+      ],
+      "cisa": [
+        400,
+        401
+      ]
+    },
+    "GR-02": {
+      "iso": [
+        10,
+        11,
+        12,
+        13
+      ],
+      "cisa": [
+        193
+      ]
+    },
+    "GR-03": {
+      "iso": [
+        13,
+        14,
+        18
+      ],
+      "cisa": [
+        348
+      ]
+    },
+    "GR-04": {
+      "iso": [
+        14,
+        15,
+        18
+      ],
+      "cisa": [
+        156
+      ]
+    },
+    "GR-05": {
+      "iso": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "cisa": []
+    },
+    "GR-06": {
+      "iso": [
+        13,
+        14,
+        15,
+        18,
+        19,
+        20
+      ],
+      "cisa": [
+        29,
+        34,
+        156,
+        193,
+        348
+      ]
+    }
+  },
+  "notes": "Páginas 1-indexadas del archivo PDF, no equivalentes a numeración editorial. No incorporar ni permitir GR-X1 ni GR-X2."
+}
