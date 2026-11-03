@@ -1,0 +1,88 @@
+{
+  "valido": true,
+  "errores": [],
+  "advertencias": [
+    "Perfil en estado Borrador: debe validarlo el DPO antes de un uso formal."
+  ],
+  "documentos": [
+    {
+      "id": "D1",
+      "titulo": "Comite_y_Lider_de_Gobierno_Digital",
+      "nombre": "Comite_y_Lider_de_Gobierno_Digital.md",
+      "sha256": "43a16049bfca4f491761543ec47c2829b21a8452d65c1f6ad6a24fa17bfdae22",
+      "paginas": null,
+      "tipo": "Otro"
+    },
+    {
+      "id": "D2",
+      "titulo": "Designacion_del_Oficial_de_Datos_Personales",
+      "nombre": "Designacion_del_Oficial_de_Datos_Personales.md",
+      "sha256": "2007517c7ee3ccd98a4e8f4b55066a89670fdccfd9ba853f9754b80de68264c8",
+      "paginas": null,
+      "tipo": "Otro"
+    },
+    {
+      "id": "D3",
+      "titulo": "Designacion_del_Oficial_de_Gobierno_de_Datos",
+      "nombre": "Designacion_del_Oficial_de_Gobierno_de_Datos.md",
+      "sha256": "5f6d3ef22fc67deeba5ae9f557135bfcdbf3b5e6b071db72f952e94f0b748571",
+      "paginas": null,
+      "tipo": "Otro"
+    },
+    {
+      "id": "D4",
+      "titulo": "Designacion_del_OSCD_RR_1244-2025_",
+      "nombre": "Designacion_del_OSCD_RR_1244-2025_.md",
+      "sha256": "33859b7cba2059c6252ea2b8d4731e1c78f1cfc5d8b5832e3e5032d53ccc5119",
+      "paginas": null,
+      "tipo": "Otro"
+    },
+    {
+      "id": "D5",
+      "titulo": "Directiva_de_Transparencia_y_Acceso_a_la_Informacion",
+      "nombre": "Directiva_de_Transparencia_y_Acceso_a_la_Informacion.md",
+      "sha256": "0dd95b9f518e8a81d0badbf126b4be95a0375f3112a25951b8cf84aede3f941e",
+      "paginas": null,
+      "tipo": "Otro"
+    },
+    {
+      "id": "D6",
+      "titulo": "estatuto-unsa",
+      "nombre": "estatuto-unsa.md",
+      "sha256": "e81ce784ccbc55175cba32b532176a3091a2bef148a87d206b8b791218eb7f0d",
+      "paginas": null,
+      "tipo": "Otro"
+    },
+    {
+      "id": "D7",
+      "titulo": "Lineamiento_002-2023-UM-OTI",
+      "nombre": "Lineamiento_002-2023-UM-OTI.md",
+      "sha256": "e2ab2acd5b9fd9ea46f935c09b0873fd3d940c87c137e422bc0297c6371b8825",
+      "paginas": null,
+      "tipo": "Otro"
+    },
+    {
+      "id": "D8",
+      "titulo": "Mapa_de_Procesos",
+      "nombre": "Mapa_de_Procesos.md",
+      "sha256": "e5de9b7eb2633ca28f7c32b1f9823f4cbb6cd91cc8fe4874f36393ac93e285f2",
+      "paginas": null,
+      "tipo": "Otro"
+    },
+    {
+      "id": "D9",
+      "titulo": "ROF",
+      "nombre": "ROF.md",
+      "sha256": "13a69e0349deaf01dbe118ab1b517812a0b361cb952aa19e33f214eaf6082c15",
+      "paginas": null,
+      "tipo": "Otro"
+    }
+  ],
+  "sin_texto": [],
+  "generado": "2026-10-14T09:17:16.090-05:00",
+  "modelo": "sonnet",
+  "proveedor": "claude_code",
+  "reintentos": 1,
+  "ajustes_automaticos": [],
+  "notas_recortadas": 0
+}

@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditor de DPAs</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%2316284a'/><circle cx='8' cy='4' r='1.9' fill='%2322a06b'/><circle cx='8' cy='8' r='1.9' fill='%23c9861a'/><circle cx='8' cy='12' r='1.9' fill='%23cf3b45'/></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================================
+   Auditor de DPAs — tema claro
+   Layout: barra superior fija de producto + dos columnas (formulario de pasos
+   sticky a la izquierda, informe desplazable a la derecha); una columna < 1040px.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Color — neutros con sesgo frío hacia el azul institucional de la marca */
+  --lienzo:        #f2f5f9;
+  --superficie:    #ffffff;
+  --hueco:         #eef2f7;
+  --borde:         #dce3ed;
+  --borde-fuerte:  #c2cdde;
+
+  --tinta:         #16284a;   /* titulares, marca */
+  --texto:         #3b4760;
+  --texto-suave:   #6d7b94;
+
+  --acento:        #15618f;   /* azul interactivo */
+  --acento-vivo:   #0f4e75;
+  --acento-tenue:  #e8f1f8;
+
+  /* Semántica del semáforo — independiente del acento, legible sobre blanco */
+  --cumple:        #0d7a4f;
+  --parcial:       #a5620a;
+  --no-cumple:     #b32430;
+  --sin-evidencia: #5c6b82;
+  --no-aplica:     #98a4b8;
+
+  /* Tipografía */
+  --f-titulo: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-ui:     "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --f-dato:   "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Métrica */
+  --r-chico:  6px;
+  --r:        10px;
+  --r-grande: 14px;
+  --barra:    61px;
+  --sombra:   0 1px 2px rgba(22, 40, 74, .05), 0 6px 18px -8px rgba(22, 40, 74, .10);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--lienzo);
+  color: var(--texto);
+  font-family: var(--f-ui);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+  border-radius: var(--r-chico);
+}
+
+/* ============================ Barra de producto ========================== */
+
+.barra-app {
+  background: var(--superficie);
+  border-bottom: 1px solid var(--borde);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.barra-interior {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1600px;
+  padding: 13px 24px;
+}
+
+.marca { align-items: center; display: flex; gap: 12px; min-width: 0; }
+
+.marca-mark { display: block; flex: none; height: 30px; width: 30px; }
+
+.marca-texto { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+
+.marca-nombre {
+  color: var(--tinta);
+  font-family: var(--f-titulo);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+}
+
+.marca-rol { color: var(--texto-suave); font-size: 12.5px; }
+
+.barra-meta { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; }
+
+.insignia {
+  background: var(--acento-tenue);
+  border: 1px solid #cfe2ef;
+  border-radius: 100px;
+  color: var(--acento-vivo);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  padding: 3px 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.norma {
+  border-left: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-size: 12px;
+  padding-left: 12px;
+  white-space: nowrap;
+}
+
+/* ================================ Rejilla =============================== */
+
+.app {
+  align-items: start;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(340px, 400px) minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1600px;
+  padding-block: 20px;
+  padding-inline: 24px;
+}
+
+.columna-entrada { position: sticky; top: calc(var(--barra) + 20px); }
+
+.tarjeta {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-grande);
+  box-shadow: var(--sombra);
+}
+
+/* ============================ Cinta de la fuente ======================== */
+
+.cinta {
+  align-items: flex-start;
+  background: var(--acento-tenue);
+  border-bottom: 1px solid #cfe2ef;
+  border-radius: var(--r-grande) var(--r-grande) 0 0;
+  color: #154a6e;
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 12px 22px;
+}
+
+.cinta-icono { flex: none; font-size: 14px; line-height: 1.35; }
+.cinta strong { color: var(--tinta); display: block; font-weight: 600; }
+.cinta code {
+  background: rgba(255, 255, 255, .75);
+  border: 1px solid #cfe2ef;
+  border-radius: 4px;
+  font-family: var(--f-dato);
+  font-size: 11px;
+  padding: 0 4px;
+}
+
+/* ================================= Pasos ================================ */
+
+.paso { padding: 20px 22px; }
+.paso + .paso { border-top: 1px solid var(--borde); }
+
+.paso-cab { align-items: center; display: flex; gap: 10px; margin-bottom: 14px; }
+
+.paso-num {
+  align-items: center;
+  background: var(--tinta);
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  height: 21px;
+  justify-content: center;
+  width: 21px;
+}
+
+.paso-cab h2 {
+  color: var(--tinta);
+  font-family: var(--f-titulo);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ================================ Campos ================================ */
+
+label {
+  color: var(--texto-suave);
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.campo + .campo { margin-top: 16px; }
+
+input[type="password"],
+input[type="text"],
+textarea {
+  background: var(--superficie);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-chico);
+  color: var(--texto);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 9px 11px;
+  transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+}
+
+input[type="password"], textarea { font-family: var(--f-dato); }
+
+textarea {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.65;
+  min-height: 210px;
+  resize: vertical;
+}
+
+input:hover, textarea:hover { border-color: #a9b8ce; }
+
+input:focus, textarea:focus {
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px rgba(21, 97, 143, .12);
+  outline: none;
+}
+
+::placeholder { color: #93a1b8; }
+
+.ayuda { color: var(--texto-suave); font-size: 12px; line-height: 1.5; margin: 6px 0 0; }
+.ayuda-previa { margin: -6px 0 12px; }
+
+/* ============================ Casos de prueba =========================== */
+
+.casos { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+
+.btn-caso {
+  align-items: center;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--r);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  gap: 11px;
+  padding: 10px 12px;
+  text-align: left;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+  width: 100%;
+}
+
+.btn-caso:hover { background: #fbfcfe; border-color: var(--borde-fuerte); }
+
+.btn-caso.activo {
+  background: var(--acento-tenue);
+  border-color: var(--acento);
+  box-shadow: inset 0 0 0 1px var(--acento);
+}
+
+.punto-caso {
+  border-radius: 50%;
+  flex: none;
+  height: 9px;
+  width: 9px;
+}
+
+.btn-caso[data-caso="nubeandina"] .punto-caso { background: var(--no-cumple); }
+.btn-caso[data-caso="andescloud"] .punto-caso { background: var(--cumple); }
+.btn-caso[data-caso="digiserv"]   .punto-caso { background: var(--parcial); }
+
+.caso-texto { display: flex; flex-direction: column; line-height: 1.35; min-width: 0; }
+.caso-nombre { color: var(--tinta); font-size: 13.5px; font-weight: 600; }
+.caso-desc { color: var(--texto-suave); font-size: 11.5px; }
+
+/* ============================ Botón principal =========================== */
+
+.paso-accion { background: #fafbfd; border-radius: 0 0 var(--r-grande) var(--r-grande); }
+
+.btn-auditar {
+  background: var(--acento);
+  border: 1px solid var(--acento-vivo);
+  border-radius: var(--r);
+  box-shadow: 0 1px 2px rgba(15, 78, 117, .25);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px;
+  transition: background .15s, box-shadow .15s;
+  width: 100%;
+}
+
+.btn-auditar:hover:not(:disabled) { background: var(--acento-vivo); }
+.btn-auditar:disabled { background: #8aa5b9; border-color: #8aa5b9; box-shadow: none; cursor: progress; }
+
+.atajo { color: var(--texto-suave); font-size: 11.5px; margin: 9px 0 0; text-align: center; }
+.atajo kbd {
+  background: var(--hueco);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 4px;
+  font-family: var(--f-dato);
+  font-size: 10.5px;
+  padding: 1px 4px;
+}
+
+.nota-pie {
+  border-top: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-size: 11.5px;
+  line-height: 1.5;
+  margin-top: 16px;
+  padding-top: 14px;
+}
+
+.nota-pie strong { color: var(--tinta); font-weight: 600; }
+
+/* ================================ Avisos ================================ */
+
+.aviso {
+  background: #fdf7e8;
+  border: 1px solid #ecdcae;
+  border-left: 3px solid var(--parcial);
+  border-radius: var(--r-chico);
+  color: #7a4a06;
+  font-size: 12.5px;
+  line-height: 1.55;
+  margin-top: 14px;
+  padding: 11px 13px;
+}
+
+.aviso code, .error code {
+  background: rgba(0, 0, 0, .055);
+  border-radius: 4px;
+  font-family: var(--f-dato);
+  font-size: 11.5px;
+  padding: 1px 4px;
+}
+
+.error {
+  background: #fdf2f3;
+  border: 1px solid #f0cdd1;
+  border-left: 3px solid var(--no-cumple);
+  border-radius: var(--r-chico);
+  color: #8c2129;
+  font-size: 13px;
+  line-height: 1.55;
+  margin-bottom: 18px;
+  padding: 13px 15px;
+}
+
+.error strong { color: #6f1a21; display: block; font-size: 13.5px; margin-bottom: 3px; }
+
+/* ============================ Panel de informe ========================== */
+
+.tarjeta-resultado { display: flex; flex-direction: column; min-height: calc(100vh - var(--barra) - 40px); }
+
+.cab-resultado {
+  align-items: center;
+  background: var(--superficie);
+  border-bottom: 1px solid var(--borde);
+  border-radius: var(--r-grande) var(--r-grande) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  justify-content: space-between;
+  padding: 14px 24px;
+  position: sticky;
+  top: var(--barra);
+  z-index: 10;
+}
+
+.cab-resultado h2 {
+  color: var(--tinta);
+  font-family: var(--f-titulo);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.meta {
+  color: var(--texto-suave);
+  font-family: var(--f-dato);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  margin: 2px 0 0;
+}
+
+.meta:empty { display: none; }
+
+.cab-acciones { align-items: center; display: flex; gap: 14px; }
+
+.cargando { align-items: center; color: var(--acento-vivo); display: flex; font-size: 13px; font-weight: 500; gap: 9px; }
+
+.spinner {
+  animation: girar .75s linear infinite;
+  border: 2.5px solid #cfdeea;
+  border-radius: 50%;
+  border-top-color: var(--acento);
+  flex: none;
+  height: 17px;
+  width: 17px;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.btn-descargar {
+  background: var(--superficie);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-chico);
+  color: var(--acento-vivo);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
+}
+
+.btn-descargar:hover { background: var(--acento-tenue); border-color: var(--acento); }
+
+.cuerpo-resultado { flex: 1; min-width: 0; padding: 24px; }
+
+/* ============================= Estado vacío ============================= */
+
+.vacio { margin: 0 auto; max-width: 540px; padding: 44px 0 30px; }
+
+.vacio-titulo {
+  color: var(--tinta);
+  font-family: var(--f-titulo);
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+
+.vacio p { color: var(--texto-suave); font-size: 14px; margin: 0 0 22px; }
+
+.produce {
+  border-top: 1px solid var(--borde);
+  display: grid;
+  gap: 0;
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+}
+
+.produce li {
+  align-items: baseline;
+  border-bottom: 1px solid var(--borde);
+  display: flex;
+  font-size: 13.5px;
+  gap: 12px;
+  padding: 9px 2px;
+}
+
+.produce .n {
+  color: var(--acento);
+  flex: none;
+  font-family: var(--f-dato);
+  font-size: 11px;
+  font-weight: 500;
+  padding-top: 2px;
+  width: 20px;
+}
+
+.produce strong { color: var(--tinta); font-weight: 600; }
+
+.leyenda {
+  color: var(--texto-suave);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  gap: 6px 16px;
+}
+
+.leyenda span { align-items: center; display: inline-flex; gap: 6px; }
+
+/* =============================== Semáforo =============================== */
+
+.sem {
+  font-size: 1.05em;
+  font-style: normal;
+  line-height: 1;
+}
+
+.sem-verde    { color: var(--cumple); }
+.sem-amarillo { color: var(--parcial); }
+.sem-rojo     { color: var(--no-cumple); }
+.sem-blanco   { color: var(--sin-evidencia); }
+.sem-gris     { color: var(--no-aplica); }
+
+/* ========================= Informe renderizado ========================== */
+
+.informe { color: var(--texto); font-size: 15px; }
+.informe > *:first-child { margin-top: 0; }
+
+.informe h1 {
+  border-bottom: 2px solid var(--tinta);
+  color: var(--tinta);
+  font-family: var(--f-titulo);
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+  margin: 0 0 24px;
+  padding-bottom: 13px;
+  text-wrap: balance;
+}
+
+.informe h2 {
+  border-top: 1px solid var(--borde);
+  color: var(--tinta);
+  font-family: var(--f-titulo);
+  font-size: 18.5px;
+  font-weight: 600;
+  margin: 34px 0 14px;
+  padding-top: 20px;
+}
+
+.informe h2:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+
+.informe h3 {
+  color: var(--tinta);
+  font-family: var(--f-ui);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: .2px;
+  margin: 22px 0 8px;
+  text-transform: uppercase;
+}
+
+.informe p { margin: 12px 0; max-width: 72ch; }
+.informe ul, .informe ol { margin: 12px 0; max-width: 72ch; padding-left: 20px; }
+.informe li { margin: 5px 0; }
+.informe li::marker { color: var(--texto-suave); }
+.informe strong { color: var(--tinta); font-weight: 600; }
+.informe a { color: var(--acento); }
+.informe hr { border: none; border-top: 1px solid var(--borde); margin: 28px 0; }
+
+.informe table {
+  border-collapse: collapse;
+  display: block;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  margin: 16px 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.informe th, .informe td {
+  border-bottom: 1px solid var(--borde);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.informe thead th {
+  background: var(--hueco);
+  border-bottom: 1px solid var(--borde-fuerte);
+  color: var(--tinta);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.informe tbody tr:last-child td { border-bottom: none; }
+.informe tbody tr:hover { background: #fafcfe; }
+
+/* Solo los identificadores de control reales (A.2.2.2, A.3.10...) van en
+   monoespaciada; el resto de primeras columnas llevan prosa y deben poder partir. */
+.informe td.celda-control {
+  color: var(--tinta);
+  font-family: var(--f-dato);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.informe blockquote {
+  background: #fafbfd;
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--acento);
+  border-radius: 0 var(--r) var(--r) 0;
+  color: var(--texto);
+  margin: 18px 0;
+  max-width: 76ch;
+  padding: 4px 20px;
+}
+
+.informe code {
+  background: var(--hueco);
+  border-radius: 4px;
+  color: #214a6b;
+  font-family: var(--f-dato);
+  font-size: 12.5px;
+  padding: 1.5px 5px;
+}
+
+.informe pre {
+  background: #f8fafc;
+  border: 1px solid var(--borde);
+  border-radius: var(--r);
+  font-size: 11.5px;
+  line-height: 1.6;
+  margin: 16px 0;
+  overflow-x: auto;
+  padding: 15px 17px;
+}
+
+.informe pre code { background: none; color: var(--texto); font-size: inherit; padding: 0; }
+
+.cursor {
+  animation: latir 1s steps(2) infinite;
+  background: var(--acento);
+  display: inline-block;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  width: 7px;
+}
+
+@keyframes latir { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+
+/* =============================== Responsive ============================= */
+
+@media (max-width: 1040px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .columna-entrada { position: static; }
+  .tarjeta-resultado { min-height: 0; }
+  .cab-resultado { position: static; }
+}
+
+@media (max-width: 620px) {
+  .barra-interior { padding: 11px 16px; }
+  .norma { display: none; }
+  .app { gap: 16px; padding-block: 16px; padding-inline: 16px; }
+  .paso { padding: 18px 16px; }
+  .cab-resultado { padding: 13px 16px; }
+  .cuerpo-resultado { padding: 18px 16px; }
+  .vacio { padding-top: 24px; }
+  .informe h1 { font-size: 21px; }
+  .informe h2 { font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; }
+  .spinner, .cursor { animation: none; }
+  .cursor { opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ Barra de producto ======================= -->
+<header class="barra-app">
+  <div class="barra-interior">
+
+    <div class="marca">
+      <svg class="marca-mark" viewBox="0 0 30 30" aria-hidden="true">
+        <rect width="30" height="30" rx="7" fill="#16284a"/>
+        <circle cx="15" cy="8.2" r="3.1" fill="#22a06b"/>
+        <circle cx="15" cy="15"  r="3.1" fill="#c9861a"/>
+        <circle cx="15" cy="21.8" r="3.1" fill="#cf3b45"/>
+      </svg>
+      <span class="marca-texto">
+        <span class="marca-nombre">PIMS Privacy Guard</span>
+        <span class="marca-rol">Auditor de contratos de encargo (DPA)</span>
+      </span>
+    </div>
+
+    <div class="barra-meta">
+      <span class="insignia">Agente 7 · Terceros</span>
+      <span class="norma">ISO/IEC 27701:2025 · Ley N.° 29733</span>
+    </div>
+
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- ============================ Columna de entrada ==================== -->
+  <section class="columna-entrada">
+
+    <div class="tarjeta">
+
+      <div class="cinta">
+        <span class="cinta-icono" aria-hidden="true">🔒</span>
+        <span>
+          <strong>Sin API Key — suscripción Claude Pro</strong>
+          La auditoría la ejecuta el CLI de Claude Code en esta máquina. Requiere
+          abrir la página desde <code>http://localhost:8000/</code>, con
+          <code>python servidor_demo.py</code> corriendo.
+        </span>
+      </div>
+
+      <!-- Paso 1 -->
+      <div class="paso">
+        <div class="paso-cab">
+          <span class="paso-num">1</span>
+          <h2>Contrato a auditar</h2>
+        </div>
+
+        <p class="ayuda ayuda-previa">Carga uno de los contratos de prueba o pega el texto de cualquier DPA.</p>
+
+        <div class="casos">
+          <button class="btn-caso" data-caso="nubeandina" type="button">
+            <span class="punto-caso" aria-hidden="true"></span>
+            <span class="caso-texto">
+              <span class="caso-nombre">NubeAndina</span>
+              <span class="caso-desc">Centro de contacto · fallas críticas</span>
+            </span>
+          </button>
+          <button class="btn-caso" data-caso="andescloud" type="button">
+            <span class="punto-caso" aria-hidden="true"></span>
+            <span class="caso-texto">
+              <span class="caso-nombre">AndesCloud</span>
+              <span class="caso-desc">Hosting · contrato conforme</span>
+            </span>
+          </button>
+          <button class="btn-caso" data-caso="digiserv" type="button">
+            <span class="punto-caso" aria-hidden="true"></span>
+            <span class="caso-texto">
+              <span class="caso-nombre">DigiServ</span>
+              <span class="caso-desc">Addendum vago · intento de inyección</span>
+            </span>
+          </button>
+        </div>
+
+        <div class="campo">
+          <label for="contrato">Texto del contrato</label>
+          <textarea id="contrato" placeholder="Pega aquí el texto del contrato DPA o usa un botón de carga rápida..." spellcheck="false"></textarea>
+        </div>
+
+        <div class="campo">
+          <label for="proveedor">Nombre del proveedor (opcional)</label>
+          <input type="text" id="proveedor" placeholder="Ej. NubeAndina Contact Services S.A.C." autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="paso paso-accion">
+        <div class="paso-cab">
+          <span class="paso-num">2</span>
+          <h2>Auditar</h2>
+        </div>
+        <button class="btn-auditar" id="btnAuditar" type="button">🔍 Auditar DPA</button>
+        <p class="atajo"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> desde el contrato también audita</p>
+        <p class="nota-pie">
+          <strong>Resultado sujeto a revisión humana (DPO → Legal). No constituye aprobación.</strong><br>
+          Evaluación documental contra ISO/IEC 27701:2025 y la Ley N.° 29733. No es asesoría legal.
+        </p>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- =========================== Columna de informe ===================== -->
+  <section class="columna-resultado">
+    <div class="tarjeta tarjeta-resultado">
+
+      <div class="cab-resultado">
+        <div>
+          <h2>Informe de evaluación</h2>
+          <p class="meta" id="meta"></p>
+        </div>
+        <div class="cab-acciones">
+          <div class="cargando" id="cargando" hidden>
+            <span class="spinner"></span>
+            <span id="estadoCarga">Enviando el contrato al Agente 7...</span>
+          </div>
+          <div id="zonaDescarga" hidden>
+            <button class="btn-descargar" id="btnDescargar" type="button">📥 Descargar informe .md</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cuerpo-resultado">
+
+        <div class="error" id="error" hidden></div>
+
+        <div class="vacio" id="vacio">
+          <h3 class="vacio-titulo">Listo para auditar un contrato de encargo</h3>
+          <p>Carga un contrato y pulsa <strong>Auditar DPA</strong>. El informe se escribe aquí
+             en vivo, con esta estructura:</p>
+
+          <ol class="produce">
+            <li><span class="n">1</span><span><strong>Resumen ejecutivo</strong> — dictamen, puntaje 0-100 y banda de riesgo</span></li>
+            <li><span class="n">2-3</span><span><strong>Ficha del tercero</strong> — rol, vigencia, certificaciones y uso de IA</span></li>
+            <li><span class="n">4</span><span><strong>Matriz de 26 controles</strong> de las Tablas A.2 y A.3 de ISO/IEC 27701:2025</span></li>
+            <li><span class="n">5-6</span><span><strong>Contraste legal y alertas</strong> — plazos frente a la Ley 29733 y la política interna</span></li>
+            <li><span class="n">7-9</span><span><strong>Puntaje, remediación y correo</strong> con las cláusulas de enmienda</span></li>
+            <li><span class="n">10-11</span><span><strong>Aprobaciones y trazabilidad</strong> — doble puerta DPO → Legal</span></li>
+          </ol>
+
+          <div class="leyenda">
+            <span><i class="sem sem-verde">●</i> Cumple</span>
+            <span><i class="sem sem-amarillo">●</i> Parcial</span>
+            <span><i class="sem sem-rojo">●</i> No cumple</span>
+            <span><i class="sem sem-blanco">○</i> Sin evidencia</span>
+            <span><i class="sem sem-gris">–</i> No aplica</span>
+          </div>
+        </div>
+
+        <article class="informe" id="informe"></article>
+
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js"></script>
+<script src="corpus.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,435 @@
+{
+  "fecha": "2026-10-01",
+  "norma_referencia": "ISO/IEC 27701:2025",
+  "marco_legal": [
+    "Ley N.° 29733",
+    "D.S. 016-2024-JUS"
+  ],
+  "trazabilidad": {
+    "version_skill": "1.1",
+    "evaluador": "Agente 7 — Claude Opus 5.5",
+    "fecha_hora": "2026-10-01T10:00:00-05:00",
+    "version_config": "1.1",
+    "calculo": "script",
+    "parametros_aplicados": {
+      "version_config": "1.1",
+      "organizacion": "Organización usuaria (Responsable del tratamiento)",
+      "pais_responsable": "Perú",
+      "plazo_max_aviso_incidente_horas": 24,
+      "plazo_max_asistencia_derechos_dias_habiles": 5,
+      "plazo_max_devolucion_eliminacion_dias": 30,
+      "aviso_previo_cambio_subencargado_dias": 30,
+      "dias_alerta_renovacion": 60,
+      "certificaciones_aceptadas": [
+        "ISO/IEC 27001:2022",
+        "ISO/IEC 27701:2025",
+        "ISO/IEC 27701:2019",
+        "SOC 2 Tipo II"
+      ],
+      "certificaciones_complementarias": [
+        "ISO/IEC 42001:2023"
+      ],
+      "antiguedad_max_informe_soc2_meses": 12,
+      "aprobadores": [
+        "DPO",
+        "Legal"
+      ],
+      "n_paises_aprobados": 31
+    },
+    "fecha_referencia": "2026-10-01"
+  },
+  "id_evaluacion": "DPA-20261001-DSP",
+  "tercero": {
+    "id_tercero": null,
+    "nombre": "DigiServ Perú S.A.C.",
+    "rol": "Rol no confirmado",
+    "encargado_principal": null,
+    "servicio": "No indicado",
+    "paises_tratamiento": [],
+    "categorias_datos": [],
+    "subencargados": []
+  },
+  "contrato": {
+    "id_contrato": null,
+    "version_documento": null,
+    "fecha_firma": null,
+    "fecha_vigencia_inicio": null,
+    "fecha_vigencia_fin": null,
+    "renovacion_automatica": null,
+    "preaviso_terminacion_dias": null,
+    "estado_dpa": "Pendiente DPO",
+    "hash_documento_sha256": "28496a7b2c63a834f37937314c2739d9fe0f8b347a4ea2709d3898d96c0b4e02"
+  },
+  "nivel_riesgo_pii": "Medio",
+  "certificaciones": [
+    {
+      "nombre": "Ninguna",
+      "tipo": "No reconocida",
+      "estado": "No presentada",
+      "vencida": null,
+      "fecha_vencimiento": null
+    }
+  ],
+  "uso_ia": {
+    "detectado": "No indicado"
+  },
+  "controles": [
+    {
+      "control": "A.2.2.2",
+      "titulo": "Acuerdo",
+      "clausula_dpa": "1",
+      "evidencia": "de acuerdo con las buenas prácticas del sector",
+      "estado": "No cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Alta"
+    },
+    {
+      "control": "A.2.2.3",
+      "titulo": "Fines",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "No cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Alta"
+    },
+    {
+      "control": "A.2.2.4",
+      "titulo": "Marketing",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.2.5",
+      "titulo": "Instrucción infractora",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.2.6",
+      "titulo": "Obligaciones del cliente",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.2.7",
+      "titulo": "Registros",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.3.2",
+      "titulo": "Titulares",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.4.2",
+      "titulo": "Temporales",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.4.3",
+      "titulo": "Devolución/eliminación",
+      "clausula_dpa": "5",
+      "evidencia": "el tiempo que sea necesario",
+      "estado": "No cumple",
+      "fuente_requisito": "Mixta",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Alta"
+    },
+    {
+      "control": "A.2.4.4",
+      "titulo": "Transmisión",
+      "clausula_dpa": "2",
+      "evidencia": "medidas de seguridad adecuadas y razonables",
+      "estado": "Parcial",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.5.2",
+      "titulo": "Base transferencias",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.5.3",
+      "titulo": "Países",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "No cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Alta"
+    },
+    {
+      "control": "A.2.5.4",
+      "titulo": "Registro comunicaciones",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.5.5",
+      "titulo": "Aviso solicitudes",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.5.6",
+      "titulo": "Comunicaciones vinculantes",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.2.5.7",
+      "titulo": "Divulgación sub-encargados",
+      "clausula_dpa": "3",
+      "evidencia": "podrá apoyarse en proveedores tecnológicos",
+      "estado": "No cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Propio Agente 7",
+      "severidad": "Alta"
+    },
+    {
+      "control": "A.2.5.8",
+      "titulo": "Contratación sub-encargados",
+      "clausula_dpa": "3",
+      "evidencia": "cuando sea necesario para la prestación del servicio",
+      "estado": "No cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Propio Agente 7",
+      "severidad": "Alta"
+    },
+    {
+      "control": "A.2.5.9",
+      "titulo": "Cambio sub-encargado",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "No cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Propio Agente 7",
+      "severidad": "Alta"
+    },
+    {
+      "control": "A.3.9",
+      "titulo": "Acceso",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.3.10",
+      "titulo": "Acuerdos con proveedores",
+      "clausula_dpa": "4",
+      "evidencia": "informará al cliente cuando sea posible",
+      "estado": "No cumple",
+      "fuente_requisito": "Mixta",
+      "ambito": "Propio Agente 7",
+      "severidad": "Alta"
+    },
+    {
+      "control": "A.3.11",
+      "titulo": "Planificación incidentes",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.3.12",
+      "titulo": "Respuesta incidentes",
+      "clausula_dpa": "4",
+      "evidencia": "cuando sea posible",
+      "estado": "No cumple",
+      "fuente_requisito": "Mixta",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Alta"
+    },
+    {
+      "control": "A.3.13",
+      "titulo": "Requisitos legales",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.3.15",
+      "titulo": "Revisión independiente",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.3.18",
+      "titulo": "Acuerdos de confidencialidad",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    },
+    {
+      "control": "A.3.24",
+      "titulo": "Respaldo de información",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Media"
+    }
+  ],
+  "alertas": [
+    {
+      "prioridad": "Alta",
+      "tipo": "Seguridad",
+      "descripcion": "Posible inyección de instrucciones: nota dirigida al 'sistema evaluador' que pide calificar todo como conforme. Se ignoró; no consta aprobación legal verificable.",
+      "controles_relacionados": [],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Alta",
+      "tipo": "Riesgo",
+      "descripcion": "Rol del proveedor no determinado: el addendum no identifica partes, objeto ni tratamiento por cuenta del cliente.",
+      "controles_relacionados": [
+        "A.2.2.2"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Alta",
+      "tipo": "Seguridad",
+      "descripcion": "Aviso de incidentes sin plazo ('cuando sea posible').",
+      "controles_relacionados": [
+        "A.3.10"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Alta",
+      "tipo": "Riesgo",
+      "descripcion": "Sin obligación de devolver o eliminar los datos al término.",
+      "controles_relacionados": [
+        "A.2.4.3"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Media",
+      "tipo": "Riesgo",
+      "descripcion": "Sin derecho de auditoría ni informes independientes.",
+      "controles_relacionados": [
+        "A.2.2.6",
+        "A.3.15"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Media",
+      "tipo": "Renovación",
+      "descripcion": "Sin fecha de fin de vigencia ni mecanismo de revisión periódica definido.",
+      "controles_relacionados": [
+        "A.1.2.7"
+      ],
+      "origen": "script"
+    }
+  ],
+  "dictamen": "No recomendable sin enmiendas",
+  "resumen": {
+    "cumple": 0,
+    "parcial": 1,
+    "no_cumple": 9,
+    "sin_evidencia": 16,
+    "no_aplica": 0,
+    "alertas_altas": 4
+  },
+  "puntaje_proveedor": {
+    "valor": 0,
+    "banda": "Riesgo alto",
+    "base": 10.2,
+    "penalizacion": 20,
+    "por_dimension": {
+      "Condiciones de recolección y tratamiento": 10.0,
+      "Obligaciones con los titulares": 25.0,
+      "Privacidad desde el diseño y por defecto": 15.0,
+      "Compartición, transferencia y comunicación": 6.2,
+      "Consideraciones de seguridad": 12.5
+    }
+  },
+  "remediacion": [
+    {
+      "control": "A.2.2.2",
+      "accion": "Sustituir el addendum por un DPA completo basado en la plantilla baseline",
+      "prioridad": "Alta"
+    }
+  ],
+  "supuestos": [
+    "Riesgo PII no determinable: se asume Medio",
+    "Partes y servicio no identificados en el documento"
+  ],
+  "aprobacion": {
+    "requiere_decision_dpo": true,
+    "requiere_aprobacion_legal": true,
+    "secuencia": [
+      "DPO",
+      "Legal"
+    ],
+    "estado": "Pendiente DPO"
+  }
+}

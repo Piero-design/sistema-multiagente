@@ -1,0 +1,405 @@
+{
+  "id_evaluacion": "DPA-20261013-RSP",
+  "fecha": "2026-10-13",
+  "norma_referencia": "ISO/IEC 27701:2025",
+  "marco_legal": [
+    "Ley N.° 29733",
+    "D.S. 016-2024-JUS"
+  ],
+  "tercero": {
+    "id_tercero": null,
+    "nombre": "Recaudo Sur Pagos S.A.",
+    "encargado_principal": null,
+    "rol": "Encargado",
+    "servicio": "Pasarela de pagos en línea (admisión, matrícula, trámites)",
+    "paises_tratamiento": [
+      "Perú",
+      "Irlanda"
+    ],
+    "categorias_datos": [
+      "Identificativos",
+      "Datos de pago (tokenizados)"
+    ],
+    "subencargados": [
+      {
+        "nombre": "AntiFraude Europa Ltd.",
+        "pais": "Irlanda",
+        "servicio": "Prevención de fraude",
+        "garantias_transferencia": true
+      }
+    ]
+  },
+  "contrato": {
+    "id_contrato": null,
+    "version_documento": null,
+    "hash_documento_sha256": null,
+    "estado_dpa": "Pendiente DPO",
+    "fecha_firma": "2026-02-20",
+    "fecha_vigencia_inicio": "2026-03-01",
+    "fecha_vigencia_fin": "2027-02-28",
+    "renovacion_automatica": true,
+    "preaviso_terminacion_dias": 90
+  },
+  "nivel_riesgo_pii": "Alto",
+  "certificaciones": [
+    {
+      "nombre": "SOC 2 Tipo II",
+      "tipo": "Aceptada",
+      "estado": "Verificada con evidencia",
+      "vencida": true,
+      "fecha_vencimiento": null,
+      "observacion": "Período cerrado el 31/03/2025: más de 12 meses de antigüedad."
+    }
+  ],
+  "uso_ia": {
+    "detectado": false,
+    "descripcion": "La cláusula 2 declara que no aplica IA sobre los datos",
+    "limitado_a_fines_responsable": true,
+    "evidencia_gobernanza_ia": "No requerida"
+  },
+  "controles": [
+    {
+      "control": "A.2.2.2",
+      "titulo": "Acuerdo con el cliente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "1",
+      "evidencia": "solo según las instrucciones documentadas del Anexo 1",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.3",
+      "titulo": "Fines de la organización",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "2",
+      "evidencia": "Se prohíbe su uso para fines propios, analítica, entrenamiento de modelos de IA",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.4",
+      "titulo": "Uso para marketing y publicidad",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "2",
+      "evidencia": "marketing o publicidad",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.5",
+      "titulo": "Instrucción infractora",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "3",
+      "evidencia": "avisará de inmediato si una instrucción infringe la Ley N.° 29733",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.6",
+      "titulo": "Obligaciones del cliente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "4",
+      "evidencia": "permite auditorías con preaviso de 10 días hábiles",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.7",
+      "titulo": "Registros del tratamiento",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "4",
+      "evidencia": "mantiene un registro de las actividades de tratamiento por cuenta del Responsable",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.3.2",
+      "titulo": "Obligaciones con titulares",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "5",
+      "evidencia": "asistirá en su atención en un máximo de 5 días hábiles",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.4.2",
+      "titulo": "Archivos temporales",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "6",
+      "evidencia": "Los archivos temporales se eliminan en 7 días",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.4.3",
+      "titulo": "Devolución o eliminación",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "7",
+      "evidencia": "devolverá o eliminará los datos y respaldos en 30 días y emitirá certificado de eliminación",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.4.4",
+      "titulo": "Controles de transmisión",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "6",
+      "evidencia": "Toda transmisión se cifra con TLS 1.2 o superior",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.2",
+      "titulo": "Base para transferencias",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "8",
+      "evidencia": "cláusulas contractuales que imponen protección equivalente a la Ley N.° 29733",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.3",
+      "titulo": "Países destino",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "8",
+      "evidencia": "Los datos se tratan solo en Perú e Irlanda (Anexo 2)",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.4",
+      "titulo": "Registros de comunicaciones",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "9",
+      "evidencia": "Registra toda comunicación a terceros",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.5",
+      "titulo": "Aviso de solicitudes de autoridades",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "9",
+      "evidencia": "notificará al Responsable antes de comunicar, salvo prohibición legal",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.6",
+      "titulo": "Comunicaciones legalmente vinculantes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "9",
+      "evidencia": "rechazará los no vinculantes y solo entregará lo legalmente exigido",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.7",
+      "titulo": "Divulgación de subcontratistas",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "10",
+      "evidencia": "AntiFraude Europa Ltd., prevención de fraude, Irlanda",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.8",
+      "titulo": "Contratación de subcontratistas",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "10",
+      "evidencia": "Todo sub-encargado firma contrato con obligaciones equivalentes",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.9",
+      "titulo": "Cambio de subcontratista",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "10",
+      "evidencia": "Cambios con aviso previo de 30 días y derecho de objeción",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.9",
+      "titulo": "Derechos de acceso",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "11",
+      "evidencia": "Acceso limitado al personal que lo necesita",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.10",
+      "titulo": "Seguridad en acuerdos con proveedores",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "12",
+      "evidencia": "notificará al Responsable en máximo 24 horas",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.11",
+      "titulo": "Planificación de incidentes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "12",
+      "evidencia": "mantiene un procedimiento de gestión de incidentes",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.12",
+      "titulo": "Respuesta a incidentes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "12",
+      "evidencia": "indicando naturaleza, datos y titulares afectados, consecuencias, medidas y contacto",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.13",
+      "titulo": "Requisitos legales",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "13",
+      "evidencia": "Cumplirá la Ley N.° 29733 y su Reglamento (D.S. 016-2024-JUS)",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.15",
+      "titulo": "Revisión independiente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "4",
+      "evidencia": "corresponde al período cerrado el 31 de marzo de 2025",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "Informe SOC 2 Tipo II con más de 12 meses: vencido según la política interna.",
+      "_alternativas": [
+        "Sin evidencia"
+      ]
+    },
+    {
+      "control": "A.3.18",
+      "titulo": "Acuerdos de confidencialidad",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "11",
+      "evidencia": "con confidencialidad que subsiste tras la relación",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.24",
+      "titulo": "Respaldo de información",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "6",
+      "evidencia": "Respaldos diarios cifrados, conservados 30 días, con restauración en máximo 24 horas",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    }
+  ],
+  "alertas": [
+    {
+      "prioridad": "Media",
+      "tipo": "Renovación",
+      "descripcion": "Informe SOC 2 Tipo II con antigüedad mayor a 12 meses (período cerrado el 31/03/2025).",
+      "controles_relacionados": [
+        "A.3.15"
+      ],
+      "origen": "modelo"
+    }
+  ],
+  "remediacion": [
+    {
+      "control": "A.3.15",
+      "accion": "Enmendar: Informe SOC 2 Tipo II con más de 12 meses: vencido según la política interna.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    }
+  ],
+  "supuestos": [
+    "Contrato ficticio de pruebas (Etapa 4)",
+    "Evaluación de referencia redactada a partir de criterios_semaforo.md; revisar por el grupo"
+  ],
+  "trazabilidad": {
+    "version_skill": "2.0",
+    "version_config": "2.0",
+    "evaluador": "Referencia (criterios de la skill aplicados manualmente)",
+    "calculo": "script"
+  }
+}

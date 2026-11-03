@@ -1,0 +1,26 @@
+# Generados por el instalador (contienen la ruta de cada equipo)
+n8n/flujos_listos/
+n8n/iniciar_n8n.bat
+n8n/iniciar_n8n.sh
+
+# Lo que escribe n8n al usarse (registros, trabajos, temporales)
+datos/registro/*
+datos/trabajos/*
+datos/tmp/*
+datos/fallidos/*
+datos/alertas_renovacion.json
+!datos/**/.gitkeep
+
+# Resultados de corridas y pruebas
+pims-dpa-auditor_pruebas/unsa/corridas/
+capturas_pagina/
+
+# Perfiles anteriores que guarda el perfilador
+organizaciones/*/perfil_organizacion.anterior.md
+
+__pycache__/
+*.pyc
+
+# Conversaciones del chat
+datos/chats/*
+!datos/chats/.gitkeep

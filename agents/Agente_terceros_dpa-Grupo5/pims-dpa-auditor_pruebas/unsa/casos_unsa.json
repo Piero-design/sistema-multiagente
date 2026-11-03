@@ -1,0 +1,61 @@
+{
+  "skill_name": "pims-dpa-auditor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Evalúa el contrato de la plataforma de aula virtual (Plataforma Aprende Andes) para la UNSA.",
+      "expected_output": "Riesgo PII Alto. Alertas Altas por uso de datos de estudiantes para entrenar IA ofrecida a otros clientes (fines propios), aviso de incidentes en 72 h (>24 h internas) y alojamiento/sub-encargados en EE. UU. sin garantías. Puntaje 50 (banda medio) pero dictamen 'No recomendable sin enmiendas' por la regla de alertas.",
+      "files": [
+        "pims-dpa-auditor_pruebas/unsa/contratos/unsa_01_aula_virtual.md"
+      ],
+      "organizacion": "organizaciones/unsa",
+      "fecha_ref": "2026-10-13",
+      "esperado": "pims-dpa-auditor_pruebas/unsa/esperado/esperado_unsa_01_aula_virtual.json"
+    },
+    {
+      "id": 2,
+      "prompt": "Revisa el contrato del laboratorio clínico que hace los exámenes médicos de ingreso de los estudiantes de la UNSA.",
+      "expected_output": "Datos de salud (sensibles) → riesgo Alto. Alerta Alta por aviso de incidentes en 48 h. Puntaje 46 (riesgo alto); dictamen 'No recomendable sin enmiendas'.",
+      "files": [
+        "pims-dpa-auditor_pruebas/unsa/contratos/unsa_02_laboratorio_clinico.md"
+      ],
+      "organizacion": "organizaciones/unsa",
+      "fecha_ref": "2026-10-13",
+      "esperado": "pims-dpa-auditor_pruebas/unsa/esperado/esperado_unsa_02_laboratorio_clinico.json"
+    },
+    {
+      "id": 3,
+      "prompt": "Evalúa el contrato de la pasarela de pagos de tasas educativas de la UNSA.",
+      "expected_output": "Contrato sólido: sin alertas Altas. Alerta Media por informe SOC 2 con más de 12 meses y alerta Media (script) de preaviso de renovación hasta 2026-11-30. Puntaje 99; dictamen 'Recomendable con condiciones'.",
+      "files": [
+        "pims-dpa-auditor_pruebas/unsa/contratos/unsa_03_pasarela_pagos.md"
+      ],
+      "organizacion": "organizaciones/unsa",
+      "fecha_ref": "2026-10-13",
+      "esperado": "pims-dpa-auditor_pruebas/unsa/esperado/esperado_unsa_03_pasarela_pagos.json"
+    },
+    {
+      "id": 4,
+      "prompt": "Evalúa el contrato de videovigilancia con reconocimiento facial del campus de la UNSA.",
+      "expected_output": "Biometría → riesgo Alto. Alertas Altas por uso de grabaciones para mejorar algoritmos, sin aviso de incidentes, sin devolución/eliminación y contrato vencido el 2026-06-30 (script). Puntaje 0; dictamen 'No recomendable sin enmiendas'.",
+      "files": [
+        "pims-dpa-auditor_pruebas/unsa/contratos/unsa_04_videovigilancia.md"
+      ],
+      "organizacion": "organizaciones/unsa",
+      "fecha_ref": "2026-10-13",
+      "esperado": "pims-dpa-auditor_pruebas/unsa/esperado/esperado_unsa_04_videovigilancia.json"
+    },
+    {
+      "id": 5,
+      "prompt": "Evalúa el contrato público de soporte del Sistema de Gestión Académica de la UNSA.",
+      "expected_output": "Contrato estatal típico con cláusula genérica de 'cumplir la Ley 29733': muchos controles 'Sin evidencia'. Riesgo Medio. Alerta Alta por falta de aviso de incidentes con acceso remoto a producción. Puntaje 31; dictamen 'No recomendable sin enmiendas'. Enseña que remitir a la ley no reemplaza las cláusulas.",
+      "files": [
+        "pims-dpa-auditor_pruebas/unsa/contratos/unsa_05_soporte_sistema_academico.md"
+      ],
+      "organizacion": "organizaciones/unsa",
+      "fecha_ref": "2026-10-13",
+      "esperado": "pims-dpa-auditor_pruebas/unsa/esperado/esperado_unsa_05_soporte_sistema_academico.json"
+    }
+  ],
+  "_nota": "Casos de la UNSA con contratos ficticios. Los resultados esperados son evaluaciones de referencia redactadas por el asistente; el grupo debe revisarlas antes de usarlas como verdad de referencia. Fecha de referencia fija 2026-10-13 para las alertas de renovación."
+}

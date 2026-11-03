@@ -1,0 +1,20 @@
+{
+  "_descripcion": "Parámetros de política interna del Responsable. Valores v1.1 = decisiones de diseño del TIF, a validar por el DPO.",
+  "version_config": "1.1",
+  "organizacion": "Organización usuaria (Responsable del tratamiento)",
+  "pais_responsable": "Perú",
+  "plazo_max_aviso_incidente_horas": 24,
+  "_nota_plazo": "El responsable notifica a la ANPD en 48 h (Reglamento Ley 29733); 24 h deja margen para evaluar y notificar.",
+  "plazo_max_asistencia_derechos_dias_habiles": 5,
+  "plazo_max_devolucion_eliminacion_dias": 30,
+  "aviso_previo_cambio_subencargado_dias": 30,
+  "dias_alerta_renovacion": 60,
+  "paises_aprobados": ["Perú", "Alemania", "Austria", "Bélgica", "Bulgaria", "Chipre", "Croacia", "Dinamarca", "Eslovaquia", "Eslovenia", "España", "Estonia", "Finlandia", "Francia", "Grecia", "Hungría", "Irlanda", "Italia", "Letonia", "Lituania", "Luxemburgo", "Malta", "Países Bajos", "Polonia", "Portugal", "República Checa", "Rumania", "Suecia", "Islandia", "Liechtenstein", "Noruega"],
+  "_nota_paises": "Calibración inicial: Perú + UE/EEE como referencia de marcos con protección equivalente. No es una lista oficial de la ANPD. Cualquier otro país exige garantías contractuales (alerta Media) o, sin ellas, alerta Alta. El DPO debe revisarla.",
+  "certificaciones_aceptadas": ["ISO/IEC 27001:2022", "ISO/IEC 27701:2025", "ISO/IEC 27701:2019", "SOC 2 Tipo II"],
+  "certificaciones_complementarias": ["ISO/IEC 42001:2023"],
+  "_nota_certificaciones": "Las complementarias suman evidencia de gobernanza (p. ej. uso de IA) pero no sustituyen a las aceptadas.",
+  "antiguedad_max_informe_soc2_meses": 12,
+  "aprobadores": ["DPO", "Legal"],
+  "_nota_aprobadores": "Doble puerta HITL secuencial: el DPO revisa el dictamen y Legal aprueba la firma o las enmiendas de un DPA nuevo."
+}

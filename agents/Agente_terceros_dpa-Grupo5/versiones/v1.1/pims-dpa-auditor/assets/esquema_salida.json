@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Registro DPA — Evaluación Agente 7 (PIMS) v1.1",
+  "type": "object",
+  "required": ["id_evaluacion", "fecha", "norma_referencia", "marco_legal", "tercero", "contrato", "nivel_riesgo_pii", "certificaciones", "uso_ia", "controles", "alertas", "resumen", "puntaje_proveedor", "dictamen", "aprobacion", "remediacion", "supuestos", "trazabilidad"],
+  "properties": {
+    "id_evaluacion": {"type": "string", "description": "DPA-<AAAAMMDD>-<siglas proveedor>"},
+    "fecha": {"type": "string", "format": "date"},
+    "norma_referencia": {"type": "string", "const": "ISO/IEC 27701:2025"},
+    "marco_legal": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "tercero": {
+      "type": "object",
+      "required": ["id_tercero", "nombre", "rol", "servicio"],
+      "properties": {
+        "id_tercero": {"type": ["string", "null"], "description": "ID del inventario PIMS (catálogo de proveedores del Agente 1); null si no se entregó"},
+        "nombre": {"type": "string"},
+        "rol": {"type": "string", "enum": ["Encargado", "Sub-encargado", "Rol no confirmado"]},
+        "encargado_principal": {"type": ["string", "null"], "description": "Solo si rol = Sub-encargado"},
+        "servicio": {"type": "string"},
+        "paises_tratamiento": {"type": "array", "items": {"type": "string"}},
+        "categorias_datos": {"type": "array", "items": {"type": "string"}},
+        "subencargados": {"type": "array", "items": {"type": "object", "properties": {"nombre": {"type": "string"}, "pais": {"type": "string"}, "servicio": {"type": "string"}, "garantias_transferencia": {"type": "boolean"}}}}
+      }
+    },
+    "contrato": {
+      "type": "object",
+      "required": ["id_contrato", "version_documento", "fecha_firma", "fecha_vigencia_inicio", "fecha_vigencia_fin", "renovacion_automatica", "preaviso_terminacion_dias", "estado_dpa"],
+      "properties": {
+        "id_contrato": {"type": ["string", "null"]},
+        "version_documento": {"type": ["string", "null"]},
+        "hash_documento_sha256": {"type": ["string", "null"]},
+        "fecha_firma": {"type": ["string", "null"], "format": "date"},
+        "fecha_vigencia_inicio": {"type": ["string", "null"], "format": "date"},
+        "fecha_vigencia_fin": {"type": ["string", "null"], "format": "date"},
+        "renovacion_automatica": {"type": ["boolean", "null"]},
+        "preaviso_terminacion_dias": {"type": ["integer", "null"]},
+        "estado_dpa": {"type": "string", "enum": ["En evaluación", "Pendiente DPO", "Pendiente Legal", "Aprobado", "Rechazado", "Vencido"]}
+      }
+    },
+    "nivel_riesgo_pii": {"type": "string", "enum": ["Alto", "Medio", "Bajo"]},
+    "certificaciones": {
+      "type": "array",
+      "items": {"type": "object", "required": ["nombre", "estado"], "properties": {
+        "nombre": {"type": "string"},
+        "tipo": {"type": "string", "enum": ["Aceptada", "Complementaria", "No reconocida"]},
+        "estado": {"type": "string", "enum": ["Verificada con evidencia", "Declarada sin evidencia", "No presentada"]},
+        "vencida": {"type": ["boolean", "null"]},
+        "fecha_vencimiento": {"type": ["string", "null"], "format": "date"},
+        "observacion": {"type": "string"}
+      }}
+    },
+    "uso_ia": {
+      "type": "object",
+      "required": ["detectado"],
+      "properties": {
+        "detectado": {"type": ["boolean", "string"], "description": "true, false o 'No indicado'"},
+        "descripcion": {"type": "string"},
+        "limitado_a_fines_responsable": {"type": ["boolean", "null"]},
+        "evidencia_gobernanza_ia": {"type": "string"}
+      }
+    },
+    "controles": {
+      "type": "array",
+      "items": {"type": "object", "required": ["control", "ambito", "estado", "clausula_dpa", "severidad", "fuente_requisito"], "properties": {
+        "control": {"type": "string", "pattern": "^A\\.[123]\\.[0-9]+(\\.[0-9]+)?$"},
+        "titulo": {"type": "string"},
+        "ambito": {"type": "string", "enum": ["Propio Agente 7", "Insumo SoA (Agente 3)"]},
+        "clausula_dpa": {"type": "string"},
+        "evidencia": {"type": "string", "description": "Cita breve, máximo 20 palabras"},
+        "estado": {"type": "string", "enum": ["Cumple", "Parcial", "No cumple", "Sin evidencia", "No aplica"]},
+        "severidad": {"type": "string", "enum": ["Crítica", "Alta", "Media", "Baja", "Ninguna"]},
+        "fuente_requisito": {"type": "string", "enum": ["ISO 27701", "Ley 29733/Reglamento", "Política interna", "Mixta"]},
+        "observacion": {"type": "string"}
+      }}
+    },
+    "alertas": {
+      "type": "array",
+      "items": {"type": "object", "required": ["prioridad", "tipo", "descripcion"], "properties": {
+        "prioridad": {"type": "string", "enum": ["Alta", "Media"]},
+        "tipo": {"type": "string", "enum": ["Riesgo", "Renovación", "Seguridad"]},
+        "descripcion": {"type": "string"},
+        "controles_relacionados": {"type": "array", "items": {"type": "string"}},
+        "origen": {"type": "string", "enum": ["modelo", "script"]}
+      }}
+    },
+    "resumen": {"type": "object", "properties": {
+      "cumple": {"type": "integer"}, "parcial": {"type": "integer"}, "no_cumple": {"type": "integer"},
+      "sin_evidencia": {"type": "integer"}, "no_aplica": {"type": "integer"}, "alertas_altas": {"type": "integer"}
+    }},
+    "puntaje_proveedor": {
+      "type": "object",
+      "required": ["valor", "banda", "base", "penalizacion", "por_dimension"],
+      "properties": {
+        "valor": {"type": "integer", "minimum": 0, "maximum": 100},
+        "banda": {"type": "string", "enum": ["Riesgo bajo", "Riesgo medio", "Riesgo alto"]},
+        "base": {"type": "number"},
+        "penalizacion": {"type": "integer"},
+        "por_dimension": {"type": "object"}
+      }
+    },
+    "dictamen": {"type": "string", "enum": ["No recomendable sin enmiendas", "Recomendable con condiciones", "Recomendable"]},
+    "aprobacion": {
+      "type": "object",
+      "required": ["requiere_decision_dpo", "requiere_aprobacion_legal", "secuencia", "estado"],
+      "properties": {
+        "requiere_decision_dpo": {"type": "boolean", "const": true},
+        "requiere_aprobacion_legal": {"type": "boolean", "const": true},
+        "secuencia": {"type": "array", "items": {"type": "string"}},
+        "estado": {"type": "string", "enum": ["Pendiente DPO", "Pendiente Legal", "Aprobado", "Rechazado"]}
+      }
+    },
+    "remediacion": {
+      "type": "array",
+      "items": {"type": "object", "required": ["control", "accion", "prioridad"], "properties": {
+        "control": {"type": "string"}, "accion": {"type": "string"},
+        "clausula_propuesta": {"type": "string"}, "prioridad": {"type": "string", "enum": ["Alta", "Media", "Baja"]}
+      }}
+    },
+    "supuestos": {"type": "array", "items": {"type": "string"}},
+    "trazabilidad": {
+      "type": "object",
+      "required": ["version_skill", "version_config", "evaluador", "calculo"],
+      "properties": {
+        "version_skill": {"type": "string"},
+        "version_config": {"type": "string"},
+        "parametros_aplicados": {"type": "object"},
+        "evaluador": {"type": "string", "description": "Agente y modelo que evaluó"},
+        "fecha_hora": {"type": "string"},
+        "calculo": {"type": "string", "enum": ["script", "manual"]}
+      }
+    }
+  }
+}

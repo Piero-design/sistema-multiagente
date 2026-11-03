@@ -1,0 +1,33 @@
+{
+  "_descripcion": "Parámetros legales estructurados de la jurisdicción. Solo contiene datos ya presentes en marco_legal.md (misma carpeta). Los usa la skill para redactar enmiendas y el script para registrar la trazabilidad y comprobar la coherencia de la política interna.",
+  "id": "peru",
+  "pais": "Perú",
+  "version": "1.1",
+  "estado": "En uso",
+  "_nota_estado": "Valores posibles: 'Plantilla', 'Borrador', 'En uso', 'Verificada'. 'En uso' = resumen operativo empleado en la v1.1, con numeración de artículos pendiente de verificar en el texto oficial.",
+  "ley_aplicable": "Ley N.° 29733, Ley de Protección de Datos Personales",
+  "ley_aplicable_corta": "Ley N.° 29733",
+  "reglamento": "D.S. N.° 016-2024-JUS",
+  "marco_legal": ["Ley N.° 29733", "D.S. 016-2024-JUS"],
+  "autoridad": "Autoridad Nacional de Protección de Datos Personales (ANPD)",
+  "autoridad_corta": "ANPD",
+  "incidentes": {
+    "aviso_encargado_a_responsable": "De inmediato",
+    "plazo_notificacion_autoridad_horas": 48,
+    "plazo_comunicacion_titulares_horas": 48,
+    "otras_notificaciones": ["Centro Nacional de Seguridad Digital (incidentes en entorno digital)"]
+  },
+  "derechos_titulares": ["Acceso", "Rectificación", "Cancelación", "Oposición", "Portabilidad"],
+  "transferencias": {
+    "base": "Ley 29733, art. 15 (verificar numeración en texto oficial)",
+    "regla": "País receptor con nivel de protección adecuado o, en su defecto, garantías del emisor (p. ej. cláusulas contractuales), salvo excepciones legales.",
+    "lista_oficial_paises_adecuados": null,
+    "_nota_lista": "No se incorporó una lista oficial de países adecuados. La lista operativa es la política interna (paises_aprobados en config_organizacion.json)."
+  },
+  "oficial_datos": "Oficial de Datos Personales (obligatorio para responsables y encargados en ciertos supuestos)",
+  "marcos_solo_informativos": ["RGPD (UE)", "ISO/IEC 27701 Anexo D"],
+  "fuentes": [
+    "Ley N.° 29733, Ley de Protección de Datos Personales",
+    "D.S. N.° 016-2024-JUS, Reglamento (publicado el 30/11/2024; en vigor desde fines de marzo de 2025)"
+  ]
+}

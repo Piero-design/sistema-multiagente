@@ -1,0 +1,630 @@
+{
+  "id_evaluacion": "DPA-20261007-NACS",
+  "fecha": "2026-10-07",
+  "norma_referencia": "ISO/IEC 27701:2025",
+  "marco_legal": [
+    "Ley N.° 29733",
+    "D.S. 016-2024-JUS"
+  ],
+  "tercero": {
+    "id_tercero": null,
+    "nombre": "NubeAndina Contact Services S.A.C.",
+    "rol": "Encargado",
+    "encargado_principal": null,
+    "servicio": "Centro de contacto: atención telefónica, cobranza preventiva y encuestas de satisfacción",
+    "paises_tratamiento": [
+      "Perú",
+      "Estados Unidos",
+      "India"
+    ],
+    "categorias_datos": [
+      "Identificativos (nombre, DNI)",
+      "Contacto (teléfono, correo, dirección)",
+      "Financieros (historial de pagos, saldos de deuda)",
+      "Grabaciones de voz"
+    ],
+    "subencargados": [
+      {
+        "nombre": "VoxCloud Inc.",
+        "pais": "Estados Unidos",
+        "servicio": "Almacenamiento de grabaciones",
+        "garantias_transferencia": false
+      },
+      {
+        "nombre": "TranscribePro Ltd.",
+        "pais": "India",
+        "servicio": "Transcripción automática",
+        "garantias_transferencia": false
+      }
+    ]
+  },
+  "contrato": {
+    "id_contrato": null,
+    "version_documento": null,
+    "hash_documento_sha256": "f951d7ebc89995301e785cc5b1857dcc36dc7e2ebbdd57e862678fba60d0d685",
+    "fecha_firma": null,
+    "fecha_vigencia_inicio": null,
+    "fecha_vigencia_fin": null,
+    "renovacion_automatica": null,
+    "preaviso_terminacion_dias": null,
+    "estado_dpa": "Pendiente DPO"
+  },
+  "nivel_riesgo_pii": "Alto",
+  "certificaciones": [
+    {
+      "nombre": "ISO/IEC 27001",
+      "tipo": "Aceptada",
+      "estado": "Declarada sin evidencia",
+      "vencida": null,
+      "fecha_vencimiento": null,
+      "observacion": "Cl. 5 la declara sin certificado, sin alcance y sin versión ni vigencia."
+    },
+    {
+      "nombre": "ISO/IEC 27701:2025",
+      "tipo": "Aceptada",
+      "estado": "No presentada",
+      "vencida": null,
+      "fecha_vencimiento": null,
+      "observacion": "No se menciona en el contrato."
+    },
+    {
+      "nombre": "Informe de auditoría no identificado",
+      "tipo": "No reconocida",
+      "estado": "Declarada sin evidencia",
+      "vencida": null,
+      "fecha_vencimiento": null,
+      "observacion": "Cl. 9 ofrece solo un resumen, sin tipo (no consta SOC 2 Tipo II) ni fecha."
+    }
+  ],
+  "uso_ia": {
+    "detectado": true,
+    "descripcion": "Transcripción automática mediante TranscribePro Ltd. (cl. 7) y modelos propios de analítica de voz entrenados con las grabaciones (cl. 3).",
+    "limitado_a_fines_responsable": false,
+    "evidencia_gobernanza_ia": "No presentada"
+  },
+  "controles": [
+    {
+      "control": "A.2.2.2",
+      "titulo": "Acuerdo con el cliente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "1, 2",
+      "evidencia": "tratará datos personales por cuenta del Cliente conforme a sus instrucciones",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin anexo de instrucciones documentadas, sin duración del tratamiento y sin definir la asistencia al Responsable en derechos, evaluaciones de impacto e incidentes."
+    },
+    {
+      "control": "A.2.2.3",
+      "titulo": "Fines de la organización",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "3",
+      "evidencia": "para mejorar sus modelos de analítica de voz y la calidad de sus servicios",
+      "estado": "No cumple",
+      "severidad": "Crítica",
+      "fuente_requisito": "Mixta",
+      "observacion": "Fin propio del proveedor. La anonimización se invoca sin método ni umbral definido, por lo que no acredita que los datos dejen de ser personales. Ley 29733: tratar para fines propios lo convierte en responsable."
+    },
+    {
+      "control": "A.2.2.4",
+      "titulo": "Uso para marketing y publicidad",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "3",
+      "evidencia": "El Proveedor utilizará los datos exclusivamente para prestar los servicios",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "No hay prohibición expresa de marketing o publicidad, y la excepción de la misma cláusula 3 abre un uso comercial propio."
+    },
+    {
+      "control": "A.2.2.5",
+      "titulo": "Instrucción infractora",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin deber de avisar al Responsable si una instrucción infringe la Ley N.° 29733."
+    },
+    {
+      "control": "A.2.2.6",
+      "titulo": "Obligaciones del cliente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "9",
+      "evidencia": "No se permitirán auditorías in situ",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Solo un resumen del informe más reciente y a solicitud. No basta para que el Responsable demuestre cumplimiento."
+    },
+    {
+      "control": "A.2.2.7",
+      "titulo": "Registros del tratamiento",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin obligación de mantener registro de las actividades de tratamiento por cuenta del Responsable."
+    },
+    {
+      "control": "A.2.3.2",
+      "titulo": "Cumplimiento de obligaciones con los titulares",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "8",
+      "evidencia": "colaborará con el Cliente, en la medida de lo razonable",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "Mixta",
+      "observacion": "Término vago y sin plazo. Política interna: asistencia en 5 días hábiles como máximo; tampoco regula el reenvío de solicitudes recibidas directamente."
+    },
+    {
+      "control": "A.2.4.2",
+      "titulo": "Archivos temporales",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin período definido de eliminación de archivos temporales con datos personales."
+    },
+    {
+      "control": "A.2.4.3",
+      "titulo": "Devolución, transferencia o eliminación de datos",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "10",
+      "evidencia": "en un plazo razonable, salvo las copias de respaldo",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "Mixta",
+      "observacion": "Plazo indeterminado frente al máximo interno de 30 días, respaldos excluidos del borrado y sin certificado de eliminación. Tampoco ofrece la opción de devolución."
+    },
+    {
+      "control": "A.2.4.4",
+      "titulo": "Controles de transmisión",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "5",
+      "evidencia": "medidas técnicas y organizativas adecuadas",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Fórmula genérica, sin mención de cifrado en tránsito ni de protección específica de las transmisiones por red."
+    },
+    {
+      "control": "A.2.5.2",
+      "titulo": "Base para transferencias entre jurisdicciones",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "7",
+      "evidencia": "autorización general al Proveedor para contratar subencargados",
+      "estado": "No cumple",
+      "severidad": "Crítica",
+      "fuente_requisito": "Mixta",
+      "observacion": "No identifica base ni mecanismo de transferencia internacional a EE. UU. ni a India, no informa de sus cambios y no da al Responsable posibilidad de objetar o resolver. Contradice el art. 15 de la Ley N.° 29733."
+    },
+    {
+      "control": "A.2.5.3",
+      "titulo": "Países y organizaciones internacionales destino",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "7",
+      "evidencia": "VoxCloud Inc. ... Estados Unidos; TranscribePro Ltd. ... India",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "Mixta",
+      "observacion": "Nombra los dos países actuales, pero la lista no es cerrada: la autorización general y la actualización por web permiten añadir destinos. Ninguno de los dos figura en paises_aprobados."
+    },
+    {
+      "control": "A.2.5.4",
+      "titulo": "Registros de comunicaciones a terceros",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin obligación de registrar qué datos se comunican, a quién y cuándo."
+    },
+    {
+      "control": "A.2.5.5",
+      "titulo": "Notificación de solicitudes de comunicación",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin deber de avisar al Responsable ante requerimientos de autoridades, aun cuando sean legalmente vinculantes."
+    },
+    {
+      "control": "A.2.5.6",
+      "titulo": "Comunicaciones legalmente vinculantes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin compromiso de rechazar solicitudes no vinculantes ni de limitar la entrega a lo legalmente exigido."
+    },
+    {
+      "control": "A.2.5.7",
+      "titulo": "Divulgación de subcontratistas",
+      "ambito": "Propio Agente 7",
+      "clausula_dpa": "7",
+      "evidencia": "VoxCloud Inc., almacenamiento de grabaciones, Estados Unidos",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "El contrato identifica nombre, servicio y país de los dos sub-encargados en uso."
+    },
+    {
+      "control": "A.2.5.8",
+      "titulo": "Contratación de subcontratistas",
+      "ambito": "Propio Agente 7",
+      "clausula_dpa": "7",
+      "evidencia": "El Cliente otorga autorización general al Proveedor para contratar subencargados",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "La autorización general es admisible, pero falta el elemento esencial: contrato escrito que imponga a los sub-encargados obligaciones equivalentes, y la responsabilidad del Encargado por ellos."
+    },
+    {
+      "control": "A.2.5.9",
+      "titulo": "Cambio de subcontratista",
+      "ambito": "Propio Agente 7",
+      "clausula_dpa": "7",
+      "evidencia": "publicará en su sitio web las actualizaciones de la lista de subencargados",
+      "estado": "No cumple",
+      "severidad": "Crítica",
+      "fuente_requisito": "Mixta",
+      "observacion": "La publicación en web es un aviso posterior y pasivo. No hay aviso previo (política interna: 30 días) ni derecho de objeción."
+    },
+    {
+      "control": "A.3.9",
+      "titulo": "Derechos de acceso",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "4",
+      "evidencia": "su personal está sujeto a obligaciones de confidencialidad",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "No limita el acceso al personal con necesidad de conocer ni establece que la confidencialidad subsista tras el fin de la relación."
+    },
+    {
+      "control": "A.3.10",
+      "titulo": "Seguridad en acuerdos con proveedores",
+      "ambito": "Propio Agente 7",
+      "clausula_dpa": "5, 6",
+      "evidencia": "dentro de las 72 horas siguientes a haber tenido conocimiento",
+      "estado": "No cumple",
+      "severidad": "Crítica",
+      "fuente_requisito": "Política interna",
+      "observacion": "72 h supera el máximo interno de 24 h y deja al Responsable sin margen para notificar a la ANPD dentro de las 48 h del Reglamento. Criterios §2: plazo de incidentes mayor al parámetro es No cumple."
+    },
+    {
+      "control": "A.3.11",
+      "titulo": "Planificación de gestión de incidentes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "",
+      "estado": "Sin evidencia",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin compromiso de mantener un procedimiento de gestión de incidentes que cubra brechas de datos personales."
+    },
+    {
+      "control": "A.3.12",
+      "titulo": "Respuesta a incidentes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "6",
+      "evidencia": "notificará al Cliente cualquier violación de seguridad de datos personales",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "Mixta",
+      "observacion": "Obliga a notificar pero no fija contenido mínimo del aviso (datos y titulares afectados, consecuencias, medidas, contacto) ni cooperación en la notificación a la ANPD y a los titulares."
+    },
+    {
+      "control": "A.3.13",
+      "titulo": "Requisitos legales y contractuales",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "11",
+      "evidencia": "se rige por las leyes de la República del Perú",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "Mixta",
+      "observacion": "Designa la ley aplicable pero no incorpora el compromiso expreso de cumplir la Ley N.° 29733 y su Reglamento, ni designa Oficial de Datos Personales o punto de contacto de privacidad."
+    },
+    {
+      "control": "A.3.15",
+      "titulo": "Revisión independiente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "9",
+      "evidencia": "un resumen de su informe de auditoría más reciente",
+      "estado": "Parcial",
+      "severidad": "Alta",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Un resumen sin tipo de informe, alcance ni fecha no acredita revisión independiente. No consta SOC 2 Tipo II dentro de los 12 meses que exige la política."
+    }
+  ],
+  "alertas": [
+    {
+      "prioridad": "Alta",
+      "tipo": "Riesgo",
+      "descripcion": "El proveedor puede tratar las grabaciones para fines propios (entrenar sus modelos de analítica de voz). La anonimización se invoca sin método definido, por lo que no excluye el dato personal.",
+      "controles_relacionados": [
+        "A.2.2.3",
+        "A.2.2.4"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Alta",
+      "tipo": "Seguridad",
+      "descripcion": "Aviso de incidentes en 72 h, mayor al máximo interno de 24 h. Impide al Responsable notificar a la ANPD dentro de las 48 h del Reglamento de la Ley N.° 29733.",
+      "controles_relacionados": [
+        "A.3.10",
+        "A.3.12"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Alta",
+      "tipo": "Riesgo",
+      "descripcion": "Sub-encargados en Estados Unidos e India, fuera de paises_aprobados, sin garantías contractuales de protección equivalente ni mecanismo de transferencia identificado.",
+      "controles_relacionados": [
+        "A.2.5.2",
+        "A.2.5.3",
+        "A.2.5.8"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Media",
+      "tipo": "Riesgo",
+      "descripcion": "Certificación ISO/IEC 27001 solo declarada, sin certificado, alcance ni vigencia, con nivel de riesgo PII Alto.",
+      "controles_relacionados": [
+        "A.3.15",
+        "A.2.2.6"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Media",
+      "tipo": "Riesgo",
+      "descripcion": "Uso de IA sobre los datos (transcripción automática y analítica de voz) sin evidencia de gobernanza de IA, por ejemplo ISO/IEC 42001.",
+      "controles_relacionados": [
+        "A.2.2.3"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Media",
+      "tipo": "Renovación",
+      "descripcion": "Sin fecha de fin de vigencia ni mecanismo de revisión periódica definido.",
+      "controles_relacionados": [
+        "A.1.2.7"
+      ],
+      "origen": "script"
+    }
+  ],
+  "resumen": {
+    "cumple": 1,
+    "parcial": 12,
+    "no_cumple": 4,
+    "sin_evidencia": 7,
+    "no_aplica": 0,
+    "alertas_altas": 3
+  },
+  "puntaje_proveedor": {
+    "valor": 22,
+    "banda": "Riesgo alto",
+    "base": 37.5,
+    "penalizacion": 15,
+    "por_dimension": {
+      "Contractual": 31.8,
+      "Ciclo de vida del dato": 45.0,
+      "Transferencias y sub-encargados": 42.2,
+      "Seguridad e incidentes": 32.5
+    }
+  },
+  "dictamen": "No recomendable sin enmiendas",
+  "aprobacion": {
+    "requiere_decision_dpo": true,
+    "requiere_aprobacion_legal": true,
+    "secuencia": [
+      "DPO",
+      "Legal"
+    ],
+    "estado": "Pendiente DPO"
+  },
+  "remediacion": [
+    {
+      "control": "A.2.2.3",
+      "accion": "Suprimir de la cláusula 3 la excepción que permite usar información derivada de las grabaciones para fines propios, y regular el uso de IA sobre los datos limitándolo a los fines del Responsable.",
+      "clausula_propuesta": "Cláusulas baseline 2 y 17",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.3.10",
+      "accion": "Reducir el aviso de incidentes a un máximo de 24 horas desde su conocimiento, con contenido mínimo y cooperación en la notificación a la ANPD y a los titulares.",
+      "clausula_propuesta": "Cláusula baseline 14",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.5.2",
+      "accion": "Identificar la base y el mecanismo de transferencia internacional, con garantías de protección equivalente a la Ley N.° 29733 para EE. UU. e India, y derecho de objeción o resolución ante cambios.",
+      "clausula_propuesta": "Cláusula baseline 10",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.5.9",
+      "accion": "Sustituir la publicación en web por aviso previo de 30 días de cualquier alta o cambio de sub-encargado, con derecho de objeción del Responsable.",
+      "clausula_propuesta": "Cláusula baseline 12",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.5.3",
+      "accion": "Cerrar la lista de países de tratamiento en un anexo, de modo que cualquier destino nuevo exija aviso previo y garantías.",
+      "clausula_propuesta": "Cláusula baseline 10",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.5.8",
+      "accion": "Obligar a contratar a cada sub-encargado por escrito con obligaciones equivalentes a este DPA y establecer la responsabilidad del Encargado por sus sub-encargados.",
+      "clausula_propuesta": "Cláusula baseline 12",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.4.3",
+      "accion": "Fijar devolución o eliminación a elección del Responsable en 30 días, respaldos incluidos, con certificado de eliminación.",
+      "clausula_propuesta": "Cláusula baseline 9",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.2.2",
+      "accion": "Incorporar un Anexo 1 con objeto, duración, naturaleza, finalidad y categorías de datos y de titulares, más el detalle de la asistencia al Responsable.",
+      "clausula_propuesta": "Cláusula baseline 1",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.3.12",
+      "accion": "Detallar el contenido mínimo del aviso de incidente y el deber de cooperación posterior.",
+      "clausula_propuesta": "Cláusula baseline 14",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.3.2",
+      "accion": "Fijar el reenvío de solicitudes de titulares en 2 días hábiles y la asistencia en un máximo de 5 días hábiles, sin responder directamente al titular sin instrucción.",
+      "clausula_propuesta": "Cláusula baseline 7",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.2.6",
+      "accion": "Reconocer derecho de auditoría o inspección con preaviso de 10 días hábiles y entregar el certificado ISO/IEC 27001 vigente con su alcance.",
+      "clausula_propuesta": "Cláusula baseline 5",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.4.4",
+      "accion": "Exigir cifrado de toda transmisión de datos por redes y un anexo de medidas de seguridad concretas.",
+      "clausula_propuesta": "Cláusula baseline 8",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.2.4",
+      "accion": "Prohibir expresamente el uso de los datos con fines de marketing o publicidad.",
+      "clausula_propuesta": "Cláusula baseline 3",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.2.5",
+      "accion": "Añadir el deber de informar de inmediato si una instrucción del Responsable infringe la normativa aplicable.",
+      "clausula_propuesta": "Cláusula baseline 4",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.2.7",
+      "accion": "Obligar a mantener y entregar a solicitud el registro de actividades de tratamiento por cuenta del Responsable.",
+      "clausula_propuesta": "Cláusula baseline 6",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.4",
+      "accion": "Registrar toda comunicación de datos a terceros.",
+      "clausula_propuesta": "Cláusula baseline 11",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.5",
+      "accion": "Notificar al Responsable antes de atender un requerimiento de autoridad, salvo prohibición legal.",
+      "clausula_propuesta": "Cláusula baseline 11",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.6",
+      "accion": "Rechazar solicitudes no vinculantes y limitar la entrega a lo legalmente exigido.",
+      "clausula_propuesta": "Cláusula baseline 11",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.9",
+      "accion": "Limitar el acceso al personal con necesidad de conocer y extender la confidencialidad más allá del fin de la relación.",
+      "clausula_propuesta": "Cláusula baseline 13",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.11",
+      "accion": "Comprometer un procedimiento documentado de gestión de incidentes que cubra brechas de datos personales.",
+      "clausula_propuesta": "Cláusula baseline 14",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.13",
+      "accion": "Incorporar el compromiso expreso de cumplir la Ley N.° 29733 y su Reglamento y designar un punto de contacto de privacidad u Oficial de Datos Personales.",
+      "clausula_propuesta": "Cláusula baseline 15",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.15",
+      "accion": "Entregar anualmente un informe de revisión independiente identificable (SOC 2 Tipo II con antigüedad no mayor a 12 meses) o certificación vigente con alcance.",
+      "clausula_propuesta": "Cláusula baseline 5",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.4.2",
+      "accion": "Documentar el plazo máximo de eliminación de archivos temporales con datos personales.",
+      "clausula_propuesta": "Cláusula baseline 8",
+      "prioridad": "Baja"
+    },
+    {
+      "control": "A.1.2.7",
+      "accion": "Incorporar fecha de firma, vigencia con fecha de fin expresa, régimen de renovación, preaviso de terminación y revisión anual del acuerdo.",
+      "clausula_propuesta": "Cláusula baseline 16",
+      "prioridad": "Media"
+    }
+  ],
+  "supuestos": [
+    "Supuesto: ficha del tercero inferida del propio contrato; no se entregaron ID de tercero del inventario PIMS ni ID de contrato (null).",
+    "Supuesto: nivel de riesgo PII Alto por datos financieros (historial de pagos y saldos de deuda) y por superar los 100 000 titulares (~180 000 según cl. 2).",
+    "Supuesto: fecha de firma, inicio y fin de vigencia, renovación automática y preaviso de terminación no localizados en el contrato (null).",
+    "Supuesto: la ISO/IEC 27001 declarada en cl. 5 se trata como certificación aceptada pese a no indicar versión; al no haber certificado, alcance ni vigencia, su estado es Declarada sin evidencia.",
+    "Supuesto: el informe de auditoría de cl. 9 no se identifica como SOC 2 Tipo II, por lo que no se cuenta como certificación aceptada.",
+    "Supuesto: ni Estados Unidos ni India figuran en paises_aprobados de la configuración v1.1, y el contrato no aporta garantías contractuales de transferencia.",
+    "Supuesto: la mención a información agregada y anonimizada no acredita anonimización efectiva, al no definirse método ni umbral."
+  ],
+  "trazabilidad": {
+    "version_skill": "1.1",
+    "version_config": "1.1",
+    "evaluador": "Agente 7 (Terceros/DPA) — Claude Opus 5 en Claude Code, skill instalada en ~/.claude/skills/pims-dpa-auditor",
+    "fecha_hora": "2026-10-07",
+    "calculo": "script",
+    "parametros_aplicados": {
+      "version_config": "1.1",
+      "organizacion": "Organización usuaria (Responsable del tratamiento)",
+      "pais_responsable": "Perú",
+      "plazo_max_aviso_incidente_horas": 24,
+      "plazo_max_asistencia_derechos_dias_habiles": 5,
+      "plazo_max_devolucion_eliminacion_dias": 30,
+      "aviso_previo_cambio_subencargado_dias": 30,
+      "dias_alerta_renovacion": 60,
+      "certificaciones_aceptadas": [
+        "ISO/IEC 27001:2022",
+        "ISO/IEC 27701:2025",
+        "ISO/IEC 27701:2019",
+        "SOC 2 Tipo II"
+      ],
+      "certificaciones_complementarias": [
+        "ISO/IEC 42001:2023"
+      ],
+      "antiguedad_max_informe_soc2_meses": 12,
+      "aprobadores": [
+        "DPO",
+        "Legal"
+      ],
+      "n_paises_aprobados": 31
+    },
+    "fecha_referencia": "2026-10-07"
+  }
+}

@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PIMS Privacy Guard · Auditor de encargados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ---------------------------------------------------------------------------
+   Tokens. Papel de archivo, tinta azul y violeta de sello de oficina.
+   ------------------------------------------------------------------------ */
+:root {
+  --papel: #EEF1F3;
+  --hoja: #FFFFFF;
+  --tinta: #1B2A3A;
+  --tinta-2: #4A5A6B;
+  --tinta-3: #6B7A89;
+  --borde: #CDD5DC;
+  --borde-suave: #E1E6EA;
+  --sello: #5B3FA8;
+  --sello-claro: #EEE9FA;
+  --verde: #2E7D4F;
+  --ambar: #B7791F;
+  --rojo: #B3261E;
+  --gris: #8A96A3;
+  --foco: #2457C5;
+  --letra: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--letra); font-size: 16px; line-height: 1.5; color: var(--tinta); background: var(--papel);
+  display: grid; grid-template-columns: 264px 1fr; min-height: 100vh;
+}
+:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+h1, h2, h3 { line-height: 1.2; margin: 0; }
+h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.25rem; font-weight: 700; }
+h3 { font-size: 1rem; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--foco); }
+.oculto { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ---------------------------------------------------------------------------
+   Riel lateral
+   ------------------------------------------------------------------------ */
+.riel {
+  background: var(--tinta); color: #E6ECF1; padding: var(--s5) var(--s4); display: flex; flex-direction: column; gap: var(--s5);
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.marca { display: grid; gap: 2px; }
+.marca strong { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.01em; }
+.marca span { color: #A9B7C4; font-size: 0.85rem; }
+.campo-riel { display: grid; gap: var(--s1); font-size: 0.85rem; color: #A9B7C4; }
+.riel .campo-riel select, .riel .campo-riel input {
+  background: #26384B; border: 1px solid #3A4F64; color: #F2F5F8; border-radius: 4px; padding: 7px 9px;
+}
+.nav { display: grid; gap: 2px; }
+.nav button {
+  text-align: left; background: none; border: 0; color: #D7E0E8; padding: 9px 10px; border-radius: 4px; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.nav button:hover { background: #26384B; }
+.nav button[aria-current="page"] { background: #F2F5F8; color: var(--tinta); font-weight: 700; }
+.contador { background: var(--sello); color: #fff; border-radius: 10px; font-size: 0.75rem; padding: 0 7px; font-weight: 700; }
+.nav button[aria-current="page"] .contador { background: var(--sello); }
+.quien { border-top: 1px solid #33475C; padding-top: var(--s4); display: grid; gap: var(--s3); }
+.roles { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #3A4F64; border-radius: 4px; overflow: hidden; }
+.roles button { background: none; border: 0; color: #D7E0E8; padding: 7px; cursor: pointer; }
+.roles button[aria-pressed="true"] { background: var(--sello); color: #fff; font-weight: 700; }
+.pie-riel { margin-top: auto; font-size: 0.8rem; color: #8FA0B1; display: grid; gap: 2px; }
+.pie-riel b { color: #D7E0E8; font-weight: 500; }
+
+/* ---------------------------------------------------------------------------
+   Área principal
+   ------------------------------------------------------------------------ */
+main { padding: var(--s6) var(--s6) var(--s7); min-width: 0; }
+.cabecera { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--s4); margin-bottom: var(--s5); flex-wrap: wrap; }
+.cabecera p { color: var(--tinta-2); margin-top: var(--s1); max-width: 70ch; }
+.hoja { background: var(--hoja); border: 1px solid var(--borde); border-radius: 6px; padding: var(--s5); overflow-x: auto; }
+.hoja + .hoja, .bloque + .bloque { margin-top: var(--s5); }
+.bloque h2 { margin-bottom: var(--s3); }
+.nota { color: var(--tinta-2); font-size: 0.9rem; }
+.vacio { color: var(--tinta-2); padding: var(--s5) 0; }
+
+/* Formularios y botones */
+.form { display: grid; gap: var(--s4); }
+.fila { display: grid; gap: var(--s4); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+label.campo { display: grid; gap: var(--s1); font-weight: 500; font-size: 0.92rem; }
+label.campo small { font-weight: 400; color: var(--tinta-3); }
+input[type=text], input[type=number], input[type=password], select, textarea {
+  border: 1px solid var(--borde); border-radius: 4px; padding: 8px 10px; background: #fff; width: 100%;
+}
+textarea { resize: vertical; min-height: 220px; font-family: var(--mono); font-size: 0.85rem; line-height: 1.45; }
+.btn {
+  border: 1px solid var(--tinta); background: var(--tinta); color: #fff; padding: 9px 16px; border-radius: 4px;
+  cursor: pointer; font-weight: 700; display: inline-flex; gap: var(--s2); align-items: center; justify-content: center;
+}
+.btn { white-space: nowrap; }
+.btn:hover { background: #2A3D52; }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+.btn.sec { background: #fff; color: var(--tinta); border-color: var(--borde); font-weight: 500; }
+.btn.sec:hover { border-color: var(--tinta-2); }
+.btn.violeta { background: var(--sello); border-color: var(--sello); }
+.btn.peligro { background: #fff; color: var(--rojo); border-color: #E4B4B0; }
+.acciones { display: flex; gap: var(--s2); flex-wrap: wrap; align-items: center; }
+.soltar {
+  border: 1.5px dashed var(--borde); border-radius: 6px; padding: var(--s4); text-align: center; color: var(--tinta-2);
+  cursor: pointer; background: #FAFBFC;
+}
+.soltar.encima { border-color: var(--sello); background: var(--sello-claro); }
+.soltar strong { color: var(--tinta); }
+
+/* Tablas */
+.tabla { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.tabla th { text-align: left; font-weight: 700; color: var(--tinta-2); border-bottom: 2px solid var(--borde); padding: 8px 10px; font-size: 0.85rem; }
+.tabla td { border-bottom: 1px solid var(--borde-suave); padding: 10px; vertical-align: top; }
+.tabla tr.clic { cursor: pointer; }
+.tabla tr.clic:hover td { background: #F6F8FA; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Etiquetas de estado */
+.estado { display: inline-block; padding: 1px 8px; border-radius: 3px; font-size: 0.82rem; font-weight: 700; border: 1px solid; white-space: nowrap; }
+.estado.pendiente { color: var(--sello); border-color: #CFC4EE; background: var(--sello-claro); }
+.estado.aprobado { color: var(--verde); border-color: #B5D8C3; background: #EEF7F1; }
+.estado.rechazado { color: var(--rojo); border-color: #E9C0BC; background: #FBEFEE; }
+.banda-alto { color: var(--rojo); } .banda-medio { color: var(--ambar); } .banda-bajo { color: var(--verde); }
+
+/* ---------------------------------------------------------------------------
+   Huella del contrato: una casilla por control (26) del semáforo
+   ------------------------------------------------------------------------ */
+.huella { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 3px; }
+.casilla {
+  border-radius: 3px; padding: 6px 4px 5px; font-family: var(--mono); font-size: 0.72rem; text-align: center; color: #fff;
+  border: 2px solid transparent; cursor: default; position: relative;
+}
+.casilla.cumple { background: var(--verde); }
+.casilla.parcial { background: var(--ambar); }
+.casilla.nocumple { background: var(--rojo); }
+.casilla.sinevidencia { background: #fff; color: var(--tinta-2); border-color: var(--gris); border-style: dashed; }
+.casilla.noaplica { background: #E6EAEE; color: var(--tinta-3); }
+.casilla.propio::after { content: ""; position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.85; }
+.leyenda { display: flex; flex-wrap: wrap; gap: var(--s4); font-size: 0.82rem; color: var(--tinta-2); margin-top: var(--s2); }
+.leyenda i { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+.mini { display: flex; height: 10px; border-radius: 2px; overflow: hidden; min-width: 120px; background: #E6EAEE; }
+.mini span { display: block; height: 100%; }
+
+/* Expediente */
+.expediente-cabecera { display: grid; grid-template-columns: 1fr auto; gap: var(--s5); align-items: start; }
+.cifras { display: flex; gap: var(--s6); flex-wrap: wrap; margin: var(--s5) 0 var(--s4); }
+.cifra { display: grid; gap: 2px; }
+.cifra .v { font-size: 1.6rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cifra .e { font-size: 0.85rem; color: var(--tinta-2); }
+.dictamen { font-size: 1.05rem; font-weight: 700; }
+.desglose { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: var(--s5); align-items: center; margin-top: var(--s4); }
+.radar svg { display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; }
+.dims { display: grid; gap: var(--s2); align-content: start; }
+.dim { display: grid; grid-template-columns: 210px 1fr 44px; gap: var(--s3); align-items: center; font-size: 0.88rem; }
+.barra { height: 8px; background: #E6EAEE; border-radius: 4px; overflow: hidden; }
+.barra span { display: block; height: 100%; background: var(--tinta-2); }
+
+/* ---------------------------------------------------------------------------
+   Sellos de la doble puerta (DPO → Legal)
+   ------------------------------------------------------------------------ */
+.sellos { display: flex; gap: var(--s4); }
+.sello {
+  width: 150px; min-height: 104px; border: 2px dashed var(--borde); border-radius: 8px; display: grid; place-items: center;
+  text-align: center; color: var(--tinta-3); font-size: 0.8rem; padding: var(--s2); background: #FAFBFC;
+}
+.sello b { display: block; color: var(--tinta-2); font-size: 0.95rem; }
+.sello.puesto {
+  border: 3px double var(--sello); color: var(--sello); background: transparent; transform: rotate(-5deg);
+  font-weight: 700; letter-spacing: 0.04em;
+}
+.sello.puesto.rechazo { border-color: var(--rojo); color: var(--rojo); transform: rotate(4deg); }
+.sello.puesto .t { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.08em; }
+.sello.puesto small { font-weight: 500; letter-spacing: 0; display: block; font-size: 0.72rem; margin-top: 2px; }
+.sello.recien { animation: estampar 420ms cubic-bezier(.2,.9,.3,1.2); }
+@keyframes estampar {
+  0% { transform: scale(1.6) rotate(-14deg); opacity: 0; }
+  60% { transform: scale(0.94) rotate(-4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-5deg); }
+}
+.sello.recien.rechazo { animation-name: estampar-r; }
+@keyframes estampar-r { 0% { transform: scale(1.6) rotate(14deg); opacity: 0; } 60% { transform: scale(.94) rotate(3deg); opacity: 1; } 100% { transform: scale(1) rotate(4deg); } }
+.decidir { margin-top: var(--s4); display: grid; gap: var(--s2); max-width: 340px; }
+.decidir textarea { min-height: 64px; font-family: var(--letra); font-size: 0.9rem; }
+
+/* Pestañas */
+.pestanas { display: flex; gap: 2px; border-bottom: 1px solid var(--borde); margin: var(--s5) 0 var(--s4); flex-wrap: wrap; }
+.pestanas button { background: none; border: 0; padding: 9px 14px; cursor: pointer; color: var(--tinta-2); border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.pestanas button[aria-selected="true"] { color: var(--tinta); border-bottom-color: var(--tinta); font-weight: 700; }
+
+/* Informe Markdown */
+.informe { max-width: 920px; }
+.informe h1 { font-size: 1.4rem; margin: 0 0 var(--s4); }
+.informe h2 { font-size: 1.15rem; margin: var(--s6) 0 var(--s3); padding-top: var(--s3); border-top: 1px solid var(--borde-suave); }
+.informe h3 { margin: var(--s4) 0 var(--s2); }
+.informe p, .informe li { max-width: 78ch; }
+.informe p { margin: var(--s2) 0; }
+.informe table { border-collapse: collapse; font-size: 0.86rem; margin: var(--s3) 0; display: block; overflow-x: auto; }
+.informe th, .informe td { border: 1px solid var(--borde-suave); padding: 6px 8px; text-align: left; vertical-align: top; }
+.informe th { background: #F4F6F8; }
+.informe blockquote { margin: var(--s3) 0; padding: var(--s2) var(--s4); border-left: 4px solid var(--sello); background: var(--sello-claro); }
+.informe code { font-family: var(--mono); font-size: 0.85em; background: #F1F3F5; padding: 1px 4px; border-radius: 3px; }
+.informe pre { background: #F4F6F8; padding: var(--s3); overflow-x: auto; border-radius: 4px; }
+.sem { font-style: normal; font-weight: 700; }
+.sem-verde { color: var(--verde); } .sem-amarillo { color: var(--ambar); } .sem-rojo { color: var(--rojo); } .sem-blanco { color: var(--gris); } .sem-gris { color: var(--tinta-3); }
+pre.json { max-height: 560px; overflow: auto; font-size: 0.8rem; background: #F4F6F8; padding: var(--s3); border-radius: 4px; }
+
+/* Progreso de un trabajo */
+.progreso { display: grid; gap: var(--s3); }
+.pasos { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s2); }
+.pasos li { display: grid; grid-template-columns: 22px 1fr; gap: var(--s2); color: var(--tinta-3); }
+.pasos li::before { content: "○"; text-align: center; }
+.pasos li.hecho { color: var(--tinta); } .pasos li.hecho::before { content: "●"; color: var(--verde); }
+.pasos li.actual { color: var(--tinta); font-weight: 700; } .pasos li.actual::before { content: "◐"; color: var(--sello); animation: girar 1.4s linear infinite; display: inline-block; }
+.pasos li.error { color: var(--rojo); font-weight: 700; } .pasos li.error::before { content: "✕"; }
+@keyframes girar { to { transform: rotate(360deg); } }
+/* Chat: preguntas al modelo sobre el expediente o la organización */
+.chat { display: grid; gap: var(--s3); max-width: 860px; }
+.chat-lista { display: grid; gap: var(--s3); }
+.msg { padding: var(--s3) var(--s4); border-radius: 8px; max-width: 92%; }
+.msg.usuario { justify-self: end; background: var(--sello-claro); border: 1px solid #D9D0F2; }
+.msg.asistente { justify-self: start; background: #fff; border: 1px solid var(--borde-suave); }
+.msg .meta { display: block; font-size: 0.75rem; color: var(--tinta-3); margin-bottom: 4px; }
+.msg.asistente .informe { max-width: none; }
+.msg.asistente .informe p:first-child { margin-top: 0; }
+.msg.pensando .meta::after { content: " ◐"; color: var(--sello); display: inline-block; animation: girar 1.4s linear infinite; }
+.chat-sugerencias { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.chat-sugerencias button { background: #fff; border: 1px solid var(--borde); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 0.85rem; color: var(--tinta-2); cursor: pointer; }
+.chat-sugerencias button:hover { border-color: var(--sello); color: var(--tinta); }
+.chat-form { display: grid; gap: var(--s2); }
+.chat-form textarea { min-height: 72px; font-family: var(--letra); font-size: 0.95rem; }
+.chat-form .acciones { display: flex; gap: var(--s3); align-items: center; flex-wrap: wrap; }
+.alerta { border-left: 4px solid var(--rojo); background: #FBEFEE; padding: var(--s3) var(--s4); border-radius: 0 4px 4px 0; }
+.alerta.media { border-color: var(--ambar); background: #FBF4E6; }
+.alerta.info { border-color: var(--sello); background: var(--sello-claro); }
+.lista-alertas { display: grid; gap: var(--s2); }
+.dos-col { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--s5); align-items: start; }
+.dos-col > .hoja, .dos-col > .bloque { margin-top: 0; }
+
+/* Aviso flotante */
+#aviso { position: fixed; bottom: var(--s5); right: var(--s5); max-width: 420px; display: grid; gap: var(--s2); z-index: 10; }
+.toast { background: var(--tinta); color: #fff; padding: var(--s3) var(--s4); border-radius: 6px; box-shadow: 0 6px 24px rgba(27,42,58,.25); }
+.toast.error { background: var(--rojo); }
+.toast button { margin-left: var(--s3); background: none; border: 1px solid #ffffff80; color: #fff; border-radius: 3px; cursor: pointer; padding: 2px 8px; }
+
+@media (max-width: 960px) {
+  body { grid-template-columns: 1fr; }
+  .riel { position: static; height: auto; }
+  main { padding: var(--s5) var(--s4) var(--s7); }
+  .dos-col, .expediente-cabecera { grid-template-columns: 1fr; }
+  .dim { grid-template-columns: 1fr 1fr 40px; }
+  .desglose { grid-template-columns: 1fr; }
+  .hoja { padding: var(--s4); }
+  .tabla th, .tabla td { padding: 8px 6px; }
+  .tabla .col-opcional { display: none; }
+  .sellos { flex-wrap: wrap; }
+  .sello { width: 140px; }
+  #aviso { left: var(--s3); right: var(--s3); bottom: var(--s3); max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sello.recien, .pasos li.actual::before { animation: none; }
+}
+@media print {
+  body { display: block; background: #fff; }
+  .riel, .pestanas, .acciones, .decidir, #aviso, .no-imprimir { display: none !important; }
+  main { padding: 0; }
+  .hoja { border: 0; padding: 0; }
+}
+</style>
+</head>
+<body>
+<aside class="riel" aria-label="Navegación">
+  <div class="marca"><strong>PIMS Privacy Guard</strong><span>Auditor de encargados del tratamiento</span></div>
+  <label class="campo-riel">Organización
+    <select id="org" aria-label="Organización"></select>
+  </label>
+  <nav class="nav" id="nav">
+    <button data-vista="auditar">Auditar un contrato</button>
+    <button data-vista="expedientes">Expedientes</button>
+    <button data-vista="bandeja">Por aprobar <span class="contador oculto" id="contador"></span></button>
+    <button data-vista="organizacion">Organización y perfil</button>
+    <button data-vista="renovaciones">Renovaciones</button>
+    <button data-vista="configuracion">Configuración</button>
+  </nav>
+  <div class="quien">
+    <div class="campo-riel">Decido como
+      <div class="roles" role="group" aria-label="Rol en la aprobación">
+        <button data-rol="DPO" aria-pressed="true">DPO</button>
+        <button data-rol="Legal" aria-pressed="false">Legal</button>
+      </div>
+    </div>
+    <label class="campo-riel">Mi nombre
+      <input id="usuario" type="text" placeholder="Para el historial de aprobación" autocomplete="name">
+    </label>
+  </div>
+  <div class="pie-riel" id="pie"></div>
+</aside>
+<main id="vista" tabindex="-1"></main>
+<div id="aviso" aria-live="polite"></div>
+
+<!-- VENDOR:marked -->
+<!-- VENDOR:purify -->
+<script>
+'use strict';
+/* =============================================================================
+   PIMS Privacy Guard — página de la Etapa 3.
+   Todo el proceso ocurre en n8n; la página solo llama a /webhook/pims/*.
+   n8n la sirve aislada (CSP sandbox): no hay localStorage, el estado vive en n8n.
+   ========================================================================== */
+const API = '/webhook/pims/';
+const E = { turno: 0, orgs: [], org: null, rol: 'DPO', usuario: '', vista: 'auditar', estado: null, trabajos: {}, registros: [], expediente: null, chats: {} };
+
+/* ----------------------------------------------------------------- utilidades */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fecha = (iso) => { if (!iso) return '—'; const d = new Date(iso.length === 10 ? iso + 'T12:00:00' : iso);
+  return isNaN(d) ? iso : d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }); };
+const hora = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }); };
+
+async function api(metodo, ruta, cuerpo) {
+  let r;
+  try {
+    r = await fetch(API + ruta, { method: metodo, headers: cuerpo ? { 'Content-Type': 'application/json' } : {},
+      body: cuerpo ? JSON.stringify(cuerpo) : undefined, cache: 'no-store' });
+  } catch (e) {
+    throw new Error('No hay respuesta de n8n. Comprueba que esté corriendo (n8n\\iniciar_n8n.bat).');
+  }
+  let j = {};
+  try { j = await r.json(); } catch (_) { j = {}; }
+  if (!r.ok || j.ok === false) {
+    const msg = j.error || (j.errores && j.errores.join('; ')) || `n8n respondió ${r.status}`;
+    const err = new Error(msg); err.codigo = r.status; err.datos = j; throw err;
+  }
+  return j;
+}
+
+function avisar(texto, tipo = '', accion) {
+  const t = document.createElement('div');
+  t.className = `toast ${tipo}`;
+  t.textContent = texto;
+  if (accion) { const b = document.createElement('button'); b.textContent = accion.texto; b.onclick = () => { accion.fn(); t.remove(); }; t.appendChild(b); }
+  $('#aviso').appendChild(t);
+  while ($('#aviso').children.length > 3) $('#aviso').firstElementChild.remove();
+  setTimeout(() => t.remove(), accion ? 12000 : 6000);
+}
+
+function descargar(nombre, texto, tipo) {
+  const url = URL.createObjectURL(new Blob([texto], { type: tipo }));
+  const a = Object.assign(document.createElement('a'), { href: url, download: nombre });
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+const ESTADO_CLASE = (e) => e === 'Aprobado' ? 'aprobado' : e === 'Rechazado' ? 'rechazado' : 'pendiente';
+const BANDA_CLASE = (b) => /alto/i.test(b || '') ? 'banda-alto' : /medio/i.test(b || '') ? 'banda-medio' : 'banda-bajo';
+const CLASE_CONTROL = { 'Cumple': 'cumple', 'Parcial': 'parcial', 'No cumple': 'nocumple', 'Sin evidencia': 'sinevidencia', 'No aplica': 'noaplica' };
+
+/* Markdown del informe: los emoji del semáforo pasan a glifos con la paleta (fuera de bloques de código). */
+const SEMAFORO = [['🟢', 'sem-verde', '●', 'Cumple'], ['🟡', 'sem-amarillo', '●', 'Parcial'], ['🔴', 'sem-rojo', '●', 'No cumple'],
+  ['⚪', 'sem-blanco', '○', 'Sin evidencia'], ['➖', 'sem-gris', '–', 'No aplica']];
+function markdown(md) {
+  const coloreado = String(md || '').split('```').map((trozo, i) => i % 2 ? trozo
+    : SEMAFORO.reduce((t, [e, c, g, n]) => t.split(e).join(`<i class="sem ${c}" title="${n}">${g}</i>`), trozo)).join('```');
+  return DOMPurify.sanitize(marked.parse(coloreado, { gfm: true }));
+}
+
+/* ----------------------------------------------------------------- arranque */
+async function iniciar() {
+  $$('#nav button').forEach((b) => b.addEventListener('click', () => ir(b.dataset.vista)));
+  $$('.roles button').forEach((b) => b.addEventListener('click', () => {
+    E.rol = b.dataset.rol;
+    $$('.roles button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    actualizarContador();
+    if (['bandeja', 'expediente'].includes(E.vista)) pintar();
+  }));
+  $('#usuario').addEventListener('input', (e) => { E.usuario = e.target.value.trim(); });
+  $('#org').addEventListener('change', (e) => {
+    E.org = e.target.value;
+    E.registros = [];
+    pintar();
+    // Las listas se vuelven a dibujar cuando llegan; un formulario a medio llenar no se toca.
+    cargarRegistros().then(() => { if (['expedientes', 'bandeja'].includes(E.vista)) pintar(); });
+  });
+  try {
+    E.estado = await api('GET', 'estado');
+    E.orgs = E.estado.organizaciones.filter((o) => o.id);
+    $('#org').innerHTML = E.orgs.map((o) => `<option value="${esc(o.id)}">${esc(o.nombre || o.id)}</option>`).join('');
+    E.org = E.orgs.length ? E.orgs[0].id : null;
+    pintarPie();
+    await cargarRegistros();
+  } catch (e) {
+    $('#vista').innerHTML = `<div class="hoja"><h1>No se pudo conectar con n8n</h1><p class="nota" style="margin-top:8px">${esc(e.message)}</p></div>`;
+    return;
+  }
+  ir('auditar');
+}
+
+function pintarPie() {
+  const m = (E.estado && E.estado.modelo) || {};
+  $('#pie').innerHTML = `<span>Modelo: <b>${esc(m.proveedor || '—')}</b> · <b>${esc(m.modelo || '—')}</b></span><span>Fecha de referencia: ${esc(fecha(E.estado && E.estado.hoy))}</span>`;
+}
+
+async function cargarRegistros() {
+  try { E.registros = E.org ? (await api('GET', `registro?organizacion=${encodeURIComponent(E.org)}`)).registros : []; }
+  catch (e) { E.registros = []; avisar(e.message, 'error'); }
+  actualizarContador();
+}
+function actualizarContador() {
+  const n = E.registros.filter((r) => r.estado === `Pendiente ${E.rol}`).length;
+  const c = $('#contador'); c.textContent = n; c.classList.toggle('oculto', !n);
+}
+
+function ir(vista, datos) {
+  E.vista = vista;
+  if (datos !== undefined) E.datosVista = datos;
+  const marcada = vista === 'expediente' ? 'expedientes' : vista;
+  $$('#nav button').forEach((b) => { if (b.dataset.vista === marcada) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  pintar();
+  $('#vista').focus({ preventScroll: true });
+  window.scrollTo(0, 0);
+}
+
+/* Cada pintado tiene un turno: una vista asíncrona que termina tarde no pisa a la vista nueva. */
+const vigente = (yo) => yo === E.turno;
+const poner = (sel, txt) => { const el = $(sel); if (el) el.textContent = txt; };
+function pintar() {
+  E.turno++;
+  const v = { auditar: vAuditar, expedientes: vExpedientes, bandeja: vBandeja, organizacion: vOrganizacion,
+    renovaciones: vRenovaciones, configuracion: vConfiguracion, expediente: vExpediente }[E.vista];
+  v();
+}
+
+/* =============================================================================
+   Auditar un contrato
+   ========================================================================== */
+function vAuditar() {
+  const pre = E.datosVista && E.datosVista.proveedor ? E.datosVista.proveedor : '';
+  const org = E.orgs.find((o) => o.id === E.org);
+  $('#vista').innerHTML = `
+  <div class="cabecera"><div><h1>Auditar un contrato</h1>
+    <p>Pega el contrato o súbelo. n8n lo evalúa contra ISO/IEC 27701:2025 y la ley de protección de datos de la organización (jurisdicción <b>${esc(org ? org.jurisdiccion : '—')}</b>), calcula el puntaje y crea un expediente pendiente del DPO.</p></div></div>
+  <div class="dos-col">
+    <form class="hoja form" id="f-auditar" novalidate>
+      <label class="campo">Proveedor <small>Opcional. Ayuda a identificar el expediente.</small>
+        <input type="text" id="a-proveedor" value="${esc(pre)}" placeholder="p. ej. NubeAndina Contact Services S.A.C."></label>
+      <div class="soltar" id="a-soltar" tabindex="0" role="button" aria-label="Elegir archivo del contrato">
+        <strong>Suelta aquí el contrato</strong> o haz clic para elegirlo<br><span class="nota">.pdf, .docx, .md o .txt</span>
+        <input type="file" id="a-archivo" accept=".pdf,.docx,.md,.txt" class="oculto">
+      </div>
+      <label class="campo">Texto del contrato <small id="a-origen">También puedes pegarlo aquí.</small>
+        <textarea id="a-texto" placeholder="Pega el DPA, contrato de encargo o anexo de protección de datos…"></textarea></label>
+      <div class="acciones">
+        <button class="btn" id="a-enviar" type="submit">Auditar contrato</button>
+        <span class="nota" id="a-nota"></span>
+      </div>
+    </form>
+    <section class="hoja" id="a-panel" aria-live="polite">${panelTrabajos()}</section>
+  </div>`;
+  let archivo = null;
+  const zona = $('#a-soltar'), entrada = $('#a-archivo');
+  const elegir = async (f) => {
+    if (!f) return;
+    try {
+      const r = await leerArchivo(f);
+      archivo = r.archivo;
+      $('#a-texto').value = r.texto || '';
+      if (!$('#a-texto')) return;
+      $('#a-origen').textContent = r.archivo ? `${f.name}: n8n extraerá el texto del PDF.` : `Texto extraído de ${f.name}. Revísalo antes de auditar.`;
+      $('#a-texto').disabled = !!r.archivo;
+      if (!$('#a-proveedor').value) $('#a-proveedor').value = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ');
+    } catch (e) { avisar(e.message, 'error'); }
+  };
+  zona.onclick = () => entrada.click();
+  zona.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); entrada.click(); } };
+  entrada.onchange = () => elegir(entrada.files[0]);
+  zona.ondragover = (e) => { e.preventDefault(); zona.classList.add('encima'); };
+  zona.ondragleave = () => zona.classList.remove('encima');
+  zona.ondrop = (e) => { e.preventDefault(); zona.classList.remove('encima'); elegir(e.dataTransfer.files[0]); };
+  $('#f-auditar').onsubmit = async (e) => {
+    e.preventDefault();
+    const texto = $('#a-texto').value;
+    if (!E.org) return avisar('Primero crea o elige una organización.', 'error');
+    if (!archivo && !texto.trim()) return avisar('Pega el texto del contrato o sube un archivo.', 'error');
+    const btn = $('#a-enviar'); btn.disabled = true; poner('#a-nota', 'Enviando…');
+    try {
+      const cuerpo = { organizacion: E.org, proveedor: $('#a-proveedor').value.trim() };
+      if (archivo) cuerpo.archivo = archivo; else cuerpo.contrato_texto = texto;
+      const r = await api('POST', 'auditar', cuerpo);
+      seguirTrabajo(r.trabajo, { tipo: 'auditoria', proveedor: cuerpo.proveedor || 'Contrato sin nombre', org: E.org });
+      poner('#a-nota', 'Recibido. Puedes seguir trabajando: te aviso cuando termine.');
+      archivo = null; if ($('#a-texto')) $('#a-texto').disabled = false;
+    } catch (err) { avisar(err.message, 'error'); poner('#a-nota', ''); }
+    finally { btn.disabled = false; }
+  };
+}
+
+async function leerArchivo(f) {
+  const ext = (f.name.split('.').pop() || '').toLowerCase();
+  if (f.size > 15 * 1024 * 1024) throw new Error('El archivo supera 15 MB.');
+  if (ext === 'pdf') {
+    const b64 = await new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = mal; r.readAsDataURL(f); });
+    return { archivo: { nombre: f.name, base64: b64 }, texto: '' };
+  }
+  if (ext === 'docx') {
+    await cargarMammoth();
+    const r = await window.mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() });
+    return { texto: r.value };
+  }
+  if (ext === 'md' || ext === 'txt') return { texto: await f.text() };
+  throw new Error('Formato no admitido. Usa .pdf, .docx, .md o .txt.');
+}
+let mammothPromesa = null;
+function cargarMammoth() {
+  if (window.mammoth) return Promise.resolve();
+  mammothPromesa = mammothPromesa || new Promise((ok, mal) => {
+    const s = document.createElement('script'); s.src = API + 'app/mammoth'; s.onload = ok;
+    s.onerror = () => mal(new Error('No se pudo cargar el lector de .docx desde n8n.')); document.head.appendChild(s);
+  });
+  return mammothPromesa;
+}
+
+/* ---- Seguimiento de trabajos (auditorías y perfiles) en segundo plano ---- */
+const PASOS = {
+  auditoria: [['en_cola', 'Recibido'], ['evaluando', 'El modelo evalúa los 26 controles'], ['calculando', 'Cálculo determinista y expediente'], ['terminado', 'Listo']],
+  perfil: [['en_cola', 'Recibido'], ['extrayendo', 'Extracción de notas de cada documento'], ['redactando', 'Redacción y validación del perfil'], ['terminado', 'Listo']],
+};
+function seguirTrabajo(id, meta) {
+  E.trabajos[id] = Object.assign({ id, estado: 'en_cola', t0: Date.now() }, meta);
+  const tick = async () => {
+    const t = E.trabajos[id];
+    try {
+      const r = await api('GET', `trabajo?id=${id}`);
+      Object.assign(t, r, { t0: t.t0 });
+    } catch (e) { if (e.codigo !== 404) t.errorRed = e.message; }
+    if (['terminado', 'error', 'terminado_con_errores'].includes(t.estado)) {
+      t.t1 = Date.now();
+      if (t.tipo === 'auditoria') {
+        await cargarRegistros();
+        if (t.estado === 'terminado') avisar(`Expediente listo: ${t.proveedor} — ${t.puntaje}/100, ${t.dictamen}.`, '', { texto: 'Abrir', fn: () => abrirExpediente(t.id_registro) });
+        else avisar(`La auditoría de ${t.proveedor} no terminó: ${t.mensaje}`, 'error');
+      } else {
+        avisar(t.estado === 'terminado' ? 'Perfil generado. Revísalo y valídalo como DPO.' : `Perfil: ${t.mensaje}`, t.estado === 'terminado' ? '' : 'error');
+        if (E.vista === 'organizacion') pintar();
+      }
+    } else setTimeout(tick, 2500);
+    refrescarPaneles();
+  };
+  setTimeout(tick, 1200);
+  refrescarPaneles();
+}
+function refrescarPaneles() {
+  const p = $('#a-panel'); if (p) p.innerHTML = panelTrabajos('auditoria');
+  const q = $('#o-trabajo'); if (q) q.innerHTML = panelTrabajos('perfil');
+}
+function panelTrabajos(tipo = 'auditoria') {
+  const lista = Object.values(E.trabajos).filter((t) => t.tipo === tipo).sort((a, b) => b.t0 - a.t0).slice(0, 4);
+  if (!lista.length) {
+    return tipo === 'auditoria'
+      ? `<h2>Cómo se calcula</h2><p class="nota" style="margin-top:8px">El modelo califica cada control (cumple, parcial, no cumple, sin evidencia). El puntaje y el dictamen los calcula n8n con reglas fijas: los controles críticos pesan el triple y cada alerta alta resta 5 puntos. Un contrato vago nunca obtiene "cumple".</p><p class="nota" style="margin-top:8px">Una auditoría tarda entre 2 y 5 minutos con un modelo real.</p>`
+      : '';
+  }
+  return lista.map((t) => {
+    const pasos = PASOS[tipo];
+    const fase = t.estado === 'error' ? -1 : ['terminado', 'terminado_con_errores'].includes(t.estado) ? pasos.length - 1 : Math.max(0, pasos.findIndex(([k]) => k === t.estado));
+    const seg = Math.round(((t.t1 || Date.now()) - t.t0) / 1000);
+    return `<div class="progreso bloque">
+      <h3>${esc(t.proveedor || 'Perfil de la organización')} <span class="nota">· ${seg} s</span></h3>
+      <ol class="pasos">${pasos.map(([k, txt], i) => `<li class="${t.estado === 'error' ? (i === 0 ? 'hecho' : i === 1 ? 'error' : '') : i < fase || (i === fase && fase === pasos.length - 1) ? 'hecho' : i === fase ? 'actual' : ''}">${esc(txt)}</li>`).join('')}</ol>
+      ${t.estado === 'error' ? `<p class="alerta">${esc(t.mensaje)}</p>` : ''}
+      ${t.estado === 'terminado' && t.id_registro ? `<div class="acciones"><button class="btn sec" onclick="abrirExpediente('${esc(t.id_registro)}')">Abrir expediente</button><span class="${BANDA_CLASE(t.banda)}"><b>${t.puntaje}/100</b> · ${esc(t.dictamen)}</span></div>` : ''}
+      ${t.mensaje && !['error', 'terminado'].includes(t.estado) ? `<p class="nota">${esc(t.mensaje)}</p>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* =============================================================================
+   Expedientes y bandeja
+   ========================================================================== */
+function filaRegistro(r) {
+  const s = r.resumen || {}, tot = (s.cumple || 0) + (s.parcial || 0) + (s.no_cumple || 0) + (s.sin_evidencia || 0) + (s.no_aplica || 0) || 1;
+  const seg = (n, c) => n ? `<span style="width:${(n / tot) * 100}%;background:${c}"></span>` : '';
+  return `<tr class="clic" tabindex="0" data-id="${esc(r.id_registro)}">
+    <td><b>${esc(r.proveedor || '—')}</b><div class="nota">${esc(r.rol || '')} · riesgo PII ${esc(r.riesgo_pii || '—')}</div></td>
+    <td class="col-opcional">${esc(fecha(r.creado || r.fecha))}</td>
+    <td class="col-opcional"><div class="mini" title="${s.cumple || 0} cumple · ${s.parcial || 0} parcial · ${s.no_cumple || 0} no cumple · ${s.sin_evidencia || 0} sin evidencia">${seg(s.cumple, 'var(--verde)')}${seg(s.parcial, 'var(--ambar)')}${seg(s.no_cumple, 'var(--rojo)')}${seg(s.sin_evidencia, 'var(--gris)')}</div></td>
+    <td class="num ${BANDA_CLASE(r.banda)}"><b>${r.puntaje ?? '—'}</b></td>
+    <td class="col-opcional">${esc(r.dictamen || '—')}</td>
+    <td><span class="estado ${ESTADO_CLASE(r.estado)}">${esc(r.estado || '—')}</span></td></tr>`;
+}
+function tablaRegistros(lista, vacio) {
+  if (!lista.length) return `<p class="vacio">${vacio}</p>`;
+  return `<table class="tabla"><thead><tr><th>Proveedor</th><th class="col-opcional">Fecha</th><th class="col-opcional">Controles</th><th class="num">Puntaje</th><th class="col-opcional">Dictamen</th><th>Estado</th></tr></thead>
+    <tbody>${lista.map(filaRegistro).join('')}</tbody></table>`;
+}
+function activarFilas() {
+  $$('tr.clic').forEach((tr) => {
+    tr.onclick = () => abrirExpediente(tr.dataset.id);
+    tr.onkeydown = (e) => { if (e.key === 'Enter') abrirExpediente(tr.dataset.id); };
+  });
+}
+function vExpedientes() {
+  const filtro = (E.datosVista && E.datosVista.filtro) || '';
+  const lista = E.registros.filter((r) => !filtro || r.estado === filtro);
+  $('#vista').innerHTML = `
+  <div class="cabecera"><div><h1>Expedientes</h1><p>Cada auditoría queda como un expediente con su informe, su registro JSON y su historial de aprobación.</p></div>
+    <label class="campo" style="min-width:220px">Estado
+      <select id="x-filtro"><option value="">Todos</option>${['Pendiente DPO', 'Pendiente Legal', 'Aprobado', 'Rechazado'].map((e) => `<option ${e === filtro ? 'selected' : ''}>${e}</option>`).join('')}</select></label></div>
+  <div class="hoja">${tablaRegistros(lista, filtro ? `No hay expedientes en estado "${esc(filtro)}".` : 'Esta organización todavía no tiene expedientes. Audita su primer contrato.')}</div>`;
+  $('#x-filtro').onchange = (e) => { E.datosVista = { filtro: e.target.value }; pintar(); };
+  activarFilas();
+}
+function vBandeja() {
+  const lista = E.registros.filter((r) => r.estado === `Pendiente ${E.rol}`);
+  $('#vista').innerHTML = `
+  <div class="cabecera"><div><h1>Por aprobar como ${esc(E.rol)}</h1>
+    <p>${E.rol === 'DPO' ? 'El DPO revisa el dictamen primero. Lo que apruebe pasa a Legal.' : 'Legal decide la firma o las enmiendas de lo que ya aprobó el DPO.'} Cambia de rol en el panel izquierdo.</p></div></div>
+  <div class="hoja">${tablaRegistros(lista, `No hay expedientes esperando la decisión de ${esc(E.rol)}.`)}</div>`;
+  activarFilas();
+}
+
+/* ---- Expediente ---- */
+async function abrirExpediente(id) {
+  try {
+    const d = await api('GET', `registro/detalle?id=${encodeURIComponent(id)}`);
+    E.expediente = { id, resultado: d.resultado, informe: d.informe, pestana: 'informe', recien: null };
+    ir('expediente');
+  } catch (e) { avisar(e.message, 'error'); }
+}
+/* ------------------------------------------------ Radar de cumplimiento (SVG) */
+/* Dibuja el puntaje base por sección como diagrama de radar. Solo dibuja: los valores
+   vienen de puntaje_proveedor.por_dimension (calculado por código). Copia de n8n/lib/prompts.js
+   (radarSVG): si cambias una, cambia la otra. */
+const SECCION_DE = {
+  'Condiciones de recolección y tratamiento': 'A.2.2', 'Obligaciones con los titulares': 'A.2.3',
+  'Privacidad desde el diseño y por defecto': 'A.2.4', 'Compartición, transferencia y comunicación': 'A.2.5',
+  'Consideraciones de seguridad': 'A.3',
+};
+function controlesPorEje(nombre, controles) {
+  const sec = SECCION_DE[nombre];
+  if (!sec || !Array.isArray(controles)) return null;
+  return controles.filter((c) => c.control.startsWith(sec + '.') && c.estado !== 'No aplica').length;
+}
+function radarSVG(porDimension, controles, colores = {}) {
+  const ejes = Object.entries(porDimension || {});
+  const n = ejes.length;
+  if (n < 3) return '';
+  const col = Object.assign({ tinta: '#1B2A3A', suave: '#4A5A6B', red: '#CDD5DC', area: '#4A5A6B', ref: '#2E7D4F' }, colores);
+  const W = 560, H = 400, cx = W / 2, cy = 205, R = 120;
+  const ang = (i) => (-90 + (360 / n) * i) * Math.PI / 180;
+  const pt = (i, v) => [cx + R * (v / 100) * Math.cos(ang(i)), cy + R * (v / 100) * Math.sin(ang(i))];
+  const f = (x) => x.toFixed(1);
+  const anillo = (v) => ejes.map((_, i) => pt(i, v).map(f).join(',')).join(' ');
+  const escX = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const partir = (t, max) => {
+    const lineas = []; let actual = '';
+    for (const w of t.split(' ')) {
+      if (actual && (actual + ' ' + w).length > max) { lineas.push(actual); actual = w; } else actual = actual ? actual + ' ' + w : w;
+    }
+    if (actual) lineas.push(actual);
+    return lineas;
+  };
+  const o = [];
+  o.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Radar de cumplimiento por sección del Anexo A" style="max-width:100%;height:auto;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">`);
+  o.push(`<title>Radar de cumplimiento por sección del Anexo A de ISO/IEC 27701:2025</title>`);
+  o.push(`<desc>${escX(ejes.map(([k, v]) => `${SECCION_DE[k] || ''} ${k}: ${v === null ? 'sin controles evaluados' : v}`).join('; '))}</desc>`);
+  for (const v of [20, 40, 60, 100]) o.push(`<polygon points="${anillo(v)}" style="fill:none;stroke:${col.red};stroke-width:1"/>`);
+  o.push(`<polygon points="${anillo(80)}" style="fill:none;stroke:${col.ref};stroke-width:1.5;stroke-dasharray:5 4"/>`);
+  ejes.forEach((_, i) => { const [x, y] = pt(i, 100); o.push(`<line x1="${cx}" y1="${cy}" x2="${f(x)}" y2="${f(y)}" style="stroke:${col.red};stroke-width:1"/>`); });
+  for (const v of [20, 40, 60, 80, 100]) o.push(`<text x="${cx + 4}" y="${f(cy - R * v / 100 - 2)}" style="font-size:9px;fill:${v === 80 ? col.ref : col.suave}">${v}</text>`);
+  const area = ejes.map(([, v], i) => pt(i, v === null ? 0 : v).map(f).join(',')).join(' ');
+  o.push(`<polygon points="${area}" style="fill:${col.area};fill-opacity:0.18;stroke:${col.area};stroke-width:2;stroke-linejoin:round"/>`);
+  ejes.forEach(([, v], i) => {
+    const [x, y] = pt(i, v === null ? 0 : v);
+    o.push(`<circle cx="${f(x)}" cy="${f(y)}" r="3.5" style="fill:${v === null ? '#fff' : col.area};stroke:${col.area};stroke-width:1.5"/>`);
+  });
+  ejes.forEach(([k, v], i) => {
+    const a = ang(i), c = Math.cos(a), s = Math.sin(a);
+    const x = cx + (R + 18) * c, y = cy + (R + 18) * s;
+    const anc = Math.abs(c) < 0.2 ? 'middle' : c > 0 ? 'start' : 'end';
+    const nCtl = controlesPorEje(k, controles);
+    const lineas = [`${SECCION_DE[k] ? SECCION_DE[k] + ' · ' : ''}${v === null ? '—' : v}${nCtl === null ? '' : ` (${nCtl} ctrl.)`}`, ...partir(k, 24)];
+    const alto = lineas.length * 13;
+    const y0 = s < -0.5 ? y - alto + 9 : s > 0.5 ? y + 9 : y - alto / 2 + 9;
+    o.push(`<text x="${f(x)}" y="${f(y0)}" style="font-size:11px;fill:${col.tinta}" text-anchor="${anc}">${lineas.map((l, j) => `<tspan x="${f(x)}" dy="${j ? 13 : 0}"${j ? '' : ' style="font-weight:700"'}>${escX(l)}</tspan>`).join('')}</text>`);
+  });
+  o.push(`<text x="12" y="${H - 10}" style="font-size:10px;fill:${col.suave}">Puntaje base por sección, 0-100, sin penalización por alertas. Línea discontinua: 80 (riesgo bajo).</text>`);
+  o.push('</svg>');
+  return o.join('\n');
+}
+
+function vExpediente() {
+  const x = E.expediente; if (!x) return ir('expedientes');
+  const r = x.resultado, p = r.puntaje_proveedor || {}, s = r.resumen || {}, ap = r.aprobacion || {};
+  const cargos = ((r.trazabilidad || {}).parametros_aplicados || {}).aprobadores_cargos || {};
+  const hist = ap.historial || [];
+  const selloDe = (rol) => {
+    const h = [...hist].reverse().find((e) => e.rol === rol);
+    const recien = x.recien === rol ? ' recien' : '';
+    if (!h) return `<div class="sello"><div><b>${esc(rol)}</b>${esc(cargos[rol] || '')}<br>${ap.estado === `Pendiente ${rol}` ? 'Esperando decisión' : ap.estado === 'Rechazado' ? '—' : 'Pendiente'}</div></div>`;
+    const ok = h.decision === 'aprobar';
+    return `<div class="sello puesto${ok ? '' : ' rechazo'}${recien}" role="img" aria-label="${esc(rol)}: ${ok ? 'aprobado' : 'rechazado'} por ${esc(h.usuario)}">
+      <div><span class="t">${ok ? 'APROBADO' : 'RECHAZADO'}</span><small>${esc(rol)} · ${esc(h.usuario)}</small><small>${esc(fecha(h.fecha))}</small></div></div>`;
+  };
+  const turno = ap.estado === `Pendiente ${E.rol}`;
+  const dims = Object.entries(p.por_dimension || {});
+  $('#vista').innerHTML = `
+  <div class="acciones no-imprimir" style="margin-bottom:16px"><button class="btn sec" onclick="ir('expedientes')">Volver a expedientes</button></div>
+  <article class="hoja">
+    <div class="expediente-cabecera">
+      <div>
+        <h1>${esc((r.tercero || {}).nombre || 'Proveedor')}</h1>
+        <p class="nota" style="margin-top:4px">${esc((r.tercero || {}).servicio || '')}</p>
+        <p class="nota">${esc((r.organizacion || {}).nombre || '')} · ${esc((r.jurisdiccion || {}).ley_aplicable || 'ley no indicada')} · evaluado el ${esc(fecha(r.fecha))} · ${esc(x.id)}</p>
+      </div>
+      <div class="sellos" aria-label="Doble aprobación">${selloDe('DPO')}${selloDe('Legal')}</div>
+    </div>
+    <div class="cifras">
+      <div class="cifra"><span class="v ${BANDA_CLASE(p.banda)}">${p.valor ?? '—'}<span style="font-size:1rem;font-weight:500">/100</span></span><span class="e">${esc(p.banda || '')} · base ${p.base} − ${p.penalizacion}</span></div>
+      <div class="cifra"><span class="dictamen">${esc(r.dictamen || '—')}</span><span class="e">Dictamen calculado por n8n</span></div>
+      <div class="cifra"><span class="v">${esc(r.nivel_riesgo_pii || '—')}</span><span class="e">Riesgo de los datos personales</span></div>
+      <div class="cifra"><span class="v ${s.alertas_altas ? 'banda-alto' : ''}">${s.alertas_altas ?? 0}</span><span class="e">Alertas altas</span></div>
+    </div>
+    <h2 class="sr">Huella del contrato</h2>
+    <div class="huella">${(r.controles || []).map((c) => `<div class="casilla ${CLASE_CONTROL[c.estado] || ''} ${c.ambito === 'Propio Agente 7' ? 'propio' : ''}" title="${esc(c.control)} · ${esc(c.titulo || '')}\n${esc(c.estado)} · severidad ${esc(c.severidad)}\n${esc(c.observacion || '')}">${esc(c.control.replace(/^A\./, ''))}</div>`).join('')}</div>
+    <div class="leyenda"><span><i style="background:var(--verde)"></i>Cumple ${s.cumple}</span><span><i style="background:var(--ambar)"></i>Parcial ${s.parcial}</span><span><i style="background:var(--rojo)"></i>No cumple ${s.no_cumple}</span><span><i style="border:1.5px dashed var(--gris)"></i>Sin evidencia ${s.sin_evidencia}</span><span>● ámbito propio del Agente 7</span></div>
+    ${dims.length ? `<div class="desglose"><div class="dims">${dims.map(([k, v]) => `<div class="dim"><span>${SECCION_DE[k] ? `<b>${SECCION_DE[k]}</b> ` : ''}${esc(k)}</span><div class="barra"><span style="width:${v ?? 0}%"></span></div><span class="num">${v ?? '—'}</span></div>`).join('')}
+      <p class="nota">Puntaje base por sección del Anexo A de ISO/IEC 27701:2025, sin la penalización por alertas.</p></div>
+      <div class="radar">${radarSVG(p.por_dimension, r.controles, { tinta: 'var(--tinta)', suave: 'var(--tinta-3)', red: 'var(--borde)', area: 'var(--sello)', ref: 'var(--verde)' })}</div></div>` : ''}
+    ${turno ? `<div class="decidir no-imprimir">
+      <label class="campo">Comentario para el historial <small>Opcional</small><textarea id="d-com" placeholder="${E.rol === 'DPO' ? 'p. ej. Aprobado sujeto a las enmiendas de la sección 8' : 'p. ej. Firma autorizada con la adenda'}"></textarea></label>
+      <div class="acciones"><button class="btn violeta" id="d-ok">Aprobar como ${esc(E.rol)}</button><button class="btn peligro" id="d-no">Rechazar</button></div>
+    </div>` : `<p class="nota no-imprimir" style="margin-top:16px">${['Aprobado', 'Rechazado'].includes(ap.estado) ? `Expediente cerrado: ${esc(ap.estado.toLowerCase())}.` : `Le corresponde decidir a ${esc(ap.estado.replace('Pendiente ', ''))}. Tú decides como ${esc(E.rol)}.`}</p>`}
+    <div class="pestanas no-imprimir" role="tablist">${[['informe', 'Informe'], ['alertas', `Alertas (${(r.alertas || []).length})`], ['historial', `Historial (${hist.length})`], ['chat', 'Preguntar'], ['json', 'Registro JSON']].map(([k, t]) => `<button role="tab" aria-selected="${x.pestana === k}" data-p="${k}">${t}</button>`).join('')}</div>
+    <div id="x-cuerpo"></div>
+    <div class="acciones no-imprimir" style="margin-top:24px">
+      <button class="btn sec" id="x-md">Descargar informe (.md)</button><button class="btn sec" id="x-json">Descargar registro (.json)</button><button class="btn sec" onclick="window.print()">Imprimir</button>
+    </div>
+  </article>`;
+  const cuerpo = $('#x-cuerpo');
+  const mostrar = () => {
+    if (x.pestana === 'informe') cuerpo.innerHTML = `<div class="informe">${markdown(x.informe)}</div>`;
+    else if (x.pestana === 'chat') montarChat(cuerpo, { ambito: 'expediente', id: x.id,
+      organizacion: (r.organizacion || {}).id || (r._registro || {}).organizacion || E.org, nombre: (r.tercero || {}).nombre || 'el expediente' });
+    else if (x.pestana === 'json') cuerpo.innerHTML = `<pre class="json">${esc(JSON.stringify(r, null, 2))}</pre>`;
+    else if (x.pestana === 'alertas') cuerpo.innerHTML = (r.alertas || []).length ? `<div class="lista-alertas">${r.alertas.map((a) => `<div class="alerta ${a.prioridad === 'Alta' ? '' : 'media'}"><b>${esc(a.prioridad)} · ${esc(a.tipo)}</b> — ${esc(a.descripcion)}${a.controles_relacionados ? ` <span class="nota">(${esc(a.controles_relacionados.join(', '))})</span>` : ''}</div>`).join('')}</div>` : '<p class="vacio">Sin alertas.</p>';
+    else cuerpo.innerHTML = hist.length ? `<table class="tabla"><thead><tr><th>Fecha</th><th>Quién</th><th>Decisión</th><th>Comentario</th></tr></thead><tbody>${hist.map((h) => `<tr><td>${esc(fecha(h.fecha))} ${esc(hora(h.fecha))}</td><td>${esc(h.cargo)}<div class="nota">${esc(h.usuario)}</div></td><td>${h.decision === 'aprobar' ? 'Aprobó' : 'Rechazó'}<div class="nota">${esc(h.estado_anterior)} → ${esc(h.estado_nuevo)}</div></td><td>${esc(h.comentario || '—')}</td></tr>`).join('')}</tbody></table>` : '<p class="vacio">Nadie ha decidido todavía. El primer paso es del DPO.</p>';
+  };
+  mostrar();
+  $$('.pestanas button').forEach((b) => b.onclick = () => { x.pestana = b.dataset.p; $$('.pestanas button').forEach((y) => y.setAttribute('aria-selected', String(y === b))); mostrar(); });
+  $('#x-md').onclick = () => descargar(`${x.id}.md`, x.informe || '', 'text/markdown;charset=utf-8');
+  $('#x-json').onclick = () => descargar(`${x.id}.json`, JSON.stringify(r, null, 2), 'application/json');
+  const decidir = async (decision) => {
+    if (!E.usuario) { avisar('Escribe tu nombre en el panel izquierdo: queda en el historial.', 'error'); $('#usuario').focus(); return; }
+    $$('.decidir button').forEach((b) => { b.disabled = true; });
+    try {
+      await api('POST', 'aprobar', { id_registro: x.id, rol: E.rol, decision, usuario: E.usuario, comentario: ($('#d-com') || {}).value || '' });
+      const d = await api('GET', `registro/detalle?id=${encodeURIComponent(x.id)}`);
+      Object.assign(x, { resultado: d.resultado, informe: d.informe, recien: E.rol });
+      await cargarRegistros();
+      if (E.vista === 'expediente') pintar();
+      avisar(decision === 'aprobar' ? `Aprobado como ${E.rol}.` : `Rechazado como ${E.rol}.`);
+    } catch (e) { avisar(e.message, 'error'); $$('.decidir button').forEach((b) => { b.disabled = false; }); }
+  };
+  if (turno) { $('#d-ok').onclick = () => decidir('aprobar'); $('#d-no').onclick = () => decidir('rechazar'); }
+}
+
+/* =============================================================================
+   Chat: preguntas al modelo sobre un expediente o una organización.
+   El modelo solo lee el contexto; no cambia calificaciones ni aprueba (lo hace cumplir n8n).
+   ========================================================================== */
+const SUGERENCIAS = {
+  expediente: ['¿Por qué se obtuvo este dictamen?', '¿Qué controles críticos fallan y por qué?', 'Redacta la cláusula de aviso de incidentes que falta',
+    '¿Qué debería revisar el DPO antes de aprobar?'],
+  organizacion: ['¿Qué proveedores tienen riesgo alto?', '¿Qué contratos vencen o deben preavisarse pronto?', '¿Qué expedientes esperan aprobación?',
+    '¿Qué procesos tratan datos sensibles según el perfil?'],
+};
+async function montarChat(caja, ctx) {
+  if (!caja) return;
+  const clave = `${ctx.ambito}:${ctx.id}`;
+  const st = E.chats[clave] = E.chats[clave] || { mensajes: null, pendiente: null };
+  caja.innerHTML = `<div class="chat" data-clave="${esc(clave)}">
+    <p class="nota">El modelo responde con ${ctx.ambito === 'expediente' ? 'el contrato, el informe y la matriz de este expediente' : 'el perfil, la configuración y los expedientes de la organización'} como contexto, y cita de dónde sale cada dato. No cambia calificaciones ni aprueba: eso sigue en manos del DPO y de Legal. No es asesoría legal.</p>
+    <div class="chat-lista" aria-live="polite"></div>
+    <div class="chat-sugerencias">${SUGERENCIAS[ctx.ambito].map((s) => `<button type="button">${esc(s)}</button>`).join('')}</div>
+    <form class="chat-form">
+      <label class="campo"><span class="sr">Pregunta</span><textarea placeholder="Escribe tu pregunta sobre ${esc(ctx.nombre)}…" maxlength="4000"></textarea></label>
+      <div class="acciones"><button class="btn violeta" type="submit">Preguntar</button><span class="nota">Ctrl + Enter para enviar. Con un modelo local la respuesta puede tardar unos minutos.</span></div>
+    </form></div>`;
+  const raiz = caja.querySelector('.chat'), lista = raiz.querySelector('.chat-lista'), form = raiz.querySelector('form'), area = form.querySelector('textarea');
+  const enPantalla = () => document.body.contains(raiz);
+  const dibujar = () => {
+    if (!enPantalla()) return;
+    const ms = st.mensajes || [];
+    lista.innerHTML = (ms.length ? ms : st.pendiente ? [] : [null]).map((m) => !m ? '<p class="vacio">Todavía no hay preguntas.</p>'
+      : m.rol === 'usuario'
+        ? `<div class="msg usuario"><span class="meta">${esc(m.usuario || 'Usuario')} · ${esc(fecha(m.fecha))} ${esc(hora(m.fecha))}</span>${esc(m.texto)}</div>`
+        : `<div class="msg asistente"><span class="meta">${esc(m.modelo || 'Modelo')} · ${esc(hora(m.fecha))}${m.contexto_recortado ? ' · contexto recortado para caber en el modelo' : ''}${m.truncado ? ' · respuesta cortada' : ''}</span><div class="informe">${markdown(m.texto)}</div></div>`).join('')
+      + (st.pendiente ? `<div class="msg usuario"><span class="meta">${esc(E.usuario || 'Usuario')}</span>${esc(st.pendiente.pregunta)}</div>
+        <div class="msg asistente pensando"><span class="meta">${st.pendiente.error ? 'Error' : `Pensando… ${Math.round((Date.now() - st.pendiente.t0) / 1000)} s`}</span>${st.pendiente.error ? `<p class="alerta">${esc(st.pendiente.error)}</p>` : ''}</div>` : '');
+    form.querySelector('button').disabled = !!(st.pendiente && !st.pendiente.error);
+  };
+  const recargar = async () => {
+    try { st.mensajes = (await api('GET', `chat?ambito=${ctx.ambito}&id=${encodeURIComponent(ctx.id)}`)).mensajes; }
+    catch (e) { st.mensajes = st.mensajes || []; avisar(e.message, 'error'); }
+    dibujar();
+  };
+  const seguir = async () => {
+    const p = st.pendiente;
+    if (!p || p.error) return;
+    try {
+      const t = await api('GET', `trabajo?id=${p.trabajo}`);
+      if (t.estado === 'terminado') { st.pendiente = null; await recargar(); return; }
+      if (t.estado === 'error') { p.error = t.mensaje || 'No se pudo responder.'; dibujar(); return; }
+    } catch (e) { if (e.codigo !== 404) p.error = e.message; }
+    dibujar();
+    if (!p.error) setTimeout(seguir, 2000);
+  };
+  const enviar = async (pregunta) => {
+    pregunta = pregunta.trim();
+    if (!pregunta || (st.pendiente && !st.pendiente.error)) return;
+    st.pendiente = { pregunta, t0: Date.now() };
+    area.value = '';
+    dibujar();
+    try {
+      const r = await api('POST', 'chat', { ambito: ctx.ambito, id: ctx.id, organizacion: ctx.organizacion, pregunta, usuario: E.usuario });
+      st.pendiente.trabajo = r.trabajo;
+      setTimeout(seguir, 1500);
+    } catch (e) { st.pendiente.error = e.message; dibujar(); }
+  };
+  form.onsubmit = (e) => { e.preventDefault(); enviar(area.value); };
+  area.onkeydown = (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); enviar(area.value); } };
+  raiz.querySelectorAll('.chat-sugerencias button').forEach((b) => { b.onclick = () => enviar(b.textContent); });
+  if (st.mensajes === null) await recargar(); else dibujar();
+  if (st.pendiente && st.pendiente.trabajo && !st.pendiente.error) { const tic = () => { dibujar(); if (st.pendiente && enPantalla()) setTimeout(tic, 1000); }; tic(); }
+}
+
+/* =============================================================================
+   Organización, documentos y perfil
+   ========================================================================== */
+async function vOrganizacion() {
+  const yo = E.turno;
+  $('#vista').innerHTML = `<div class="cabecera"><div><h1>Organización y perfil</h1></div></div><div class="hoja"><p class="nota">Cargando…</p></div>`;
+  let o = null, docs = [], perfil = null;
+  try {
+    const todas = (await api('GET', 'organizaciones')).organizaciones;
+    o = todas.find((x) => x.id === E.org);
+    if (o) {
+      docs = (await api('GET', `documentos?organizacion=${encodeURIComponent(o.id)}`)).documentos;
+      if (o.perfil.existe) perfil = await api('GET', `perfil?organizacion=${encodeURIComponent(o.id)}`).catch(() => null);
+    }
+  } catch (e) { avisar(e.message, 'error'); }
+  const jurs = await api('GET', 'jurisdicciones').then((j) => j.jurisdicciones.filter((x) => x.usable)).catch(() => []);
+  if (!vigente(yo)) return;
+  const v = perfil && perfil.validacion;
+  const validado = v && /^validado/i.test(v.estado || '');
+  const brechas = o ? o.terceros_sin_dpa_evaluado : [];
+  $('#vista').innerHTML = `
+  <div class="cabecera"><div><h1>${esc(o ? o.nombre : 'Organización')}</h1>
+    <p>${o ? `Jurisdicción <b>${esc(o.jurisdiccion)}</b> · DPO: ${esc(o.cargos.DPO || '—')} · Legal: ${esc(o.cargos.Legal || '—')}` : 'Crea una organización para empezar.'}</p></div></div>
+  ${o ? `
+  <div class="dos-col">
+    <section class="hoja bloque">
+      <h2>Documentos institucionales</h2>
+      <p class="nota">ROF, MOF, organigrama, mapa de procesos, TUPA, políticas… Con ellos se genera el perfil de la organización.</p>
+      ${docs.length ? `<table class="tabla" style="margin-top:12px"><thead><tr><th>Archivo</th><th class="num">Tamaño</th></tr></thead><tbody>${docs.map((d) => `<tr><td>${esc(d.nombre)}</td><td class="num">${esc(d.tam)}</td></tr>`).join('')}</tbody></table>` : '<p class="vacio">Aún no hay documentos.</p>'}
+      <div class="soltar" id="o-soltar" tabindex="0" role="button" style="margin-top:12px"><strong>Suelta documentos aquí</strong> o haz clic para elegirlos<br><span class="nota">.pdf, .docx, .md o .txt · varios a la vez</span>
+        <input type="file" id="o-archivos" multiple accept=".pdf,.docx,.md,.txt" class="oculto"></div>
+    </section>
+    <section class="hoja bloque">
+      <h2>Perfil de privacidad</h2>
+      ${!perfil ? `<p class="nota">${o.perfil.existe ? 'No se pudo leer el perfil.' : 'Todavía no hay perfil. Sube los documentos y genéralo: el modelo los resume en un formato fijo, citando documento y página.'}</p>`
+        : `<p style="margin-top:4px"><span class="estado ${validado ? 'aprobado' : 'pendiente'}">${esc(v.estado || 'Sin estado')}</span> ${v.valido ? '' : `<span class="estado rechazado">${v.errores.length} errores de formato</span>`}</p>
+           <p class="nota" style="margin-top:8px">El perfil es contexto, no evidencia: puede subir el riesgo de una auditoría, nunca rebajarla.</p>`}
+      ${perfil && perfil.borrador_invalido && !perfil.texto ? '<p class="alerta media" style="margin-top:8px">La última generación no pasó la validación; se guardó como borrador inválido.</p>' : ''}
+      <div class="acciones" style="margin-top:12px">
+        <button class="btn" id="o-generar" ${docs.length ? '' : 'disabled'}>${o.perfil.existe ? 'Regenerar perfil' : 'Generar perfil'}</button>
+        ${perfil && perfil.texto && !validado ? `<button class="btn violeta" id="o-validar" ${E.rol === 'DPO' && v.valido ? '' : 'disabled'} title="${E.rol === 'DPO' ? '' : 'Solo el DPO valida el perfil'}">Validar perfil como DPO</button>` : ''}
+      </div>
+      <div id="o-trabajo">${panelTrabajos('perfil')}</div>
+      ${brechas.length ? `<h3 style="margin-top:20px">Terceros sin DPA evaluado</h3><p class="nota">Aparecen en el perfil pero no tienen expediente.</p>
+        <table class="tabla" style="margin-top:8px"><tbody>${brechas.map((b) => `<tr><td>${esc(b)}</td></tr>`).join('')}</tbody></table>` : ''}
+    </section>
+  </div>
+  <section class="hoja bloque" style="margin-top:24px"><h2>Preguntar sobre ${esc(o.nombre)}</h2><div id="o-chat"></div></section>
+  ${perfil && (perfil.texto || perfil.borrador_invalido) ? `<details class="hoja" style="margin-top:24px"><summary><b>Ver el perfil completo</b></summary><div class="informe" style="margin-top:12px">${markdown(perfil.texto || perfil.borrador_invalido)}</div>
+    ${v && v.errores.length ? `<h3>Errores de formato</h3><ul>${v.errores.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>` : ''}</details>` : ''}` : ''}
+  <details class="hoja" style="margin-top:24px" ${o ? '' : 'open'}><summary><b>Crear otra organización</b></summary>
+    <form class="form" id="o-nueva" style="margin-top:16px">
+      <div class="fila">
+        <label class="campo">Nombre <input type="text" name="nombre" required placeholder="Universidad Nacional de San Agustín de Arequipa"></label>
+        <label class="campo">Identificador <small>minúsculas, números y _</small><input type="text" name="id" required pattern="[a-z0-9_]{2,60}" placeholder="unsa"></label>
+        <label class="campo">Jurisdicción <select name="jurisdiccion">${jurs.map((j) => `<option value="${esc(j.id)}">${esc(j.pais)} (${esc(j.ley)})</option>`).join('')}</select></label>
+      </div>
+      <div class="fila">
+        <label class="campo">Cargo que actúa como DPO <input type="text" name="cargo_dpo" placeholder="Oficial de Datos Personales"></label>
+        <label class="campo">Unidad legal <input type="text" name="cargo_legal" placeholder="Oficina de Asesoría Jurídica"></label>
+      </div>
+      <div class="acciones"><button class="btn" type="submit">Crear organización</button><span class="nota">Usa la política interna por defecto; revísala con el DPO en su config_organizacion.json.</span></div>
+    </form></details>`;
+  if (o) {
+    montarChat($('#o-chat'), { ambito: 'organizacion', id: o.id, organizacion: o.id, nombre: o.nombre });
+    const zona = $('#o-soltar'), ent = $('#o-archivos');
+    const subir = async (files) => {
+      for (const f of files) {
+        try {
+          const r = await leerArchivo(f);
+          const cuerpo = { organizacion: o.id, nombre: f.name };
+          if (r.archivo) cuerpo.base64 = r.archivo.base64; else cuerpo.texto = r.texto;
+          const res = await api('POST', 'documento', cuerpo);
+          avisar(`Documento guardado: ${res.nombre}`);
+        } catch (e) { avisar(`${f.name}: ${e.message}`, 'error'); }
+      }
+      if (E.vista === 'organizacion') pintar();
+    };
+    zona.onclick = () => ent.click();
+    zona.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ent.click(); } };
+    ent.onchange = () => subir(Array.from(ent.files));
+    zona.ondragover = (e) => { e.preventDefault(); zona.classList.add('encima'); };
+    zona.ondragleave = () => zona.classList.remove('encima');
+    zona.ondrop = (e) => { e.preventDefault(); zona.classList.remove('encima'); subir(Array.from(e.dataTransfer.files)); };
+    $('#o-generar').onclick = async () => {
+      try { const r = await api('POST', 'perfilar', { organizacion: o.id }); seguirTrabajo(r.trabajo, { tipo: 'perfil', org: o.id }); }
+      catch (e) { avisar(e.message, 'error'); }
+    };
+    const bv = $('#o-validar');
+    if (bv) bv.onclick = async () => {
+      if (!E.usuario) { avisar('Escribe tu nombre en el panel izquierdo.', 'error'); $('#usuario').focus(); return; }
+      try { await api('POST', 'perfil/validar', { organizacion: o.id, validado_por: E.usuario }); avisar('Perfil validado.'); pintar(); }
+      catch (e) { avisar(e.message, 'error'); }
+    };
+  }
+  $('#o-nueva').onsubmit = async (e) => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(e.target).entries());
+    try {
+      await api('POST', 'organizacion', d);
+      avisar(`Organización creada: ${d.nombre}`);
+      E.estado = await api('GET', 'estado'); E.orgs = E.estado.organizaciones.filter((x) => x.id);
+      $('#org').innerHTML = E.orgs.map((x) => `<option value="${esc(x.id)}">${esc(x.nombre || x.id)}</option>`).join('');
+      E.org = d.id; $('#org').value = d.id; await cargarRegistros(); pintar();
+    } catch (err) { avisar(err.message, 'error'); }
+  };
+}
+
+/* =============================================================================
+   Renovaciones
+   ========================================================================== */
+async function vRenovaciones() {
+  const yo = E.turno;
+  $('#vista').innerHTML = `<div class="cabecera"><div><h1>Renovaciones y vencimientos</h1><p>Se recalculan con la fecha de hoy. n8n también lo hace solo cada lunes a las 07:52.</p></div></div><div class="hoja"><p class="nota">Calculando…</p></div>`;
+  try {
+    const r = await api('GET', 'renovaciones');
+    if (!vigente(yo)) return;
+    const lista = r.registros_con_alertas.filter((x) => !E.org || x.organizacion === E.org);
+    $('#vista').innerHTML = `<div class="cabecera"><div><h1>Renovaciones y vencimientos</h1><p>Al ${esc(fecha(r.fecha_referencia))}. n8n también las recalcula cada lunes a las 07:52 y las guarda en datos/alertas_renovacion.json.</p></div></div>
+    <div class="hoja">${lista.length ? `<table class="tabla"><thead><tr><th>Proveedor</th><th>Fin de vigencia</th><th>Alertas</th><th>Estado</th></tr></thead><tbody>${lista.map((x) => `<tr class="clic" tabindex="0" data-id="${esc(x.id_registro)}"><td><b>${esc(x.proveedor)}</b></td><td>${x.fin_vigencia ? esc(fecha(x.fin_vigencia)) : '<span class="banda-medio">Sin fecha de fin</span>'}</td><td>${x.alertas.map((a) => `<div class="${a.prioridad === 'Alta' ? 'banda-alto' : 'banda-medio'}"><b>${esc(a.prioridad)}</b> · ${esc(a.descripcion)}</div>`).join('')}</td><td><span class="estado ${ESTADO_CLASE(x.estado)}">${esc(x.estado)}</span></td></tr>`).join('')}</tbody></table>`
+      : '<p class="vacio">Ningún contrato de esta organización vence ni requiere preaviso en los próximos días.</p>'}</div>`;
+    activarFilas();
+  } catch (e) { avisar(e.message, 'error'); }
+}
+
+/* =============================================================================
+   Configuración del modelo
+   ========================================================================== */
+async function vConfiguracion() {
+  const yo = E.turno;
+  let est = E.estado, jurs = [];
+  try { est = E.estado = await api('GET', 'estado'); jurs = (await api('GET', 'jurisdicciones')).jurisdicciones; } catch (e) { avisar(e.message, 'error'); }
+  if (!vigente(yo)) return;
+  const m = est.modelo || {};
+  const PROV = { claude_code: 'Claude Code (tu suscripción, sin API key)', ollama: 'Ollama (modelo local)', anthropic: 'API de Anthropic', openai: 'API compatible con OpenAI (OpenAI, Groq, LM Studio…)' };
+  $('#vista').innerHTML = `
+  <div class="cabecera"><div><h1>Configuración</h1><p>El modelo se puede cambiar en cualquier momento; las auditorías nuevas usan el que esté guardado. El puntaje no depende del modelo: lo calcula n8n.</p></div></div>
+  <form class="hoja form" id="c-form">
+    <h2>Modelo de IA</h2>
+    <div class="fila">
+      <label class="campo">Proveedor <select name="proveedor">${Object.entries(PROV).map(([k, t]) => `<option value="${k}" ${m.proveedor === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label class="campo">Modelo <small id="c-ayuda"></small><input type="text" name="modelo" value="${esc(m.modelo || '')}"></label>
+    </div>
+    <div class="fila" data-para="ollama"><label class="campo">URL de Ollama <input type="text" name="url_ollama" value="${esc(m.url_ollama || 'http://127.0.0.1:11434')}"></label>
+      <label class="campo">Contexto (num_ctx) <small>Instrucciones (~20 000 tokens) + respuesta: 40 960 o más.</small><input type="number" name="num_ctx" value="${esc(m.num_ctx || 49152)}"></label></div>
+    <div class="fila" data-para="ollama"><label class="campo">Corrección del JSON <small>Si el primer JSON no cumple el esquema, cómo se restringe la segunda respuesta.</small><select name="formato_correccion">${[['json', 'JSON válido (rápido, recomendado)'], ['esquema', 'Esquema completo (más estricto, puede ser muy lento)'], ['ninguno', 'Sin restricción']].map(([k, t]) => `<option value="${k}" ${(m.formato_correccion || 'json') === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label></div>
+    <div class="fila" data-para="anthropic"><label class="campo">URL de Anthropic <input type="text" name="url_anthropic" value="${esc(m.url_anthropic || 'https://api.anthropic.com')}"></label></div>
+    <div class="fila" data-para="openai"><label class="campo">URL base <input type="text" name="url_openai" value="${esc(m.url_openai || 'https://api.openai.com/v1')}"></label></div>
+    <div class="fila" data-para="anthropic openai"><label class="campo">API key <small>${m.api_key ? `Guardada (${esc(m.api_key)}). Déjala así para conservarla.` : 'Se guarda en datos/config_modelo.json, solo en este equipo.'}</small><input type="password" name="api_key" value="${esc(m.api_key || '')}" autocomplete="off"></label></div>
+    <div class="fila" data-para="claude_code"><label class="campo">Ejecutable de Claude Code <small>"claude" si está en el PATH de n8n; si no, su ruta completa.</small><input type="text" name="claude_bin" value="${esc(m.claude_bin || 'claude')}"></label></div>
+    <div class="fila">
+      <label class="campo">Máximo de tokens de salida <input type="number" name="max_tokens" value="${esc(m.max_tokens || 20000)}"></label>
+      <label class="campo">Tiempo máximo (segundos) <input type="number" name="timeout_s" value="${esc(m.timeout_s || 1800)}"></label>
+      <label class="campo">Temperatura <input type="number" name="temperatura" step="0.1" min="0" max="1" value="${esc(m.temperatura ?? 0)}"></label>
+    </div>
+    <div class="acciones"><button class="btn" type="submit">Guardar configuración</button></div>
+  </form>
+  <section class="hoja bloque">
+    <h2>Jurisdicciones disponibles</h2>
+    <table class="tabla"><thead><tr><th>País</th><th>Ley</th><th>Versión</th><th>Estado</th></tr></thead><tbody>${jurs.map((j) => `<tr><td>${esc(j.pais || j.id)}</td><td>${esc(j.ley || '—')}</td><td>${esc(j.version || '')}</td><td>${j.usable ? esc(j.estado) : `<span class="nota">${esc(j.estado)} (no utilizable)</span>`}</td></tr>`).join('')}</tbody></table>
+    <p class="nota" style="margin-top:8px">Para añadir un país, copia pims-dpa-auditor/jurisdicciones/_plantilla/ y sigue su LEEME. Debe revisarlo alguien con conocimiento legal antes de usarlo.</p>
+  </section>`;
+  const form = $('#c-form');
+  const AYUDA = { claude_code: 'p. ej. sonnet u opus', ollama: 'p. ej. qwen2.5:14b', anthropic: 'p. ej. claude-sonnet-5-5', openai: 'p. ej. gpt-4.1 o el de tu proveedor' };
+  const ver = () => { const p = form.proveedor.value; $$('[data-para]', form).forEach((d) => d.classList.toggle('oculto', !d.dataset.para.split(' ').includes(p))); $('#c-ayuda').textContent = AYUDA[p]; };
+  form.proveedor.onchange = ver; ver();
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(form).entries());
+    ['num_ctx', 'max_tokens', 'timeout_s'].forEach((k) => { d[k] = parseInt(d[k], 10); });
+    d.temperatura = parseFloat(d.temperatura);
+    try { const r = await api('POST', 'config', d); E.estado.modelo = r.modelo; pintarPie(); avisar(`Configuración guardada: ${r.modelo.proveedor} · ${r.modelo.modelo}`); pintar(); }
+    catch (err) { avisar(err.message, 'error'); }
+  };
+}
+
+iniciar();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "_descripcion": "Modelo de IA que usan los flujos de n8n. Se cambia desde la página (Configuración) o editando este archivo. proveedor: claude_code | ollama | anthropic | openai.",
+  "proveedor": "claude_code",
+  "modelo": "sonnet",
+  "claude_bin": "claude",
+  "url_ollama": "http://127.0.0.1:11434",
+  "url_openai": "https://openrouter.ai",
+  "url_anthropic": "https://api.anthropic.com",
+  "api_key": "",
+  "num_ctx": 40960,
+  "max_tokens": 20000,
+  "temperatura": 0,
+  "timeout_s": 1800,
+  "actualizado": "2026-10-20T19:16:46.759-05:00",
+  "formato_correccion": "json"
+}

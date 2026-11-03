@@ -1,0 +1,536 @@
+{
+  "id_evaluacion": "DPA-20261013-ISA",
+  "fecha": "2026-10-13",
+  "norma_referencia": "ISO/IEC 27701:2025",
+  "marco_legal": [
+    "Ley N.° 29733",
+    "D.S. 016-2024-JUS"
+  ],
+  "tercero": {
+    "id_tercero": null,
+    "nombre": "Ingeniería de Software Altoandino S.A.C.",
+    "encargado_principal": null,
+    "rol": "Encargado",
+    "servicio": "Mantenimiento y soporte del Sistema de Gestión Académica (acceso remoto a producción)",
+    "paises_tratamiento": [
+      "Perú (Supuesto)"
+    ],
+    "categorias_datos": [
+      "Identificativos",
+      "Registros académicos"
+    ],
+    "subencargados": []
+  },
+  "contrato": {
+    "id_contrato": null,
+    "version_documento": null,
+    "hash_documento_sha256": null,
+    "estado_dpa": "Pendiente DPO",
+    "fecha_firma": null,
+    "fecha_vigencia_inicio": "2026-02-01",
+    "fecha_vigencia_fin": "2027-01-31",
+    "renovacion_automatica": false,
+    "preaviso_terminacion_dias": null
+  },
+  "nivel_riesgo_pii": "Medio",
+  "certificaciones": [],
+  "uso_ia": {
+    "detectado": "No indicado"
+  },
+  "controles": [
+    {
+      "control": "A.2.2.2",
+      "titulo": "Acuerdo con el cliente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "segunda",
+      "evidencia": "contará con acceso remoto a los servidores y bases de datos de producción",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Objeto definido, pero sin instrucciones de tratamiento ni categorías.",
+      "_alternativas": [
+        "No cumple"
+      ]
+    },
+    {
+      "control": "A.2.2.3",
+      "titulo": "Fines de la organización",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "No cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "La reserva no limita el uso a los fines de la UNSA.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.4",
+      "titulo": "Uso para marketing y publicidad",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.5",
+      "titulo": "Instrucción infractora",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.6",
+      "titulo": "Obligaciones del cliente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "La conformidad del servicio no es un derecho de auditoría.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.7",
+      "titulo": "Registros del tratamiento",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.3.2",
+      "titulo": "Obligaciones con titulares",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.4.2",
+      "titulo": "Archivos temporales",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.4.3",
+      "titulo": "Devolución o eliminación",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "novena",
+      "evidencia": "entregará toda la documentación técnica y la información generada",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "Devolución sin plazo; sin eliminación ni certificado.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.4.4",
+      "titulo": "Controles de transmisión",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Acceso remoto sin medidas de transmisión.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.2",
+      "titulo": "Base para transferencias",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.3",
+      "titulo": "Países destino",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "No cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin lista de países.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.4",
+      "titulo": "Registros de comunicaciones",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.5",
+      "titulo": "Aviso de solicitudes de autoridades",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.6",
+      "titulo": "Comunicaciones legalmente vinculantes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.7",
+      "titulo": "Divulgación de subcontratistas",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "undécima",
+      "evidencia": "sin autorización previa y escrita de la Entidad",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Prohíbe subcontratar sin autorización previa: la UNSA conoce al sub-encargado antes de su uso.",
+      "_alternativas": [
+        "No cumple"
+      ]
+    },
+    {
+      "control": "A.2.5.8",
+      "titulo": "Contratación de subcontratistas",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "undécima",
+      "evidencia": "no podrá subcontratar total ni parcialmente la ejecución del servicio",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Autorización específica, pero sin obligaciones equivalentes por escrito.",
+      "_alternativas": [
+        "Cumple"
+      ]
+    },
+    {
+      "control": "A.2.5.9",
+      "titulo": "Cambio de subcontratista",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "undécima",
+      "evidencia": "sin autorización previa y escrita de la Entidad",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Todo cambio requiere autorización previa.",
+      "_alternativas": [
+        "No cumple"
+      ]
+    },
+    {
+      "control": "A.3.9",
+      "titulo": "Derechos de acceso",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Acceso remoto a producción sin reglas de control de acceso (la reserva se evalúa en A.3.18).",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.10",
+      "titulo": "Seguridad en acuerdos con proveedores",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "No cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin requisitos de seguridad ni aviso de incidentes.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.11",
+      "titulo": "Planificación de incidentes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.12",
+      "titulo": "Respuesta a incidentes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "No cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.13",
+      "titulo": "Requisitos legales",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "décima",
+      "evidencia": "cumplirá lo dispuesto en la Ley N.° 29733, Ley de Protección de Datos Personales",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.15",
+      "titulo": "Revisión independiente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.18",
+      "titulo": "Acuerdos de confidencialidad",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "octava",
+      "evidencia": "guardar reserva absoluta sobre la información a la que tenga acceso",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Obliga al Contratista, no se extiende expresamente a su personal.",
+      "_alternativas": [
+        "Cumple"
+      ]
+    },
+    {
+      "control": "A.3.24",
+      "titulo": "Respaldo de información",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin condiciones de respaldo pese al acceso a bases de datos de producción.",
+      "_alternativas": []
+    }
+  ],
+  "alertas": [
+    {
+      "prioridad": "Alta",
+      "tipo": "Seguridad",
+      "descripcion": "Sin obligación de aviso de incidentes, con acceso remoto a bases de datos de producción.",
+      "controles_relacionados": [
+        "A.3.10",
+        "A.3.12"
+      ],
+      "origen": "modelo"
+    },
+    {
+      "prioridad": "Media",
+      "tipo": "Riesgo",
+      "descripcion": "Sin derecho de auditoría ni informes independientes.",
+      "controles_relacionados": [
+        "A.2.2.6",
+        "A.3.15"
+      ],
+      "origen": "modelo"
+    }
+  ],
+  "remediacion": [
+    {
+      "control": "A.2.2.2",
+      "accion": "Enmendar: Objeto definido, pero sin instrucciones de tratamiento ni categorías.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.2.3",
+      "accion": "Enmendar: La reserva no limita el uso a los fines de la UNSA.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.2.4",
+      "accion": "Enmendar: Uso para marketing y publicidad",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.2.5",
+      "accion": "Enmendar: Instrucción infractora",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.2.6",
+      "accion": "Enmendar: La conformidad del servicio no es un derecho de auditoría.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.2.7",
+      "accion": "Enmendar: Registros del tratamiento",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.3.2",
+      "accion": "Enmendar: Obligaciones con titulares",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.4.2",
+      "accion": "Enmendar: Archivos temporales",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.4.3",
+      "accion": "Enmendar: Devolución sin plazo; sin eliminación ni certificado.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.4.4",
+      "accion": "Enmendar: Acceso remoto sin medidas de transmisión.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.2",
+      "accion": "Enmendar: Base para transferencias",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.3",
+      "accion": "Enmendar: Sin lista de países.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.5.4",
+      "accion": "Enmendar: Registros de comunicaciones",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.5",
+      "accion": "Enmendar: Aviso de solicitudes de autoridades",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.6",
+      "accion": "Enmendar: Comunicaciones legalmente vinculantes",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.8",
+      "accion": "Enmendar: Autorización específica, pero sin obligaciones equivalentes por escrito.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.9",
+      "accion": "Enmendar: Acceso remoto a producción sin reglas de control de acceso (la reserva se evalúa en A.3.18).",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.10",
+      "accion": "Enmendar: Sin requisitos de seguridad ni aviso de incidentes.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.3.11",
+      "accion": "Enmendar: Planificación de incidentes",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.12",
+      "accion": "Enmendar: Respuesta a incidentes",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.3.15",
+      "accion": "Enmendar: Revisión independiente",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.18",
+      "accion": "Enmendar: Obliga al Contratista, no se extiende expresamente a su personal.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.24",
+      "accion": "Enmendar: Sin condiciones de respaldo pese al acceso a bases de datos de producción.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    }
+  ],
+  "supuestos": [
+    "Contrato ficticio de pruebas (Etapa 4)",
+    "Evaluación de referencia redactada a partir de criterios_semaforo.md; revisar por el grupo"
+  ],
+  "trazabilidad": {
+    "version_skill": "2.0",
+    "version_config": "2.0",
+    "evaluador": "Referencia (criterios de la skill aplicados manualmente)",
+    "calculo": "script"
+  }
+}

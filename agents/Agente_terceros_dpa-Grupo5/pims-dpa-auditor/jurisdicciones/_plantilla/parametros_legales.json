@@ -1,0 +1,29 @@
+{
+  "_descripcion": "Plantilla de parámetros legales. Copia la carpeta _plantilla/ con el id de la jurisdicción y reemplaza cada null. Todo valor debe estar respaldado por marco_legal.md (misma carpeta) y el texto oficial.",
+  "id": null,
+  "pais": null,
+  "version": "0.1",
+  "estado": "Plantilla",
+  "_nota_estado": "Valores posibles: 'Plantilla' (no utilizable), 'Borrador' (utilizable con advertencia en el informe), 'En uso', 'Verificada'.",
+  "ley_aplicable": null,
+  "ley_aplicable_corta": null,
+  "reglamento": null,
+  "marco_legal": [],
+  "autoridad": null,
+  "autoridad_corta": null,
+  "incidentes": {
+    "aviso_encargado_a_responsable": null,
+    "plazo_notificacion_autoridad_horas": null,
+    "plazo_comunicacion_titulares_horas": null,
+    "otras_notificaciones": []
+  },
+  "derechos_titulares": [],
+  "transferencias": {
+    "base": null,
+    "regla": null,
+    "lista_oficial_paises_adecuados": null
+  },
+  "oficial_datos": null,
+  "marcos_solo_informativos": [],
+  "fuentes": []
+}

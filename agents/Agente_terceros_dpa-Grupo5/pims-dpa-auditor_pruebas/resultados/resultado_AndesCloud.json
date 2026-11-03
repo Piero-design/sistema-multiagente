@@ -1,0 +1,399 @@
+{
+  "fecha": "2026-10-01",
+  "norma_referencia": "ISO/IEC 27701:2025",
+  "marco_legal": [
+    "Ley N.° 29733",
+    "D.S. 016-2024-JUS"
+  ],
+  "trazabilidad": {
+    "version_skill": "1.1",
+    "evaluador": "Agente 7 — Claude Opus 5.5",
+    "fecha_hora": "2026-10-01T10:00:00-05:00",
+    "version_config": "1.1",
+    "calculo": "script",
+    "parametros_aplicados": {
+      "version_config": "1.1",
+      "organizacion": "Organización usuaria (Responsable del tratamiento)",
+      "pais_responsable": "Perú",
+      "plazo_max_aviso_incidente_horas": 24,
+      "plazo_max_asistencia_derechos_dias_habiles": 5,
+      "plazo_max_devolucion_eliminacion_dias": 30,
+      "aviso_previo_cambio_subencargado_dias": 30,
+      "dias_alerta_renovacion": 60,
+      "certificaciones_aceptadas": [
+        "ISO/IEC 27001:2022",
+        "ISO/IEC 27701:2025",
+        "ISO/IEC 27701:2019",
+        "SOC 2 Tipo II"
+      ],
+      "certificaciones_complementarias": [
+        "ISO/IEC 42001:2023"
+      ],
+      "antiguedad_max_informe_soc2_meses": 12,
+      "aprobadores": [
+        "DPO",
+        "Legal"
+      ],
+      "n_paises_aprobados": 31
+    },
+    "fecha_referencia": "2026-10-01"
+  },
+  "id_evaluacion": "DPA-20261001-ACH",
+  "tercero": {
+    "id_tercero": null,
+    "nombre": "AndesCloud Hosting S.A.C.",
+    "rol": "Encargado",
+    "encargado_principal": null,
+    "servicio": "Hosting de plataforma de ventas",
+    "paises_tratamiento": [
+      "Perú",
+      "Alemania"
+    ],
+    "categorias_datos": [
+      "Identificativos",
+      "Contacto",
+      "Transacciones de venta"
+    ],
+    "subencargados": [
+      {
+        "nombre": "DataVault GmbH",
+        "pais": "Alemania",
+        "servicio": "Respaldo cifrado",
+        "garantias_transferencia": true
+      }
+    ]
+  },
+  "contrato": {
+    "id_contrato": null,
+    "version_documento": null,
+    "fecha_firma": "2026-01-15",
+    "fecha_vigencia_inicio": "2026-02-01",
+    "fecha_vigencia_fin": "2027-01-31",
+    "renovacion_automatica": true,
+    "preaviso_terminacion_dias": 60,
+    "estado_dpa": "Pendiente DPO",
+    "hash_documento_sha256": "0b6cc5edcbef985d2adbbf7328120a0a0ac4fadcce31eadfaea45ccf0df1fa1e"
+  },
+  "nivel_riesgo_pii": "Medio",
+  "certificaciones": [
+    {
+      "nombre": "ISO/IEC 27001:2022",
+      "tipo": "Aceptada",
+      "estado": "Verificada con evidencia",
+      "vencida": false,
+      "fecha_vencimiento": "2028-03-31"
+    },
+    {
+      "nombre": "SOC 2 Tipo II",
+      "tipo": "Aceptada",
+      "estado": "Verificada con evidencia",
+      "vencida": false,
+      "fecha_vencimiento": null,
+      "observacion": "Informe del 30/06/2026 (3 meses)"
+    }
+  ],
+  "uso_ia": {
+    "detectado": false,
+    "descripcion": "El contrato declara que no aplica IA sobre los datos",
+    "limitado_a_fines_responsable": null,
+    "evidencia_gobernanza_ia": "No requerida"
+  },
+  "controles": [
+    {
+      "control": "A.2.2.2",
+      "titulo": "Acuerdo",
+      "clausula_dpa": "1",
+      "evidencia": "según las instrucciones documentadas del Anexo 1",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.2.3",
+      "titulo": "Fines",
+      "clausula_dpa": "2",
+      "evidencia": "Se prohíbe su uso para fines propios",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.2.4",
+      "titulo": "Marketing",
+      "clausula_dpa": "2",
+      "evidencia": "marketing o publicidad",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.2.5",
+      "titulo": "Instrucción infractora",
+      "clausula_dpa": "3",
+      "evidencia": "avisará de inmediato si una instrucción infringe",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.2.6",
+      "titulo": "Obligaciones del cliente",
+      "clausula_dpa": "4",
+      "evidencia": "permite auditorías con preaviso de 10 días hábiles",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.2.7",
+      "titulo": "Registros",
+      "clausula_dpa": "4",
+      "evidencia": "mantiene un registro de las actividades",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.3.2",
+      "titulo": "Titulares",
+      "clausula_dpa": "5",
+      "evidencia": "asistirá en su atención en un máximo de 5 días hábiles",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.4.2",
+      "titulo": "Temporales",
+      "clausula_dpa": "6",
+      "evidencia": "se eliminan en 7 días",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.4.3",
+      "titulo": "Devolución/eliminación",
+      "clausula_dpa": "7",
+      "evidencia": "en 30 días y emitirá certificado",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.4.4",
+      "titulo": "Transmisión",
+      "clausula_dpa": "6",
+      "evidencia": "TLS 1.2 o superior",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.5.2",
+      "titulo": "Base transferencias",
+      "clausula_dpa": "8",
+      "evidencia": "protección equivalente a la Ley N.° 29733",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.5.3",
+      "titulo": "Países",
+      "clausula_dpa": "8",
+      "evidencia": "solo en Perú y Alemania (Anexo 2)",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.5.4",
+      "titulo": "Registro comunicaciones",
+      "clausula_dpa": "9",
+      "evidencia": "Registra toda comunicación a terceros",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.5.5",
+      "titulo": "Aviso solicitudes",
+      "clausula_dpa": "9",
+      "evidencia": "notificará al Responsable antes de comunicar",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.5.6",
+      "titulo": "Comunicaciones vinculantes",
+      "clausula_dpa": "9",
+      "evidencia": "solo entregará lo legalmente exigido",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.5.7",
+      "titulo": "Divulgación sub-encargados",
+      "clausula_dpa": "10",
+      "evidencia": "DataVault GmbH, respaldo cifrado, Alemania",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Propio Agente 7",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.5.8",
+      "titulo": "Contratación sub-encargados",
+      "clausula_dpa": "10",
+      "evidencia": "contrato con obligaciones equivalentes",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Propio Agente 7",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.2.5.9",
+      "titulo": "Cambio sub-encargado",
+      "clausula_dpa": "10",
+      "evidencia": "aviso previo de 30 días y derecho de objeción",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Propio Agente 7",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.3.9",
+      "titulo": "Acceso",
+      "clausula_dpa": "11",
+      "evidencia": "Acceso limitado al personal que lo necesita",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.3.10",
+      "titulo": "Acuerdos con proveedores",
+      "clausula_dpa": "12",
+      "evidencia": "en máximo 24 horas",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Propio Agente 7",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.3.11",
+      "titulo": "Planificación incidentes",
+      "clausula_dpa": "12",
+      "evidencia": "mantiene un procedimiento de gestión de incidentes",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.3.12",
+      "titulo": "Respuesta incidentes",
+      "clausula_dpa": "12",
+      "evidencia": "Cooperará en las notificaciones a la ANPD",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.3.13",
+      "titulo": "Requisitos legales",
+      "clausula_dpa": "13",
+      "evidencia": "Cumplirá la Ley N.° 29733 y su Reglamento",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.3.15",
+      "titulo": "Revisión independiente",
+      "clausula_dpa": "4",
+      "evidencia": "informe SOC 2 Tipo II",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.3.18",
+      "titulo": "Acuerdos de confidencialidad",
+      "clausula_dpa": "11",
+      "evidencia": "con confidencialidad que subsiste tras la relación",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    },
+    {
+      "control": "A.3.24",
+      "titulo": "Respaldo de información",
+      "clausula_dpa": "6",
+      "evidencia": "Respaldos diarios cifrados, conservados 30 días, con restauración en máximo 24 horas",
+      "estado": "Cumple",
+      "fuente_requisito": "ISO 27701",
+      "ambito": "Insumo SoA (Agente 3)",
+      "severidad": "Ninguna"
+    }
+  ],
+  "alertas": [],
+  "dictamen": "Recomendable",
+  "resumen": {
+    "cumple": 26,
+    "parcial": 0,
+    "no_cumple": 0,
+    "sin_evidencia": 0,
+    "no_aplica": 0,
+    "alertas_altas": 0
+  },
+  "puntaje_proveedor": {
+    "valor": 100,
+    "banda": "Riesgo bajo",
+    "base": 100.0,
+    "penalizacion": 0,
+    "por_dimension": {
+      "Condiciones de recolección y tratamiento": 100.0,
+      "Obligaciones con los titulares": 100.0,
+      "Privacidad desde el diseño y por defecto": 100.0,
+      "Compartición, transferencia y comunicación": 100.0,
+      "Consideraciones de seguridad": 100.0
+    }
+  },
+  "remediacion": [],
+  "supuestos": [
+    "Anexos 1-4 citados pero no revisados en esta evaluación"
+  ],
+  "aprobacion": {
+    "requiere_decision_dpo": true,
+    "requiere_aprobacion_legal": true,
+    "secuencia": [
+      "DPO",
+      "Legal"
+    ],
+    "estado": "Pendiente DPO"
+  }
+}

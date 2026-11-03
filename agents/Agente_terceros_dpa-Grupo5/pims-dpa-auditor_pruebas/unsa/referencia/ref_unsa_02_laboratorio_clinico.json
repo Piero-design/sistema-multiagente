@@ -1,0 +1,499 @@
+{
+  "id_evaluacion": "DPA-20261013-LCM",
+  "fecha": "2026-10-13",
+  "norma_referencia": "ISO/IEC 27701:2025",
+  "marco_legal": [
+    "Ley N.° 29733",
+    "D.S. 016-2024-JUS"
+  ],
+  "tercero": {
+    "id_tercero": null,
+    "nombre": "Laboratorio Clínico Misti S.A.C.",
+    "encargado_principal": null,
+    "rol": "Encargado",
+    "servicio": "Análisis clínicos para el servicio médico universitario",
+    "paises_tratamiento": [
+      "Perú"
+    ],
+    "categorias_datos": [
+      "Datos de salud (sensibles)",
+      "Identificativos"
+    ],
+    "subencargados": []
+  },
+  "contrato": {
+    "id_contrato": null,
+    "version_documento": null,
+    "hash_documento_sha256": null,
+    "estado_dpa": "Pendiente DPO",
+    "fecha_firma": null,
+    "fecha_vigencia_inicio": "2026-01-01",
+    "fecha_vigencia_fin": "2026-12-31",
+    "renovacion_automatica": false,
+    "preaviso_terminacion_dias": null
+  },
+  "nivel_riesgo_pii": "Alto",
+  "certificaciones": [
+    {
+      "nombre": "ISO 15189",
+      "tipo": "No reconocida",
+      "estado": "Declarada sin evidencia",
+      "vencida": null,
+      "fecha_vencimiento": null,
+      "observacion": "Acreditación de calidad analítica; no figura entre las certificaciones aceptadas."
+    }
+  ],
+  "uso_ia": {
+    "detectado": "No indicado"
+  },
+  "controles": [
+    {
+      "control": "A.2.2.2",
+      "titulo": "Acuerdo con el cliente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "1",
+      "evidencia": "según las instrucciones escritas de la UNSA",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Objeto e instrucciones, pero sin anexo de categorías ni asistencia al Responsable.",
+      "_alternativas": [
+        "Cumple"
+      ]
+    },
+    {
+      "control": "A.2.2.3",
+      "titulo": "Fines de la organización",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "1, 2",
+      "evidencia": "no utilizará los datos ni las muestras para investigación, fines comerciales o propios",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.4",
+      "titulo": "Uso para marketing y publicidad",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "2",
+      "evidencia": "ni para publicidad o marketing",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.5",
+      "titulo": "Instrucción infractora",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "3",
+      "evidencia": "informará de inmediato a la UNSA si considera que una instrucción vulnera la normativa",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.6",
+      "titulo": "Obligaciones del cliente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "4",
+      "evidencia": "permitirá visitas de verificación coordinadas con cinco días de anticipación",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.2.7",
+      "titulo": "Registros del tratamiento",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.3.2",
+      "titulo": "Obligaciones con titulares",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "5",
+      "evidencia": "en un plazo máximo de 5 días hábiles",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.4.2",
+      "titulo": "Archivos temporales",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.4.3",
+      "titulo": "Devolución o eliminación",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "7",
+      "evidencia": "eliminará la información que no esté obligado a conservar",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "Conservación legal sanitaria razonable, pero sin plazo de eliminación ni certificado.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.4.4",
+      "titulo": "Controles de transmisión",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "6",
+      "evidencia": "a través de una plataforma web con conexión cifrada (HTTPS)",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Cubre la entrega de resultados.",
+      "_alternativas": [
+        "Parcial"
+      ]
+    },
+    {
+      "control": "A.2.5.2",
+      "titulo": "Base para transferencias",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "8",
+      "evidencia": "requerirá autorización previa y por escrito de la UNSA",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": [
+        "Parcial"
+      ]
+    },
+    {
+      "control": "A.2.5.3",
+      "titulo": "Países destino",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "8",
+      "evidencia": "Los datos se tratan exclusivamente en el Perú",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.4",
+      "titulo": "Registros de comunicaciones",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.5",
+      "titulo": "Aviso de solicitudes de autoridades",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.6",
+      "titulo": "Comunicaciones legalmente vinculantes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.7",
+      "titulo": "Divulgación de subcontratistas",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "9",
+      "evidencia": "laboratorios de referencia nacionales cuando el análisis lo requiera",
+      "estado": "No cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin lista de sub-encargados (nombre, servicio, país).",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.8",
+      "titulo": "Contratación de subcontratistas",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "9",
+      "evidencia": "los que guardarán confidencialidad sobre la información recibida",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Autorización general; solo confidencialidad, sin obligaciones equivalentes por escrito.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.2.5.9",
+      "titulo": "Cambio de subcontratista",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "9",
+      "evidencia": "—",
+      "estado": "No cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin aviso previo de cambios ni derecho de objeción.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.9",
+      "titulo": "Derechos de acceso",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin limitación del acceso a los datos (la confidencialidad del personal se evalúa en A.3.18).",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.10",
+      "titulo": "Seguridad en acuerdos con proveedores",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "11",
+      "evidencia": "dentro de las 48 horas de conocido",
+      "estado": "No cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "48 h superan el máximo interno de 24 h.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.11",
+      "titulo": "Planificación de incidentes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.12",
+      "titulo": "Respuesta a incidentes",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "11",
+      "evidencia": "notificará a la UNSA cualquier incidente que comprometa datos de pacientes",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "Sin contenido mínimo del aviso ni cooperación.",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.13",
+      "titulo": "Requisitos legales",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "12",
+      "evidencia": "se rige por la Ley N.° 29733 y su Reglamento",
+      "estado": "Cumple",
+      "severidad": "Ninguna",
+      "fuente_requisito": "Mixta",
+      "observacion": "",
+      "_alternativas": []
+    },
+    {
+      "control": "A.3.15",
+      "titulo": "Revisión independiente",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "4",
+      "evidencia": "declara contar con acreditación ISO 15189",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Acreditación no reconocida y sin evidencia; no hay informe independiente.",
+      "_alternativas": [
+        "Parcial"
+      ]
+    },
+    {
+      "control": "A.3.18",
+      "titulo": "Acuerdos de confidencialidad",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "10",
+      "evidencia": "El personal del Laboratorio está sujeto al secreto profesional",
+      "estado": "Parcial",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Secreto profesional del personal y confidencialidad de los laboratorios de referencia; sin duración ni deber de cumplir las políticas de protección de datos.",
+      "_alternativas": [
+        "Cumple"
+      ]
+    },
+    {
+      "control": "A.3.24",
+      "titulo": "Respaldo de información",
+      "ambito": "Insumo SoA (Agente 3)",
+      "clausula_dpa": "No localizada",
+      "evidencia": "—",
+      "estado": "Sin evidencia",
+      "severidad": "Ninguna",
+      "fuente_requisito": "ISO 27701",
+      "observacion": "Sin condiciones de respaldo ni de eliminación de datos en respaldos.",
+      "_alternativas": []
+    }
+  ],
+  "alertas": [
+    {
+      "prioridad": "Alta",
+      "tipo": "Seguridad",
+      "descripcion": "Aviso de incidentes en 48 h, mayor al máximo interno de 24 h; datos de salud.",
+      "controles_relacionados": [
+        "A.3.10",
+        "A.3.12"
+      ],
+      "origen": "modelo"
+    }
+  ],
+  "remediacion": [
+    {
+      "control": "A.2.2.2",
+      "accion": "Enmendar: Objeto e instrucciones, pero sin anexo de categorías ni asistencia al Responsable.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.2.7",
+      "accion": "Enmendar: Registros del tratamiento",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.4.2",
+      "accion": "Enmendar: Archivos temporales",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.4.3",
+      "accion": "Enmendar: Conservación legal sanitaria razonable, pero sin plazo de eliminación ni certificado.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.4",
+      "accion": "Enmendar: Registros de comunicaciones",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.5",
+      "accion": "Enmendar: Aviso de solicitudes de autoridades",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.6",
+      "accion": "Enmendar: Comunicaciones legalmente vinculantes",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.7",
+      "accion": "Enmendar: Sin lista de sub-encargados (nombre, servicio, país).",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.2.5.8",
+      "accion": "Enmendar: Autorización general; solo confidencialidad, sin obligaciones equivalentes por escrito.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.2.5.9",
+      "accion": "Enmendar: Sin aviso previo de cambios ni derecho de objeción.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.3.9",
+      "accion": "Enmendar: Sin limitación del acceso a los datos (la confidencialidad del personal se evalúa en A.3.18).",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.10",
+      "accion": "Enmendar: 48 h superan el máximo interno de 24 h.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Alta"
+    },
+    {
+      "control": "A.3.11",
+      "accion": "Enmendar: Planificación de incidentes",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.12",
+      "accion": "Enmendar: Sin contenido mínimo del aviso ni cooperación.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.15",
+      "accion": "Enmendar: Acreditación no reconocida y sin evidencia; no hay informe independiente.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.18",
+      "accion": "Enmendar: Secreto profesional del personal y confidencialidad de los laboratorios de referencia; sin duración ni deber de cumplir las políticas de protección de datos.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    },
+    {
+      "control": "A.3.24",
+      "accion": "Enmendar: Sin condiciones de respaldo ni de eliminación de datos en respaldos.",
+      "clausula_propuesta": "Plantilla baseline",
+      "prioridad": "Media"
+    }
+  ],
+  "supuestos": [
+    "Contrato ficticio de pruebas (Etapa 4)",
+    "Evaluación de referencia redactada a partir de criterios_semaforo.md; revisar por el grupo"
+  ],
+  "trazabilidad": {
+    "version_skill": "2.0",
+    "version_config": "2.0",
+    "evaluador": "Referencia (criterios de la skill aplicados manualmente)",
+    "calculo": "script"
+  }
+}
