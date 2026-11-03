@@ -1,0 +1,1112 @@
+<!doctype html><html lang="es"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>PII Privacy Assistant</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+
+
+<style>
+/* Layout: fixed navy sidebar, navy top bar, light canvas with soft cards; one view per section, switched in place. Single committed look (light canvas, navy chrome) set explicitly in every color. */
+:root{
+  --navy-900:#101B35; --navy-700:#17294B; --blue:#3978F6; --blue-hover:#2D68E0; --blue-ink:#1F55C9;
+  --sky:#EAF3FF; --white:#FFFFFF; --canvas:#F4F7FC;
+  --rose:#E9B9D5; --rose-tint:#F9E9F2; --rose-ink:#86385F;
+  --mint:#DDF5EA; --mint-ink:#1B6B49;
+  --amber:#FFF0CF; --amber-ink:#7A4F00;
+  --ink:#101B35; --ink-2:#43536E; --ink-3:#5C6B86;
+  --line:#DFE7F4; --line-2:#C9D6EC;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(16,27,53,.05),0 8px 24px rgba(16,27,53,.06);
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--canvas);color:var(--ink-2);font:16px/1.55 var(--font);overflow-x:hidden}
+h1,h2,h3,h4,p,ul,ol,dl,dd{margin:0}
+ul,ol{padding:0;list-style:none}
+h1,h2,h3{text-wrap:balance;color:var(--navy-700);letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.i{width:1.25em;height:1.25em;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- Shell ---------- */
+.app{display:grid;grid-template-columns:252px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;align-self:start;height:100vh;background:var(--navy-900);color:rgba(255,255,255,.74);
+  display:flex;flex-direction:column;gap:28px;padding-block:22px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px}
+.brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
+.brand svg{width:40px;height:40px;flex:none}
+.brand b{display:block;font-weight:700;font-size:15px;line-height:1.2}
+.brand small{display:block;font-size:12.5px;color:rgba(255,255,255,.6)}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:11px;color:rgba(255,255,255,.74);text-decoration:none;font-weight:500;font-size:15px;transition:background .15s,color .15s}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav a[aria-current="page"]{background:#1E3268;color:#fff;box-shadow:inset 0 0 0 1px rgba(111,160,255,.38)}
+.nav a[aria-current="page"] .i{color:#7DA9FF}
+.side-foot{margin-top:auto;font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.58);border-top:1px solid rgba(255,255,255,.1);padding-top:16px}
+.side-foot b{display:block;color:rgba(255,255,255,.88);font-weight:600;margin-bottom:2px}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.top{background:var(--navy-700);color:#fff}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:14px;padding-left:28px;padding-right:max(28px,env(safe-area-inset-right,0px))}
+.top b{font-weight:600;font-size:15px}
+.top span.sub{color:rgba(255,255,255,.6);font-size:13px;margin-left:10px}
+.top .meta{display:flex;align-items:center;gap:12px;font-size:13px;color:rgba(255,255,255,.72)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600;line-height:1.3}
+.pill.on-dark{background:rgba(233,185,213,.16);color:#F3CFE4}
+.content{padding-block:26px 40px;padding-left:28px;padding-right:max(28px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px;max-width:1280px;width:100%}
+.strip{display:flex;gap:12px;align-items:flex-start;background:var(--sky);border:1px solid #CFE2FF;border-radius:12px;padding:12px 16px;font-size:14.5px;color:var(--navy-700)}
+.strip .i{color:var(--blue);margin-top:2px}
+
+/* ---------- Common ---------- */
+.view{display:flex;flex-direction:column;gap:22px}
+.head{display:flex;flex-direction:column;gap:6px}
+.head h1{font-size:30px;line-height:1.15;font-weight:700}
+.head p{max-width:70ch;font-size:16.5px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+.card h3{font-size:18px;font-weight:650;line-height:1.3;margin-bottom:6px}
+.card p{font-size:15.5px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.ico{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;margin-bottom:14px}
+.ico .i{width:24px;height:24px}
+.t-sky{background:var(--sky)} .t-sky .ico{background:#D6E7FF;color:var(--blue-ink)}
+.t-rose{background:var(--rose-tint)} .t-rose .ico{background:#F3CFE4;color:var(--rose-ink)}
+.t-mint{background:#EAF9F2} .t-mint .ico{background:var(--mint);color:var(--mint-ink)}
+.t-amber{background:#FFF8E6} .t-amber .ico{background:var(--amber);color:var(--amber-ink)}
+.card.t-sky,.card.t-rose,.card.t-mint,.card.t-amber{border-color:transparent}
+.h-row{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.h-row .ico{margin:0}
+.h-row h3{margin:0}
+.bullets{display:flex;flex-direction:column;gap:6px;font-size:15px}
+.bullets li{display:flex;gap:10px}
+.bullets li::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--blue);margin-top:.62em}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:10px;padding:10px 16px;background:var(--blue);color:#fff;font-weight:600;font-size:15px;cursor:pointer;text-decoration:none;transition:background .15s}
+.btn:hover{background:var(--blue-hover)}
+.btn:disabled{background:#B9C9EA;cursor:not-allowed}
+.btn.ghost{background:transparent;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.btn.ghost:hover{background:rgba(255,255,255,.08)}
+.btn.line{background:var(--white);color:var(--navy-700);box-shadow:inset 0 0 0 1px var(--line-2)}
+.btn.line:hover{background:var(--canvas)}
+.btn.sm{padding:7px 12px;font-size:14px}
+
+/* ---------- Hero ---------- */
+.hero{background:linear-gradient(135deg,#101B35 0%,#17294B 60%,#1B3566 100%);color:rgba(255,255,255,.82);border-radius:18px;box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);gap:12px;align-items:center;padding:36px 36px 32px}
+.hero h1{color:#fff;font-size:38px;line-height:1.12;font-weight:700;margin:14px 0 14px}
+.hero p{max-width:58ch;font-size:16.5px}
+.hero .org{margin-top:14px;font-size:14px;color:rgba(255,255,255,.62)}
+.hero .acts{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.hero .art{justify-self:center;width:100%;max-width:340px}
+.hero .art svg{width:100%;height:auto;display:block}
+
+/* ---------- Flow ---------- */
+.flow{display:flex;flex-wrap:wrap;gap:12px}
+.step{position:relative;flex:1 1 170px;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.step .top-r{display:flex;align-items:center;gap:10px;color:var(--navy-700);font-weight:650;font-size:15px;line-height:1.3}
+.step .top-r .i{color:var(--blue)}
+.step small{font-size:13.5px;color:var(--ink-3);line-height:1.4}
+.step .n{margin-left:auto;font-size:12px;font-weight:700;color:var(--blue-ink);background:var(--sky);border-radius:999px;min-width:22px;height:22px;display:grid;place-items:center}
+@media(min-width:1180px){
+  .flow{gap:26px;flex-wrap:nowrap}
+  .step:not(:last-child)::after{content:"";position:absolute;right:-17px;top:50%;width:9px;height:9px;border-top:2px solid var(--blue);border-right:2px solid var(--blue);transform:translateY(-50%) rotate(45deg)}
+}
+.sec-title{font-size:20px;font-weight:650;margin-bottom:12px}
+
+/* ---------- Objective ---------- */
+.two-col-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:14px}
+.two-col-list h4{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;font-weight:650}
+
+/* ---------- Phases ---------- */
+.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.tab{display:flex;align-items:center;gap:12px;text-align:left;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:12px 16px;cursor:pointer;color:var(--ink-2);transition:border-color .15s,background .15s}
+.tab:hover{border-color:var(--line-2)}
+.tab .num{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--canvas);color:var(--navy-700);font-weight:700;flex:none}
+.tab small{display:block;font-size:12.5px;color:var(--ink-3);font-weight:500}
+.tab b{display:block;font-size:15px;color:var(--navy-700);line-height:1.25}
+.tab[aria-selected="true"]{background:var(--navy-700);border-color:var(--navy-700)}
+.tab[aria-selected="true"] b{color:#fff}
+.tab[aria-selected="true"] small{color:rgba(255,255,255,.7)}
+.tab[aria-selected="true"] .num{background:var(--blue);color:#fff}
+.panel{display:flex;flex-direction:column;gap:20px}
+.panel[hidden]{display:none}
+.panel h2{font-size:24px;font-weight:700}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);gap:12px;align-items:center}
+.pair .arrow{display:grid;place-items:center;color:var(--blue)}
+.pair .arrow .i{width:30px;height:30px}
+.src-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.src{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-weight:600;color:var(--navy-700);font-size:15px}
+.src .i{color:var(--blue);width:24px;height:24px}
+.kb li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;font-size:15px}
+.kb li+li{border-top:1px solid #E3F1EA}
+.kb .i{color:var(--mint-ink);margin-top:2px}
+.steps-mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;counter-reset:s}
+.steps-mini li{background:rgba(255,255,255,.7);border-radius:10px;padding:10px 12px;font-size:14.5px;font-weight:550;color:var(--navy-700);display:flex;gap:8px;align-items:flex-start;counter-increment:s}
+.steps-mini li::before{content:counter(s);flex:none;background:var(--blue);color:#fff;border-radius:6px;width:22px;height:22px;display:grid;place-items:center;font-size:12px;font-weight:700}
+.code-card{background:var(--navy-900);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.code-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.1);color:#fff}
+.code-bar b{font-weight:600;font-size:15px}
+.code-bar small{display:block;color:rgba(255,255,255,.58);font-size:13px;font-weight:400}
+.copy{background:rgba(255,255,255,.08);color:#fff;border:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);border-radius:9px;padding:8px 14px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;font-weight:600;font-size:14px}
+.copy:hover{background:rgba(255,255,255,.14)}
+.code{margin:0;padding:20px 22px;font:14.5px/1.75 var(--mono);color:#D5E0F5;white-space:pre-wrap;overflow-wrap:anywhere;max-height:none}
+.code .h{color:#F0BFD9;font-weight:500}
+.code .n{color:#7FAAFF}
+.warn{display:flex;gap:14px;align-items:flex-start;background:var(--rose-tint);border-radius:var(--radius);padding:18px 20px;color:#5A2342}
+.warn b{display:block;color:var(--rose-ink);margin-bottom:2px}
+.warn .i{color:var(--rose-ink);width:24px;height:24px;margin-top:1px}
+.warn.amber{background:var(--amber);color:#5E3C00}
+.warn.amber b,.warn.amber .i{color:var(--amber-ink)}
+
+/* ---------- Inventory ---------- */
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.field{position:relative;flex:1 1 240px;min-width:0}
+.field .i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3);pointer-events:none}
+.field input{padding-left:38px}
+input[type=text],select,textarea{width:100%;background:var(--white);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;min-height:42px}
+select{width:auto;min-width:170px;padding-right:30px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+.tbl-wrap{overflow-x:auto;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:650;text-align:left;padding:14px 16px;background:#F8FAFE;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:14px 16px;border-bottom:1px solid #EDF2FA;font-size:15px;vertical-align:middle;color:var(--ink-2)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#F8FAFE}
+td.strong{font-weight:600;color:var(--navy-700)}
+tr.hl,tr.hl:hover{background:#FDF3F9}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 11px;font-size:13px;font-weight:600;white-space:nowrap}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.est-Pendiente{background:var(--amber);color:var(--amber-ink)}
+.chip.est-Revision{background:var(--sky);color:var(--blue-ink)}
+.chip.est-Validado{background:var(--mint);color:var(--mint-ink)}
+.cat{display:inline-block;border-radius:8px;padding:3px 10px;font-size:13.5px;font-weight:550}
+.cat.c-Identificativo{background:var(--rose-tint);color:var(--rose-ink)}
+.cat.c-Contacto{background:var(--sky);color:var(--blue-ink)}
+.cat.c-Demografico{background:var(--mint);color:var(--mint-ink)}
+.cat.c-Otro{background:#EEF1F6;color:var(--ink-2)}
+.acts{display:flex;gap:6px}
+.ib{width:36px;height:36px;border-radius:9px;border:1px solid var(--line-2);background:var(--white);display:grid;place-items:center;cursor:pointer;color:var(--navy-700)}
+.ib:hover{background:var(--sky);border-color:#B7D1FA;color:var(--blue-ink)}
+.count{font-size:14px;color:var(--ink-3)}
+.empty{padding:40px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.empty .i{width:34px;height:34px;color:var(--ink-3)}
+.empty b{color:var(--navy-700);font-size:17px}
+
+/* ---------- Example ---------- */
+.ex{display:grid;grid-template-columns:minmax(0,.8fr) 56px minmax(0,1.5fr);gap:14px;align-items:center}
+.ex .arrow{display:grid;place-items:center;color:var(--blue)}
+.ex .arrow .i{width:36px;height:36px}
+.ex h3.pt{font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:650;margin-bottom:12px}
+.form-mock{background:var(--canvas);border:1px solid var(--line);border-radius:12px;padding:18px}
+.form-mock .ft{font-weight:700;color:var(--navy-700);margin-bottom:12px;font-size:16px}
+.ff{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:8px;border:1px dashed transparent;margin-bottom:6px;cursor:default}
+.ff span{font-size:13px;color:var(--ink-3);font-weight:550}
+.ff i{display:block;height:2px;background:var(--line-2);margin-top:12px}
+.ff.hl{background:#FDF3F9;border-color:var(--rose)}
+.note{display:flex;gap:12px;align-items:flex-start;background:var(--amber);color:#5E3C00;border-radius:12px;padding:14px 18px;font-size:15px;font-weight:550}
+.note .i{color:var(--amber-ink);margin-top:2px}
+.legend{font-size:13.5px;color:var(--ink-3);margin-top:12px}
+
+/* ---------- References ---------- */
+.ref .tag{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.04em;color:var(--blue-ink);background:var(--sky);border-radius:8px;padding:3px 10px;margin-bottom:10px}
+.crit{display:flex;gap:14px;align-items:flex-start;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.crit .ico{width:40px;height:40px;margin:0}
+.crit b{display:block;color:var(--navy-700);font-size:15.5px;line-height:1.3;margin-bottom:2px}
+.crit p{font-size:14.5px}
+
+/* ---------- Conclusions ---------- */
+.quote{background:linear-gradient(135deg,#101B35,#17294B 70%,#1B3566);color:#fff;border-radius:18px;padding:34px 36px;box-shadow:var(--shadow);display:flex;gap:20px;align-items:center}
+.quote .i{width:44px;height:44px;color:var(--rose);flex:none}
+.quote p{font-size:23px;line-height:1.35;font-weight:600;text-wrap:balance;color:#fff}
+.quote small{display:block;margin-top:10px;font-size:13.5px;color:rgba(255,255,255,.6);font-weight:400}
+
+/* ---------- Pager ---------- */
+.pager{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:18px;margin-top:6px}
+.pager .hint{font-size:13px;color:var(--ink-3)}
+
+/* ---------- Modal / toast ---------- */
+.overlay{position:fixed;inset:0;background:rgba(16,27,53,.55);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:50}
+.modal{background:var(--white);border-radius:16px;box-shadow:0 20px 60px rgba(16,27,53,.35);width:100%;max-width:560px;max-height:100%;overflow:auto;padding:24px}
+.modal-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.modal-h h2{font-size:21px;font-weight:700}
+.dl{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:10px 16px;font-size:15px}
+.dl dt{color:var(--ink-3);font-weight:550}
+.dl dd{color:var(--navy-700);font-weight:550}
+.fl{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fl label{font-size:14px;font-weight:600;color:var(--navy-700)}
+.fl .err{color:#A12A2A;font-size:13.5px}
+.m-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
+textarea.csv{min-height:200px;font:13px/1.5 var(--mono);resize:vertical}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--navy-900);color:#fff;border-radius:12px;padding:12px 18px;font-size:14.5px;box-shadow:0 10px 30px rgba(16,27,53,.35);z-index:60;max-width:min(560px,calc(100vw - 32px));text-align:center}
+
+/* ---------- Responsive ---------- */
+@media(max-width:1000px){
+  .hero{grid-template-columns:1fr;padding:28px 24px}
+  .hero .art{max-width:260px}
+  .ex{grid-template-columns:1fr}
+  .ex .arrow{transform:rotate(90deg);padding:4px 0}
+}
+@media(max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;height:auto;flex-direction:row;align-items:center;gap:12px;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:auto}
+  .brand div{display:none}
+  .nav{flex-direction:row;gap:4px}
+  .nav a{white-space:nowrap;padding:9px 12px}
+  .side-foot{display:none}
+  .top-in{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .content{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 32px}
+  .head h1{font-size:25px}
+  .hero h1{font-size:29px}
+  .pair{grid-template-columns:1fr}
+  .pair .arrow{transform:rotate(90deg)}
+  .quote{flex-direction:column;align-items:flex-start;padding:26px 22px}
+  .quote p{font-size:19px}
+  .dl{grid-template-columns:1fr;gap:2px 0}
+  .dl dd{margin-bottom:10px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/><circle cx="11" cy="14" r="2.5"/><path d="M13 16l2 2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v15H6a2 2 0 00-2 2z"/><path d="M4 20a2 2 0 002 2h13v-4"/><path d="M9 8h6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.5 13.3l-7.2 7.2a2 2 0 01-2.8 0L3 13V4h9l8.5 8.5a1 1 0 010 .8z"/><circle cx="7.6" cy="8" r="1.3"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 7l3 3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M14 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H4"/><path d="M10 6l-6 6 6 6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8v.01"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21h8M12 16v5"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1"/><path d="M9 13v.01M15 13v.01M9.5 16h5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/><rect x="9.3" y="10.8" width="5.4" height="4.2" rx="1"/><path d="M10.4 10.8V9.8a1.6 1.6 0 013.2 0v1"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6v.01M4 12v.01M4 18v.01"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 011 1v10a1 1 0 01-1 1h-8l-5 4v-4H4a1 1 0 01-1-1V6a1 1 0 011-1z"/><path d="M8 10h8"/></symbol>
+    <symbol id="i-puzzle" viewBox="0 0 24 24"><path d="M10 4a2 2 0 114 0v1h4a1 1 0 011 1v4h-1a2 2 0 100 4h1v4a1 1 0 01-1 1h-4v-1a2 2 0 10-4 0v1H6a1 1 0 01-1-1v-4h1a2 2 0 100-4H5V6a1 1 0 011-1h4z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 108-8 8 8 0 00-6 2.7"/><path d="M4 4v4h4"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/><path d="M8.8 12.2l2.2 2.2 4.2-4.4"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <aside class="side" aria-label="Navegación principal">
+    <a class="brand" href="#inicio" data-go="inicio" aria-label="PII Privacy Assistant, ir al inicio">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#1E3268"/><path d="M20 7.5l10 3.9v8.2c0 6.2-4.2 10.9-10 13.4-5.8-2.5-10-7.2-10-13.4v-8.2l10-3.9z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><rect x="16.2" y="17.6" width="7.6" height="6" rx="1.4" fill="#E9B9D5"/><path d="M17.7 17.6v-1.5a2.3 2.3 0 014.6 0v1.5" fill="none" stroke="#E9B9D5" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div><b>PII Privacy</b><small>Assistant</small></div>
+    </a>
+    <nav class="nav" id="nav" aria-label="Secciones"></nav>
+    <div class="side-foot"><b>TIF · Ingeniería de Sistemas</b>Universidad Nacional de San Agustín · Grupo 6. Inventario local con revisión humana.</div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <div class="top-in">
+        <div><b>PII Privacy Assistant</b><span class="sub">Agente de IA para el Inventario de Datos Personales</span></div>
+        <div class="meta"><span>UNSA | Auditoría de Sistemas</span><span class="pill on-dark">Grupo 6 · análisis local</span></div>
+      </div>
+    </header>
+
+    <main class="content" id="content">
+      <div class="strip" role="note"><svg class="i"><use href="#i-info"/></svg><span>Versión funcional local: reconoce campos mediante reglas, sin modelo de IA ni envío de datos. Revisa cada resultado. Las secciones Fases y Ejemplo conservan la propuesta original.</span></div>
+
+      <!-- INICIO -->
+      <section class="view" data-view="inicio" aria-labelledby="h-inicio">
+        <div class="hero">
+          <div>
+            <span class="pill on-dark">Trabajo de Investigación Formativa · UNSA</span>
+            <h1 id="h-inicio">Agente de IA para el Inventario de Datos Personales</h1>
+            <p>Propuesta de diseño de un agente que apoya la identificación, clasificación, contextualización y organización de datos personales de distintas fuentes, para generar un inventario estructurado, trazable y sujeto a validación humana.</p>
+            <div class="org">Universidad Nacional de San Agustín · Auditoría de Sistemas</div>
+            <div class="acts">
+              <a class="btn" href="#fases" data-go="fases">Recorrer las fases <svg class="i"><use href="#i-arrow-right"/></svg></a>
+              <a class="btn ghost" href="#inventario" data-go="inventario">Ver inventario de ejemplo</a>
+            </div>
+          </div>
+          <div class="art">
+            <svg viewBox="0 0 340 260" role="img" aria-label="Ilustración de un escudo con candado junto a un documento con datos resaltados">
+              <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5B93FF"/><stop offset="1" stop-color="#2E62D6"/></linearGradient></defs>
+              <circle cx="170" cy="132" r="112" fill="none" stroke="#3978F6" stroke-opacity=".28" stroke-dasharray="3 8"/>
+              <circle cx="170" cy="132" r="80" fill="#3978F6" fill-opacity=".09"/>
+              <g transform="translate(30 52) rotate(-6 66 80)">
+                <rect width="136" height="164" rx="14" fill="#FFFFFF"/>
+                <rect x="16" y="18" width="54" height="8" rx="4" fill="#17294B"/>
+                <rect x="16" y="40" width="104" height="10" rx="5" fill="#E9B9D5"/>
+                <rect x="16" y="60" width="86" height="10" rx="5" fill="#DCE6F7"/>
+                <rect x="16" y="80" width="104" height="10" rx="5" fill="#FFF0CF"/>
+                <rect x="16" y="100" width="72" height="10" rx="5" fill="#DCE6F7"/>
+                <rect x="16" y="120" width="104" height="10" rx="5" fill="#DDF5EA"/>
+                <rect x="16" y="140" width="58" height="10" rx="5" fill="#DCE6F7"/>
+              </g>
+              <g transform="translate(184 40)">
+                <path d="M62 0L122 23V86C122 129 98 158 62 174 26 158 2 129 2 86V23Z" fill="url(#sg)"/>
+                <path d="M62 12L112 31V86C112 122 92 147 62 162 32 147 12 122 12 86V31Z" fill="none" stroke="#fff" stroke-opacity=".28"/>
+                <rect x="42" y="78" width="40" height="34" rx="7" fill="#fff"/>
+                <path d="M50 78V68a12 12 0 0124 0V78" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="62" cy="93" r="4.5" fill="#3978F6"/>
+                <rect x="60" y="95" width="4" height="9" rx="2" fill="#3978F6"/>
+              </g>
+              <circle cx="44" cy="34" r="6" fill="#E9B9D5"/>
+              <circle cx="306" cy="26" r="5" fill="#DDF5EA"/>
+              <circle cx="62" cy="236" r="5" fill="#FFF0CF"/>
+              <circle cx="300" cy="238" r="7" fill="#E9B9D5" fill-opacity=".8"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="grid g4">
+          <article class="card t-sky"><div class="ico"><svg class="i"><use href="#i-search"/></svg></div><h3>Identificar</h3><p>Detecta posibles datos personales en las fuentes proporcionadas.</p></article>
+          <article class="card t-rose"><div class="ico"><svg class="i"><use href="#i-tag"/></svg></div><h3>Clasificar</h3><p>Asigna a cada dato una categoría según su tipo.</p></article>
+          <article class="card t-mint"><div class="ico"><svg class="i"><use href="#i-link"/></svg></div><h3>Contextualizar</h3><p>Registra la fuente y, cuando hay evidencia, la finalidad del dato.</p></article>
+          <article class="card t-amber"><div class="ico"><svg class="i"><use href="#i-check"/></svg></div><h3>Validar</h3><p>Señala lo pendiente y requiere revisión humana de los resultados.</p></article>
+        </div>
+
+        <div class="warn amber"><svg class="i"><use href="#i-info"/></svg><div><b>Prueba el inventario local</b>Entra en Analizar fuente para reconocer campos en tus entradas y revisarlos en Inventario. Las fases y los ejemplos ilustran la propuesta del asistente; la conexión con un modelo de IA queda pendiente.</div></div>
+
+        <div>
+          <h2 class="sec-title">Flujo de trabajo propuesto del agente</h2>
+          <div class="flow" data-flow></div>
+        </div>
+      </section>
+
+      <!-- OBJETIVO -->
+      <section class="view" data-view="objetivo" aria-labelledby="h-objetivo" hidden>
+        <div class="head"><h1 id="h-objetivo">Problema y objetivo</h1><p>Punto de partida del trabajo y lo que se propone diseñar.</p></div>
+        <div class="grid g2">
+          <article class="card t-rose">
+            <div class="h-row"><div class="ico"><svg class="i"><use href="#i-info"/></svg></div><h3>Problema</h3></div>
+            <p>La identificación de datos personales en formularios, documentos, bases de datos y otras fuentes puede requerir revisión manual, resultar variable y dificultar la organización y trazabilidad de la información.</p>
+          </article>
+          <article class="card t-sky">
+            <div class="h-row"><div class="ico"><svg class="i"><use href="#i-target"/></svg></div><h3>Objetivo</h3></div>
+            <p>Diseñar un procedimiento asistido por inteligencia artificial que permita identificar, clasificar y organizar datos personales en un inventario estructurado, conservando la trazabilidad y la necesidad de validación humana.</p>
+          </article>
+        </div>
+        <article class="card" style="background:#F6EDFB;border-color:transparent">
+          <div class="h-row"><div class="ico" style="background:#E8D6F5;color:#6B3B94"><svg class="i"><use href="#i-list"/></svg></div><h3>Alcance</h3></div>
+          <p>Este trabajo propone un diseño y un procedimiento. No es una aplicación funcional ya implementada.</p>
+          <div class="two-col-list">
+            <div><h4>Incluye</h4><ul class="bullets"><li>Diseño del agente y de la Skill</li><li>Instrucciones y prompt maestro</li><li>Procedimiento de análisis propuesto</li></ul></div>
+            <div><h4>No incluye</h4><ul class="bullets"><li>Implementación de una aplicación</li><li>Pruebas con una aplicación funcional</li><li>Resultados experimentales ni certificaciones</li></ul></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- FASES -->
+      <section class="view" data-view="fases" aria-labelledby="h-fases" hidden>
+        <div class="head"><h1 id="h-fases">Fases del proyecto</h1><p>Cuatro fases que llevan de una instrucción general a un procedimiento reutilizable.</p></div>
+        <div class="tabs" role="tablist" aria-label="Fases del proyecto" id="phase-tabs">
+          <button class="tab" role="tab" id="tab-1" aria-controls="ph-1" aria-selected="true"><span class="num">1</span><span><small>Fase 1</small><b>De Prompt a Skill</b></span></button>
+          <button class="tab" role="tab" id="tab-2" aria-controls="ph-2" aria-selected="false" tabindex="-1"><span class="num">2</span><span><small>Fase 2</small><b>Definición de la Skill</b></span></button>
+          <button class="tab" role="tab" id="tab-3" aria-controls="ph-3" aria-selected="false" tabindex="-1"><span class="num">3</span><span><small>Fase 3</small><b>Construcción del asistente</b></span></button>
+          <button class="tab" role="tab" id="tab-4" aria-controls="ph-4" aria-selected="false" tabindex="-1"><span class="num">4</span><span><small>Fase 4</small><b>Prompt maestro</b></span></button>
+        </div>
+
+        <div class="panel" id="ph-1" role="tabpanel" aria-labelledby="tab-1">
+          <h2>Fase 1: De Prompt a Skill</h2>
+          <div class="pair">
+            <article class="card t-sky"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-chat"/></svg></div><div><h3>Prompt</h3><small style="color:var(--ink-3)">Instrucción inicial</small></div></div><p>Expresa una instrucción: indica qué se desea obtener, pero puede ser general y variable según quién la escriba.</p></article>
+            <div class="arrow" aria-hidden="true"><svg class="i"><use href="#i-arrow-right"/></svg></div>
+            <article class="card t-mint"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-puzzle"/></svg></div><div><h3>Skill</h3><small style="color:var(--ink-3)">Procedimiento estructurado</small></div></div><p>Organiza un procedimiento reutilizable con pasos, reglas, criterios y resultados esperados, para realizar la tarea de forma consistente.</p></article>
+          </div>
+          <div><h3 class="sec-title">Flujo de la Skill</h3><div class="flow" data-flow></div></div>
+        </div>
+
+        <div class="panel" id="ph-2" role="tabpanel" aria-labelledby="tab-2" hidden>
+          <h2>Fase 2: Definición de la Skill</h2>
+          <p style="font-size:16.5px;margin-top:-10px"><b style="color:var(--navy-700)">PII Inventory Analyzer.</b> Funciones propuestas:</p>
+          <div class="grid g4" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
+            <article class="card t-sky"><div class="ico"><svg class="i"><use href="#i-search"/></svg></div><h3>Detectar</h3><p>Identifica posibles datos personales presentes en las fuentes.</p></article>
+            <article class="card t-rose"><div class="ico"><svg class="i"><use href="#i-tag"/></svg></div><h3>Clasificar</h3><p>Asigna cada dato a una categoría según su tipo.</p></article>
+            <article class="card t-mint"><div class="ico"><svg class="i"><use href="#i-doc"/></svg></div><h3>Registrar fuente</h3><p>Anota de qué fuente procede cada hallazgo.</p></article>
+            <article class="card t-sky"><div class="ico"><svg class="i"><use href="#i-link"/></svg></div><h3>Contextualizar</h3><p>Añade finalidad y sensibilidad solo cuando exista evidencia.</p></article>
+            <article class="card t-amber"><div class="ico"><svg class="i"><use href="#i-flag"/></svg></div><h3>Señalar pendientes</h3><p>Marca la información faltante o por validar.</p></article>
+          </div>
+          <div><h3 class="sec-title">Fuentes consideradas en el diseño</h3>
+            <div class="src-row">
+              <div class="src"><svg class="i"><use href="#i-doc"/></svg>Formularios</div>
+              <div class="src"><svg class="i"><use href="#i-database"/></svg>Bases de datos</div>
+              <div class="src"><svg class="i"><use href="#i-scan"/></svg>Documentos</div>
+              <div class="src"><svg class="i"><use href="#i-monitor"/></svg>Sistemas internos</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="ph-3" role="tabpanel" aria-labelledby="tab-3" hidden>
+          <h2>Fase 3: Construcción del asistente</h2>
+          <p style="font-size:16.5px;margin-top:-10px"><b style="color:var(--navy-700)">PII Privacy Assistant.</b> Componentes conceptuales del diseño:</p>
+          <div class="grid g3">
+            <article class="card t-sky"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-user"/></svg></div><h3>Perfil del asistente</h3></div><p>Actúa como un asistente especializado en privacidad de datos, enfocado en identificar y clasificar datos personales a partir de fuentes de información.</p></article>
+            <article class="card t-rose"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-list"/></svg></div><h3>Instrucciones principales</h3></div>
+              <ul class="bullets"><li>No inventar finalidades, bases legales ni responsables.</li><li>Señalar inferencias y dudas.</li><li>Mantener confidencialidad y trazabilidad.</li><li>Seguir un procedimiento estructurado.</li></ul></article>
+            <article class="card t-mint"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-book"/></svg></div><h3>Base de conocimiento</h3></div>
+              <ul class="kb"><li><svg class="i"><use href="#i-check"/></svg>ISO/IEC 27701</li><li><svg class="i"><use href="#i-check"/></svg>RGPD, artículo 30</li><li><svg class="i"><use href="#i-check"/></svg>Normativa peruana aplicable de protección de datos personales</li></ul></article>
+            <article class="card t-amber" style="grid-column:1/-1"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-layers"/></svg></div><h3>Procedimiento de análisis</h3></div>
+              <ol class="steps-mini"><li>Analizar las fuentes proporcionadas</li><li>Identificar posibles datos personales</li><li>Clasificar y contextualizar con evidencia</li><li>Marcar pendientes y requerir validación humana</li></ol></article>
+            <article class="card t-sky" style="grid-column:1/-1"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-shield"/></svg></div><h3>Reglas de confidencialidad y trazabilidad</h3></div>
+              <ul class="bullets"><li>Trabajar solo con la información necesaria y no repetir datos personales sin motivo.</li><li>Vincular cada hallazgo con su fuente.</li><li>No afirmar cumplimiento legal ni certificaciones.</li></ul></article>
+          </div>
+          <div class="warn amber"><svg class="i"><use href="#i-info"/></svg><div><b>Referencias del diseño</b>La base de conocimiento lista referencias consideradas al diseñar el asistente. No implica certificación ni garantiza el cumplimiento legal.</div></div>
+        </div>
+
+        <div class="panel" id="ph-4" role="tabpanel" aria-labelledby="tab-4" hidden>
+          <h2>Fase 4: Prompt maestro de la Skill</h2>
+          <div class="code-card">
+            <div class="code-bar">
+              <div><b>Prompt maestro</b><small>PII Inventory Analyzer · instrucciones, reglas y pasos del agente</small></div>
+              <button class="copy" id="copy-prompt" type="button"><svg class="i"><use href="#i-copy"/></svg><span>Copiar prompt</span></button>
+            </div>
+            <pre class="code" id="prompt-pre" tabindex="0"></pre>
+          </div>
+          <div class="warn"><svg class="i"><use href="#i-info"/></svg><div><b>Importante</b>Este prompt describe la futura integración con IA. El analizador local implementado usa reglas de reconocimiento de campos y no ejecuta este prompt.</div></div>
+        </div>
+      </section>
+
+      <section class="view" data-view="analizar" aria-labelledby="h-analizar" hidden>
+        <div class="head"><h1 id="h-analizar">Analizar una fuente</h1><p>Reconoce nombres de campos en texto, esquemas SQL, CSV o JSON. No identifica personas ni extrae sus valores. No interpreta instrucciones dentro de la fuente.</p></div>
+        <form id="analyze-form" class="card">
+          <div class="grid g2"><div class="fl"><label for="source-name">Nombre de la fuente</label><input id="source-name" type="text" value="Fuente de prueba" maxlength="200" required></div><div class="fl"><label for="source-system">Sistema (opcional, confirmado por ti)</label><input id="source-system" type="text" maxlength="200" placeholder="Por determinar"></div></div>
+          <div class="fl"><label for="source-file">Importar texto UTF-8 (.txt, .md, .csv, .json, .sql; máximo 1 MB)</label><input id="source-file" type="file" accept=".txt,.md,.csv,.json,.sql,text/plain,text/csv,application/json"></div>
+          <div class="fl"><label for="source-text">Contenido (máximo 200 000 caracteres)</label><textarea id="source-text" rows="10" maxlength="200000" required placeholder="El sistema registra nombre, DNI y correo institucional."></textarea></div>
+          <div class="toolbar"><button class="btn" id="analyze-submit" type="submit">Generar inventario</button><button class="btn line" id="load-example" type="button">Cargar texto de ejemplo</button><button class="btn line" id="clear-source" type="button">Limpiar fuente</button></div>
+          <p class="legend">Solo se guardan nombres de campos, referencia de línea y metadatos del inventario. El contenido completo permanece en esta caja hasta que lo limpies o cierres la página. PDF, Word, imágenes y OCR quedan para la siguiente versión.</p>
+          <p id="analysis-result" role="status" aria-live="polite"></p>
+        </form>
+        <div class="warn amber"><svg class="i"><use href="#i-info"/></svg><div><b>Alcance de las reglas</b>Un nombre ambiguo puede generar un falso positivo. Las menciones negadas en la misma oración se omiten de forma básica. No detecta todos los datos personales ni determina finalidades, responsables, plazos o cumplimiento normativo.</div></div>
+      </section>
+
+      <!-- INVENTARIO -->
+      <section class="view" data-view="inventario" aria-labelledby="h-inventario" hidden>
+        <div class="head"><h1 id="h-inventario">Inventario de datos personales</h1><p>Revisa los campos reconocidos en tus fuentes. Al abrir por primera vez se muestran seis registros ficticios; el primer análisis los reemplaza.</p></div>
+        <div class="toolbar">
+          <div class="field"><svg class="i"><use href="#i-search"/></svg><input type="text" id="q" placeholder="Buscar dato, fuente o finalidad" aria-label="Buscar en el inventario" autocomplete="off"></div>
+          <select id="f-cat" aria-label="Filtrar por categoría"></select>
+          <select id="f-est" aria-label="Filtrar por estado"></select>
+          <button class="btn" id="export" type="button"><svg class="i"><use href="#i-download"/></svg>Exportar CSV</button>
+          <button class="btn line" id="reset" type="button"><svg class="i"><use href="#i-reset"/></svg>Cargar inventario de muestra</button>
+        </div>
+        <div class="tbl-wrap" id="tbl-wrap">
+          <table>
+            <thead><tr><th>Dato personal</th><th>Categoría</th><th>Fuente</th><th>Finalidad</th><th>Estado</th><th>Acción</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <div class="empty" id="empty" hidden>
+            <svg class="i"><use href="#i-search"/></svg>
+            <b>Ningún registro coincide</b>
+            <span>Prueba con otra búsqueda o limpia los filtros.</span>
+            <button class="btn line sm" id="clear" type="button">Limpiar filtros</button>
+          </div>
+        </div>
+        <div class="count" id="count" aria-live="polite"></div>
+        <div class="toolbar"><button class="btn line" id="export-json" type="button">Exportar JSON completo</button><button class="btn line" id="delete-all" type="button">Borrar inventario</button><label><input type="checkbox" id="persist"> Guardar inventario en este navegador</label></div>
+        <p id="storage-status" role="status">Guardado local desactivado. Exporta antes de cerrar.</p>
+        <div class="warn amber"><svg class="i"><use href="#i-info"/></svg><div><b>Revisión del inventario</b>Los campos desconocidos quedan pendientes. Una categoría es una inferencia por nombre del campo, no una conclusión legal. Cambiar el estado a Validado registra una revisión manual declarada por quien usa esta página. El guardado es opcional y puede contener metadatos confidenciales.</div></div>
+      </section>
+
+      <!-- EJEMPLO -->
+      <section class="view" data-view="ejemplo" aria-labelledby="h-ejemplo" hidden>
+        <div class="head"><h1 id="h-ejemplo">Ejemplo de análisis</h1><p>Análisis conceptual de un formulario ficticio de matrícula. Pasa el cursor por un campo para ver su fila en el resultado.</p></div>
+        <div class="ex">
+          <article class="card">
+            <h3 class="pt">Fuente de ejemplo</h3>
+            <div class="form-mock">
+              <div class="ft">Formulario de matrícula (ficticio)</div>
+              <div class="ff" tabindex="0" data-k="nombre"><span>Nombre completo</span><i></i></div>
+              <div class="ff" tabindex="0" data-k="dni"><span>DNI</span><i></i></div>
+              <div class="ff" tabindex="0" data-k="correo"><span>Correo institucional</span><i></i></div>
+              <div class="ff" tabindex="0" data-k="nac"><span>Fecha de nacimiento</span><i></i></div>
+              <div class="ff" tabindex="0" data-k="tel"><span>Teléfono</span><i></i></div>
+            </div>
+          </article>
+          <div class="arrow" aria-hidden="true"><svg class="i"><use href="#i-arrow-right"/></svg></div>
+          <article class="card">
+            <h3 class="pt">Resultado propuesto</h3>
+            <div class="tbl-wrap" style="box-shadow:none">
+              <table style="min-width:620px">
+                <thead><tr><th>Dato personal</th><th>Categoría</th><th>Fuente</th><th>Finalidad</th><th>Estado</th></tr></thead>
+                <tbody id="ex-rows"></tbody>
+              </table>
+            </div>
+            <p class="legend">Evidencia: el campo aparece en el formulario. Inferencia: la categoría la asigna el criterio de la Skill y requiere revisión.</p>
+          </article>
+        </div>
+        <div class="note" role="note"><svg class="i"><use href="#i-info"/></svg><span>Ejemplo conceptual para ilustrar el resultado esperado. No corresponde a una prueba de una aplicación funcional.</span></div>
+      </section>
+
+      <!-- REFERENCIAS -->
+      <section class="view" data-view="referencias" aria-labelledby="h-referencias" hidden>
+        <div class="head"><h1 id="h-referencias">Referencias y criterios</h1><p>Marcos consultados para el diseño y criterios que guían el comportamiento del agente.</p></div>
+        <div class="grid g3">
+          <article class="card ref"><span class="tag">ISO/IEC 27701</span><h3>Gestión de información de privacidad</h3><p>Estándar de referencia sobre cómo gestionar la información de privacidad en una organización.</p></article>
+          <article class="card ref"><span class="tag">RGPD, artículo 30</span><h3>Registro de las actividades de tratamiento</h3><p>Referencia para estructurar qué datos se tratan, con qué finalidad y bajo qué responsable.</p></article>
+          <article class="card ref"><span class="tag">Normativa peruana</span><h3>Protección de datos personales</h3><p>Normativa peruana aplicable de protección de datos personales, considerada como contexto del diseño.</p></article>
+        </div>
+        <div class="warn amber"><svg class="i"><use href="#i-info"/></svg><div><b>Referencias del diseño</b>Estas referencias orientan la propuesta. No constituyen evidencia de certificación, de una auditoría aprobada ni de cumplimiento legal garantizado.</div></div>
+        <div>
+          <h2 class="sec-title">Criterios de diseño</h2>
+          <div class="grid g3">
+            <div class="crit"><div class="ico t-rose" style="background:#F3CFE4;color:var(--rose-ink)"><svg class="i"><use href="#i-shield"/></svg></div><div><b>No inventar información</b><p>Si un dato, finalidad o responsable no figura en la fuente, no se completa.</p></div></div>
+            <div class="crit"><div class="ico" style="background:#D6E7FF;color:var(--blue-ink)"><svg class="i"><use href="#i-scan"/></svg></div><div><b>Diferenciar evidencia e inferencia</b><p>Cada hallazgo indica si viene de la fuente o de una deducción del agente.</p></div></div>
+            <div class="crit"><div class="ico" style="background:var(--amber);color:var(--amber-ink)"><svg class="i"><use href="#i-flag"/></svg></div><div><b>Marcar campos desconocidos</b><p>Lo no documentado se registra como pendiente de confirmar.</p></div></div>
+            <div class="crit"><div class="ico" style="background:var(--mint);color:var(--mint-ink)"><svg class="i"><use href="#i-link"/></svg></div><div><b>Mantener trazabilidad</b><p>Cada hallazgo queda vinculado con la fuente de la que procede.</p></div></div>
+            <div class="crit"><div class="ico" style="background:#D6E7FF;color:var(--blue-ink)"><svg class="i"><use href="#i-lock"/></svg></div><div><b>Proteger la confidencialidad</b><p>Se usa la información mínima necesaria y no se expone más de lo requerido.</p></div></div>
+            <div class="crit"><div class="ico" style="background:#F3CFE4;color:var(--rose-ink)"><svg class="i"><use href="#i-user"/></svg></div><div><b>Requerir validación humana</b><p>Una persona revisa el inventario antes de usarlo en decisiones.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONCLUSIONES -->
+      <section class="view" data-view="conclusiones" aria-labelledby="h-conclusiones" hidden>
+        <div class="head"><h1 id="h-conclusiones">Conclusiones</h1><p>Lo que aporta la propuesta de diseño.</p></div>
+        <div class="grid g2">
+          <article class="card t-sky"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-layers"/></svg></div><h3>Procedimiento estructurado</h3></div><p>El diseño organiza las etapas de identificación y clasificación de datos personales.</p></article>
+          <article class="card t-mint"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-bot"/></svg></div><h3>Apoyo mediante IA</h3></div><p>La propuesta busca reducir parte del trabajo manual y estandarizar el análisis.</p></article>
+          <article class="card t-rose"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-link"/></svg></div><h3>Trazabilidad</h3></div><p>Cada hallazgo debe relacionarse con su fuente.</p></article>
+          <article class="card t-amber"><div class="h-row"><div class="ico"><svg class="i"><use href="#i-user"/></svg></div><h3>Validación humana</h3></div><p>Los resultados deben revisarse antes de utilizarse para decisiones de privacidad o cumplimiento normativo.</p></article>
+        </div>
+        <div class="quote"><svg class="i"><use href="#i-quote"/></svg><div><p>“Una propuesta de IA útil para privacidad debe combinar estructura, trazabilidad y supervisión humana”.</p><small>PII Privacy Assistant · TIF · Universidad Nacional de San Agustín · Auditoría de Sistemas</small></div></div>
+      </section>
+
+      <div class="pager" id="pager"></div>
+    </main>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" hidden><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+  'use strict';
+
+  var SECTIONS=[
+    {id:'inicio',label:'Inicio',icon:'home'},
+    {id:'objetivo',label:'Objetivo',icon:'target'},
+    {id:'fases',label:'Fases',icon:'layers'},
+    {id:'analizar',label:'Analizar fuente',icon:'search'},
+    {id:'inventario',label:'Inventario',icon:'database'},
+    {id:'ejemplo',label:'Ejemplo de análisis',icon:'scan'},
+    {id:'referencias',label:'Referencias',icon:'book'},
+    {id:'conclusiones',label:'Conclusiones',icon:'check'}
+  ];
+  var FLOW=[
+    {t:'Fuente de información',s:'Formularios, documentos, bases de datos',i:'doc'},
+    {t:'Identificación',s:'Detecta posibles datos personales',i:'search'},
+    {t:'Clasificación',s:'Asigna una categoría a cada dato',i:'tag'},
+    {t:'Contextualización',s:'Finalidad y sensibilidad si hay evidencia',i:'link'},
+    {t:'Validación y trazabilidad',s:'Revisión humana y vínculo con la fuente',i:'check'}
+  ];
+  var PROMPT=[
+    'ROL',
+    'Eres PII Privacy Assistant, un asistente especializado en privacidad de datos personales. Aplicas la Skill PII Inventory Analyzer para apoyar la elaboración de un inventario de datos personales.',
+    '',
+    'PROCEDIMIENTO',
+    '1. Analiza las fuentes de información proporcionadas (formularios, documentos, bases de datos o descripciones de sistemas).',
+    '2. Identifica los posibles datos personales presentes en cada fuente.',
+    '3. Clasifica los datos por categorías (identificativo, contacto, demográfico, otros).',
+    '4. Registra la fuente de cada hallazgo.',
+    '5. Indica finalidades, responsables y bases legales únicamente cuando estén documentados en las fuentes. No los deduzcas como si fueran hechos.',
+    '6. Marca como "Pendiente de confirmar" todo dato, finalidad o responsable desconocido.',
+    '7. Genera una propuesta de inventario estructurado con las columnas: dato personal, categoría, fuente, finalidad y estado.',
+    '8. Mantén la trazabilidad entre cada hallazgo y su fuente, y indica que los resultados requieren validación humana.',
+    '',
+    'REGLAS',
+    '- No inventes información.',
+    '- Diferencia la evidencia (lo que consta en la fuente) de la inferencia (lo que deduces) y señálalo.',
+    '- Protege la confidencialidad: usa solo la información necesaria y no repitas datos personales sin motivo.',
+    '- No afirmes cumplimiento legal ni certificaciones.',
+    '- Si falta información, márcala como pendiente en lugar de completarla.'
+  ].join('\n');
+
+  var CATS=['Identificativo','Contacto','Demográfico','Económico','Académico','Laboral','Salud','Biométrico','Genético','Otro'];
+  var ESTS=['Pendiente','En revisión','Validado'];
+  var PEND='Pendiente de confirmar';
+  var SEED=[
+    {id:1,dato:'Nombre completo',cat:'Identificativo',fuente:'Formulario de matrícula',fin:PEND,est:'Pendiente'},
+    {id:2,dato:'DNI',cat:'Identificativo',fuente:'Formulario de matrícula',fin:PEND,est:'Pendiente'},
+    {id:3,dato:'Correo institucional',cat:'Contacto',fuente:'Formulario de matrícula',fin:PEND,est:'Pendiente'},
+    {id:4,dato:'Fecha de nacimiento',cat:'Demográfico',fuente:'Formulario de matrícula',fin:PEND,est:'Pendiente'},
+    {id:5,dato:'Teléfono',cat:'Contacto',fuente:'Sistema de ejemplo',fin:PEND,est:'Pendiente'},
+    {id:6,dato:'Dirección',cat:'Contacto',fuente:'Base de datos de ejemplo',fin:PEND,est:'Pendiente'}
+  ];
+  var EXAMPLE=[
+    {k:'nombre',dato:'Nombre completo',cat:'Identificativo'},
+    {k:'dni',dato:'DNI',cat:'Identificativo'},
+    {k:'correo',dato:'Correo institucional',cat:'Contacto'},
+    {k:'nac',dato:'Fecha de nacimiento',cat:'Demográfico'},
+    {k:'tel',dato:'Teléfono',cat:'Contacto'}
+  ];
+
+  var data=SEED.map(function(r){return Object.assign({origen:'Muestra ficticia'},r)});
+  var nextId=100;
+
+  function $(s,r){return (r||document).querySelector(s)}
+  function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function ico(n){return '<svg class="i" aria-hidden="true"><use href="#i-'+n+'"/></svg>'}
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+  function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
+  function slug(s){var t=norm(s).replace(/[^a-z]/g,'');return t.charAt(0).toUpperCase()+t.slice(1)}
+  var EST_CLASS={'Pendiente':'Pendiente','En revisión':'Revision','Validado':'Validado'};
+
+  /* ---------- Toast ---------- */
+  var toastT;
+  function toast(msg){
+    var t=$('#toast');t.textContent=msg;t.hidden=false;
+    clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true},3600);
+  }
+
+  /* ---------- Static builds ---------- */
+  function buildNav(){
+    $('#nav').innerHTML=SECTIONS.map(function(s){
+      return '<a href="#'+s.id+'" data-go="'+s.id+'">'+ico(s.icon)+'<span>'+s.label+'</span></a>';
+    }).join('');
+  }
+  function buildFlow(){
+    var html=FLOW.map(function(f,i){
+      return '<div class="step"><div class="top-r">'+ico(f.i)+'<span>'+f.t+'</span><span class="n">'+(i+1)+'</span></div><small>'+f.s+'</small></div>';
+    }).join('');
+    $$('[data-flow]').forEach(function(n){n.innerHTML=html});
+  }
+  function buildPrompt(){
+    var pre=$('#prompt-pre');pre.textContent='';
+    PROMPT.split('\n').forEach(function(line,i,arr){
+      var m=/^(\d+\.)\s(.*)$/.exec(line);
+      if(m){
+        var n=el('span','n',m[1]);pre.appendChild(n);pre.appendChild(document.createTextNode(' '+m[2]));
+      }else if(/^[A-ZÁÉÍÓÚ]+$/.test(line)){
+        pre.appendChild(el('span','h',line));
+      }else{
+        pre.appendChild(document.createTextNode(line));
+      }
+      if(i<arr.length-1)pre.appendChild(document.createTextNode('\n'));
+    });
+  }
+  function buildExample(){
+    var tb=$('#ex-rows');tb.textContent='';
+    EXAMPLE.forEach(function(r){
+      var tr=el('tr');tr.setAttribute('data-k',r.k);
+      var c1=el('td','strong',r.dato);
+      var c2=el('td');c2.appendChild(el('span','cat c-'+slug(r.cat),r.cat));
+      var c3=el('td',null,'Formulario de matrícula');
+      var c4=el('td',null,PEND);
+      var c5=el('td');c5.appendChild(el('span','chip est-Pendiente','Pendiente'));
+      [c1,c2,c3,c4,c5].forEach(function(c){tr.appendChild(c)});
+      tb.appendChild(tr);
+    });
+    function set(k,on){$$('[data-k="'+k+'"]').forEach(function(n){n.classList.toggle('hl',on)})}
+    $$('.ff').forEach(function(f){
+      var k=f.getAttribute('data-k');
+      f.addEventListener('mouseenter',function(){set(k,true)});
+      f.addEventListener('mouseleave',function(){set(k,false)});
+      f.addEventListener('focus',function(){set(k,true)});
+      f.addEventListener('blur',function(){set(k,false)});
+    });
+  }
+
+  /* ---------- Navigation ---------- */
+  var current='inicio';
+  function idx(id){for(var i=0;i<SECTIONS.length;i++)if(SECTIONS[i].id===id)return i;return 0}
+  function show(id,push){
+    if(!SECTIONS.some(function(s){return s.id===id}))id='inicio';
+    current=id;
+    $$('.view').forEach(function(v){v.hidden=v.getAttribute('data-view')!==id});
+    $$('#nav a').forEach(function(a){
+      if(a.getAttribute('data-go')===id)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
+    });
+    var i=idx(id),p=SECTIONS[i-1],n=SECTIONS[i+1],pg=$('#pager');
+    pg.innerHTML='';
+    var left=el('div');
+    if(p){var b=el('a','btn line','');b.href='#'+p.id;b.setAttribute('data-go',p.id);b.innerHTML=ico('arrow-left')+'<span>'+p.label+'</span>';left.appendChild(b)}
+    var hint=el('span','hint','Usa las flechas ← → del teclado para recorrer las secciones');
+    var right=el('div');
+    if(n){var b2=el('a','btn','');b2.href='#'+n.id;b2.setAttribute('data-go',n.id);b2.innerHTML='<span>'+n.label+'</span>'+ico('arrow-right');right.appendChild(b2)}
+    pg.appendChild(left);pg.appendChild(hint);pg.appendChild(right);
+    if(push!==false){try{history.replaceState(null,'','#'+id)}catch(e){}}
+    try{window.scrollTo(0,0)}catch(e){}
+  }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('[data-go]');
+    if(a){e.preventDefault();show(a.getAttribute('data-go'))}
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&!$('#overlay').hidden){closeModal();return}
+    if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+    if(!$('#overlay').hidden)return;
+    var t=e.target;
+    if(t&&(t.closest('input,select,textarea,[role=tablist]')))return;
+    var i=idx(current)+(e.key==='ArrowRight'?1:-1);
+    if(i>=0&&i<SECTIONS.length){e.preventDefault();show(SECTIONS[i].id)}
+  });
+
+  /* ---------- Phase tabs ---------- */
+  function setPhase(n){
+    $$('#phase-tabs .tab').forEach(function(t,i){
+      var on=(i+1)===n;
+      t.setAttribute('aria-selected',on?'true':'false');
+      t.tabIndex=on?0:-1;
+    });
+    [1,2,3,4].forEach(function(i){$('#ph-'+i).hidden=i!==n});
+  }
+  $$('#phase-tabs .tab').forEach(function(t,i){
+    t.addEventListener('click',function(){setPhase(i+1)});
+    t.addEventListener('keydown',function(e){
+      var k=e.key,to=null;
+      if(k==='ArrowRight')to=(i+1)%4;
+      else if(k==='ArrowLeft')to=(i+3)%4;
+      if(to!==null){e.preventDefault();setPhase(to+1);$('#tab-'+(to+1)).focus()}
+    });
+  });
+
+  /* ---------- Copy prompt ---------- */
+  function fallbackCopy(text){
+    var ok=false;
+    try{
+      var ta=document.createElement('textarea');
+      ta.value=text;ta.setAttribute('readonly','');
+      ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta);ta.select();
+      ok=document.execCommand('copy');
+      document.body.removeChild(ta);
+    }catch(e){ok=false}
+    return ok;
+  }
+  function selectNode(n){
+    try{var r=document.createRange();r.selectNodeContents(n);var s=window.getSelection();s.removeAllRanges();s.addRange(r)}catch(e){}
+  }
+  function copyText(text,node,okMsg){
+    function done(){toast(okMsg)}
+    function fail(){
+      if(fallbackCopy(text)){done();return}
+      if(node)selectNode(node);
+      toast('No se pudo copiar automáticamente. El texto quedó seleccionado: usa Ctrl+C.');
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done,fail);
+    }else fail();
+  }
+  $('#copy-prompt').addEventListener('click',function(){
+    var btn=this,lab=$('span',btn);
+    copyText(PROMPT,$('#prompt-pre'),'Prompt maestro copiado completo.');
+    lab.textContent='Copiado';
+    setTimeout(function(){lab.textContent='Copiar prompt'},1800);
+  });
+
+  /* ---------- Modal ---------- */
+  var lastFocus=null;
+  function openModal(title,body,trigger){
+    lastFocus=trigger||document.activeElement;
+    var m=$('#modal');m.textContent='';
+    var h=el('div','modal-h');
+    var t=el('h2',null,title);t.id='modal-title';
+    var x=el('button','ib');x.type='button';x.setAttribute('aria-label','Cerrar');x.innerHTML=ico('x');x.addEventListener('click',closeModal);
+    h.appendChild(t);h.appendChild(x);m.appendChild(h);m.appendChild(body);
+    $('#overlay').hidden=false;
+    var f=m.querySelector('input,select,textarea,button.btn');if(f)f.focus();else x.focus();
+  }
+  function closeModal(){
+    $('#overlay').hidden=true;
+    if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus();
+  }
+  $('#overlay').addEventListener('mousedown',function(e){if(e.target===this)closeModal()});
+
+  /* ---------- Inventory ---------- */
+  function fill(sel,first,items){
+    sel.textContent='';
+    var o=el('option',null,first);o.value='';sel.appendChild(o);
+    items.forEach(function(v){var op=el('option',null,v);op.value=v;sel.appendChild(op)});
+  }
+  function filtered(){
+    var q=norm($('#q').value.trim()),c=$('#f-cat').value,e=$('#f-est').value;
+    return data.filter(function(r){
+      if(c&&r.cat!==c)return false;
+      if(e&&r.est!==e)return false;
+      if(!q)return true;
+      return norm([r.dato,r.cat,r.fuente,r.fin,r.est].join(' ')).indexOf(q)!==-1;
+    });
+  }
+  function renderRows(){
+    var rows=filtered(),tb=$('#rows');tb.textContent='';
+    rows.forEach(function(r){
+      var tr=el('tr');
+      tr.appendChild(el('td','strong',r.dato));
+      var c2=el('td');c2.appendChild(el('span','cat c-'+slug(r.cat),r.cat));tr.appendChild(c2);
+      tr.appendChild(el('td',null,r.fuente));
+      tr.appendChild(el('td',null,r.fin));
+      var c5=el('td');c5.appendChild(el('span','chip est-'+(EST_CLASS[r.est]||'Pendiente'),r.est));tr.appendChild(c5);
+      var c6=el('td');var box=el('div','acts');
+      var v=el('button','ib');v.type='button';v.title='Ver registro';v.setAttribute('aria-label','Ver '+r.dato);v.innerHTML=ico('eye');
+      v.addEventListener('click',function(){viewRow(r.id,v)});
+      var ed=el('button','ib');ed.type='button';ed.title='Editar registro';ed.setAttribute('aria-label','Editar '+r.dato);ed.innerHTML=ico('pencil');
+      ed.addEventListener('click',function(){editRow(r.id,ed)});
+      box.appendChild(v);box.appendChild(ed);c6.appendChild(box);tr.appendChild(c6);
+      tb.appendChild(tr);
+    });
+    $('#empty').hidden=rows.length>0;
+    $('#tbl-wrap').querySelector('table').hidden=rows.length===0;
+    $('#export').disabled=rows.length===0;
+    $('#count').textContent='Mostrando '+rows.length+' de '+data.length+' registros · '+(data.every(function(r){return r.origen==='Muestra ficticia'})?'muestra ficticia':'inventario de fuentes');
+  }
+  function getRow(id){for(var i=0;i<data.length;i++)if(data[i].id===id)return data[i];return null}
+
+  function viewRow(id,trigger){
+    var r=getRow(id);if(!r)return;
+    var wrap=el('div');
+    var dl=el('dl','dl');
+    [['ID',r.id],['Dato personal',r.dato],['Categoría',r.cat],['Sensibilidad',r.sensibilidad||PEND],['Fuente',r.fuente],['Sistema',r.sistema||PEND],['Finalidad',r.fin],['Titular (categoría)',r.titular||PEND],['Responsable',r.responsable||PEND],['Acceso',r.acceso||PEND],['Almacenamiento',r.almacenamiento||PEND],['Transferencia',r.transferencia||PEND],['Retención',r.retencion||PEND],['Confianza',r.confianza||PEND],['Evidencia',r.evidencia||PEND],['SHA-256 de la fuente',r.sha256||PEND],['Observaciones',r.observaciones||PEND],['Origen',r.origen||PEND],['Estado',r.est],['Revisión declarada',r.revisadoEn||PEND]].forEach(function(p){
+      dl.appendChild(el('dt',null,p[0]));dl.appendChild(el('dd',null,p[1]));
+    });
+    wrap.appendChild(dl);
+    var n=el('p','legend','La evidencia registra el nombre del campo y su ubicación. La categoría debe revisarse con el contexto de la fuente.');
+    wrap.appendChild(n);
+    var a=el('div','m-acts');
+    var c=el('button','btn line','Cerrar');c.type='button';c.addEventListener('click',closeModal);
+    var e=el('button','btn');e.type='button';e.innerHTML=ico('pencil')+'<span>Editar</span>';
+    e.addEventListener('click',function(){closeModal();editRow(id,trigger)});
+    a.appendChild(c);a.appendChild(e);wrap.appendChild(a);
+    openModal('Detalle del registro',wrap,trigger);
+  }
+
+  function field(id,label,node){
+    var d=el('div','fl');var l=el('label',null,label);l.setAttribute('for',id);node.id=id;
+    d.appendChild(l);d.appendChild(node);return d;
+  }
+  function editRow(id,trigger){
+    var r=getRow(id);if(!r)return;
+    var form=el('form');form.noValidate=true;
+    var dato=el('input');dato.type='text';dato.value=r.dato;dato.autocomplete='off';
+    var cat=el('select');CATS.forEach(function(v){var o=el('option',null,v);o.value=v;cat.appendChild(o)});cat.value=r.cat;cat.style.width='100%';
+    var fu=el('input');fu.type='text';fu.value=r.fuente;fu.autocomplete='off';
+    var fi=el('input');fi.type='text';fi.value=r.fin;fi.autocomplete='off';
+    var es=el('select');ESTS.forEach(function(v){var o=el('option',null,v);o.value=v;es.appendChild(o)});es.value=r.est;es.style.width='100%';
+    var fd=field('ed-dato','Dato personal',dato);
+    var err=el('span','err');err.hidden=true;fd.appendChild(err);
+    form.appendChild(fd);
+    form.appendChild(field('ed-cat','Categoría',cat));
+    form.appendChild(field('ed-fuente','Fuente',fu));
+    form.appendChild(field('ed-fin','Finalidad',fi));
+    form.appendChild(field('ed-est','Estado',es));
+    var contextFields=[['sistema','Sistema'],['sensibilidad','Sensibilidad'],['titular','Categoría de titular'],['responsable','Responsable'],['acceso','Roles con acceso'],['almacenamiento','Almacenamiento'],['transferencia','Transferencia'],['retencion','Retención'],['observaciones','Observaciones']];
+    var contextInputs={};
+    contextFields.forEach(function(pair){var input=el('input');input.type='text';input.value=r[pair[0]]||PEND;contextInputs[pair[0]]=input;form.appendChild(field('ed-'+pair[0],pair[1],input))});
+    form.appendChild(el('p','legend','Documenta únicamente contexto que hayas verificado. Si no existe evidencia, conserva el valor pendiente.'));
+    var a=el('div','m-acts');
+    var c=el('button','btn line','Cancelar');c.type='button';c.addEventListener('click',closeModal);
+    var s=el('button','btn','Guardar cambios');s.type='submit';
+    a.appendChild(c);a.appendChild(s);form.appendChild(a);
+    form.addEventListener('submit',function(ev){
+      ev.preventDefault();
+      var v=dato.value.trim();
+      if(!v){err.textContent='Escribe el nombre del dato personal.';err.hidden=false;dato.focus();return}
+      r.dato=v;r.cat=cat.value;r.fuente=fu.value.trim()||'Fuente sin indicar';r.fin=fi.value.trim()||PEND;r.est=es.value;
+      contextFields.forEach(function(pair){r[pair[0]]=contextInputs[pair[0]].value.trim()||PEND});
+      r.revisadoEn=r.est==='Validado'?new Date().toISOString():'';
+      saveInventory();closeModal();renderRows();toast('Registro actualizado.');
+    });
+    openModal('Editar registro',form,trigger);
+  }
+
+  var EXPORT_FIELDS=[['id','ID'],['dato','Dato personal'],['cat','Categoría'],['sensibilidad','Sensibilidad'],['fuente','Fuente'],['sistema','Sistema'],['fin','Finalidad'],['titular','Titular'],['responsable','Responsable'],['acceso','Acceso'],['almacenamiento','Almacenamiento'],['transferencia','Transferencia'],['retencion','Retención'],['confianza','Confianza'],['evidencia','Evidencia'],['sha256','SHA-256 fuente'],['observaciones','Observaciones'],['est','Estado'],['origen','Origen'],['revisadoEn','Revisión declarada']];
+  function csvOf(rows){
+    function q(v){var s=String(v==null?PEND:v);if(/^[\s]*[=+@-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}
+    var lines=[EXPORT_FIELDS.map(function(f){return q(f[1])}).join(',')];
+    rows.forEach(function(r){lines.push(EXPORT_FIELDS.map(function(f){return q(r[f[0]])}).join(','))});
+    return '\uFEFF'+lines.join('\r\n');
+  }
+  function downloadFile(content,name,type){
+    var url=URL.createObjectURL(new Blob([content],{type:type}));
+    var a=el('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);
+  }
+  function showCsv(csv,trigger){
+    var wrap=el('div');
+    wrap.appendChild(el('p',null,'La descarga de archivos no está disponible en esta vista. Copia el contenido CSV y pégalo en un archivo .csv.'));
+    var ta=el('textarea','csv');ta.readOnly=true;ta.value=csv.replace(/^﻿/,'');ta.id='csv-text';ta.style.marginTop='12px';
+    wrap.appendChild(ta);
+    var a=el('div','m-acts');
+    var c=el('button','btn line','Cerrar');c.type='button';c.addEventListener('click',closeModal);
+    var k=el('button','btn');k.type='button';k.innerHTML=ico('copy')+'<span>Copiar CSV</span>';
+    k.addEventListener('click',function(){copyText(ta.value,ta,'CSV copiado.')});
+    a.appendChild(c);a.appendChild(k);wrap.appendChild(a);
+    openModal('Exportación de muestra',wrap,trigger);
+  }
+  function exportCsv(){
+    var rows=filtered();if(!rows.length)return;
+    var csv=csvOf(rows);
+    try{downloadFile(csv,'grupo6-inventario-pii.csv','text/csv;charset=utf-8');toast('CSV exportado con los registros filtrados.')}catch(e){showCsv(csv,$('#export'))}
+  }
+
+  $('#q').addEventListener('input',renderRows);
+  $('#f-cat').addEventListener('change',renderRows);
+  $('#f-est').addEventListener('change',renderRows);
+  $('#export').addEventListener('click',exportCsv);
+  function clearFilters(){$('#q').value='';$('#f-cat').value='';$('#f-est').value='';renderRows()}
+  $('#clear').addEventListener('click',clearFilters);
+  $('#reset').addEventListener('click',function(){
+    if(!window.confirm('¿Reemplazar el inventario por seis registros ficticios? Exporta primero si deseas conservarlo.'))return;
+    data=SEED.map(function(r){return Object.assign({origen:'Muestra ficticia'},r)});
+    saveInventory();clearFilters();toast('Inventario de muestra cargado.');
+  });
+
+  /* ---------- Inventario local del Grupo 6 ---------- */
+  var STORAGE_KEY='auditpims-grupo6-inventario-v1';
+  var RULES=[
+    ['Nombre completo','Identificativo',['nombre completo','nombres y apellidos','nombre','nombres','apellidos','full_name','first_name','last_name']],
+    ['DNI','Identificativo',['dni','documento nacional de identidad','numero de documento']],
+    ['Pasaporte','Identificativo',['pasaporte','passport']],
+    ['Código de estudiante','Identificativo',['codigo de estudiante','codigo de alumno','student_id']],
+    ['Correo electrónico','Contacto',['correo institucional','correo electronico','correo','email','e_mail']],
+    ['Teléfono','Contacto',['telefono','celular','phone','phone_number']],
+    ['Dirección','Contacto',['direccion','domicilio','address']],
+    ['Fecha de nacimiento','Demográfico',['fecha de nacimiento','fecha_nacimiento','birth_date','date_of_birth']],
+    ['Nacionalidad','Demográfico',['nacionalidad','nationality']],
+    ['Estado civil','Demográfico',['estado civil','estado_civil','marital_status']],
+    ['Cuenta bancaria','Económico',['cuenta bancaria','cuenta_bancaria','bank_account','iban','cci']],
+    ['Salario','Económico',['salario','sueldo','salary']],
+    ['Calificaciones','Académico',['calificaciones','notas','grades']],
+    ['Matrícula (campo)','Académico',['numero de matricula','numero_matricula','enrollment_id']],
+    ['Cargo laboral','Laboral',['cargo laboral','puesto de trabajo','job_title']],
+    ['Historial laboral','Laboral',['historial laboral','historial_laboral','employment_history']],
+    ['Información de salud','Salud',['diagnostico','historia clinica','historia_clinica','medical_history','grupo sanguineo']],
+    ['Huella dactilar','Biométrico',['huella dactilar','huella_dactilar','fingerprint']],
+    ['Reconocimiento facial','Biométrico',['reconocimiento facial','reconocimiento_facial','face_embedding']],
+    ['Información genética','Genético',['informacion genetica','datos geneticos','perfil genetico','genetic_data']]
+  ];
+  function normalized(s){return norm(s).replace(/_/g,' ')}
+  function findFields(text){
+    var findings=[];
+    var lines=text.split(/\r?\n/);
+    RULES.forEach(function(rule){
+      var found=null;
+      for(var i=0;i<lines.length&&!found;i++){
+        var clauses=normalized(lines[i]).split(/[.;!?]+/);
+        for(var k=0;k<clauses.length&&!found;k++){
+          var clause=clauses[k];
+          // Omisión conservadora: no es un parser semántico de negaciones.
+          if(/\b(?:no|sin|excepto|excluye|excluir)\b/.test(clause))continue;
+          var aliases=rule[2].slice().sort(function(a,b){return b.length-a.length});
+          for(var j=0;j<aliases.length;j++){
+            var alias=normalized(aliases[j]);
+            var pos=clause.indexOf(alias);
+            while(pos!==-1){
+              var before=pos===0?'':clause.charAt(pos-1), after=clause.charAt(pos+alias.length);
+              if(!/[a-z0-9]/.test(before)&&!/[a-z0-9]/.test(after)){
+                found={dato:rule[0],cat:rule[1],evidencia:'Campo «'+aliases[j]+'» mencionado en la línea '+(i+1)};break;
+              }
+              pos=clause.indexOf(alias,pos+1);
+            }
+            if(found)break;
+          }
+        }
+      }
+      if(found)findings.push(found);
+    });
+    return findings;
+  }
+  function saveInventory(){
+    if(!$('#persist').checked)return;
+    try{
+      localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,rows:data}));
+      $('#storage-status').textContent='Inventario guardado en este navegador. El texto completo de la fuente no se guarda.';
+    }catch(e){$('#storage-status').textContent='No se pudo guardar en este navegador. Exporta el inventario antes de cerrar.';}
+  }
+  function restoreInventory(){
+    try{
+      var raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;
+      var saved=JSON.parse(raw);
+      if(saved.version!==1||!Array.isArray(saved.rows)||saved.rows.length>10000)throw Error('Formato no válido');
+      var ids=new Set();
+      var valid=saved.rows.every(function(r){
+        if(!r||!Number.isSafeInteger(r.id)||r.id<1||ids.has(r.id))return false;
+        ids.add(r.id);
+        return ['dato','cat','fuente','fin','est'].every(function(k){return typeof r[k]==='string'})&&CATS.indexOf(r.cat)!==-1&&ESTS.indexOf(r.est)!==-1&&Object.keys(r).every(function(k){return (typeof r[k]==='string'&&r[k].length<10000)||k==='id'});
+      });
+      if(!valid)throw Error('Registros no válidos');
+      data=saved.rows;nextId=Math.max.apply(null,[100].concat(data.map(function(r){return r.id+1})));
+      $('#persist').checked=true;
+      $('#storage-status').textContent='Inventario recuperado de este navegador. El guardado local está activado.';
+    }catch(e){$('#storage-status').textContent='No se pudo recuperar el inventario local. Se muestra la muestra ficticia; los datos guardados no se han sobrescrito.';}
+  }
+  $('#persist').addEventListener('change',function(){
+    if(this.checked){saveInventory();return;}
+    try{localStorage.removeItem(STORAGE_KEY);$('#storage-status').textContent='Guardado desactivado y copia local eliminada. El inventario actual sigue en memoria.';}
+    catch(e){$('#storage-status').textContent='Guardado desactivado. No se pudo eliminar la copia local; bórrala desde los ajustes del navegador.';}
+  });
+  $('#delete-all').addEventListener('click',function(){
+    if(!window.confirm('¿Borrar todos los registros de este inventario?'))return;
+    data=[];saveInventory();clearFilters();toast('Inventario vacío.');
+  });
+  $('#export-json').addEventListener('click',function(){
+    downloadFile(JSON.stringify({version:1,grupo:6,motor:'Reglas locales; sin modelo IA',exportadoEn:new Date().toISOString(),registros:filtered()},null,2),'grupo6-inventario-pii.json','application/json');
+  });
+  $('#load-example').addEventListener('click',function(){
+    fileSequence++;$('#source-file').value='';
+    $('#source-name').value='Descripción de matrícula (ficticia)';$('#source-system').value='Sistema de matrícula';
+    $('#source-text').value='El sistema registra nombres y apellidos, DNI, correo institucional y fecha de nacimiento.\nNo recopila huella dactilar.\nLa finalidad, los responsables y la retención no están documentados.';
+    $('#analysis-result').textContent='Ejemplo cargado. Pulsa Generar inventario para analizarlo.';
+  });
+  $('#clear-source').addEventListener('click',function(){
+    fileSequence++;
+    $('#source-text').value='';$('#source-file').value='';$('#analysis-result').textContent='Contenido de la fuente eliminado de la caja de texto.';
+  });
+  var fileSequence=0;
+  $('#source-file').addEventListener('change',async function(){
+    var file=this.files[0];if(!file)return;
+    var seq=++fileSequence;
+    if(file.size>1000000||! /\.(txt|md|csv|json|sql)$/i.test(file.name)){$('#analysis-result').textContent='Archivo no admitido. Usa texto UTF-8 de hasta 1 MB.';this.value='';return;}
+    try{
+      var content=await file.text();if(seq!==fileSequence)return;
+      if(content.length>200000||content.indexOf('\u0000')!==-1||content.indexOf('\uFFFD')!==-1)throw Error('Texto no admitido');
+      $('#source-text').value=content;$('#source-name').value=file.name.slice(0,200);$('#analysis-result').textContent='Archivo cargado. Revisa el texto y pulsa Generar inventario.';
+    }catch(e){$('#analysis-result').textContent='No se pudo leer el archivo. Usa texto UTF-8 de hasta 200 000 caracteres.';}
+  });
+  $('#analyze-form').addEventListener('submit',async function(ev){
+    ev.preventDefault();
+    var text=$('#source-text').value, source=$('#source-name').value.trim(), system=$('#source-system').value.trim()||PEND;
+    if(!text.trim()||!source||text.length>200000){$('#analysis-result').textContent='Indica una fuente y texto entre 1 y 200 000 caracteres.';return;}
+    var button=$('#analyze-submit');button.disabled=true;
+    try{
+      var fields=findFields(text);
+      if(!fields.length){$('#analysis-result').textContent='No se reconocieron campos con estas reglas. El inventario no cambió. Revisa manualmente: esto no demuestra ausencia de datos personales.';return;}
+      var hash='No disponible';
+      if(window.crypto&&crypto.subtle){var bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));hash=Array.from(new Uint8Array(bytes)).map(function(v){return v.toString(16).padStart(2,'0')}).join('');}
+      var working=data.filter(function(r){return r.origen!=='Muestra ficticia'}), added=0;
+      fields.forEach(function(f){
+        if(hash!=='No disponible'&&working.some(function(r){return r.sha256===hash&&r.fuente===source&&r.sistema===system&&r.dato===f.dato}))return;
+        working.push(Object.assign(f,{id:nextId++,fuente:source,sistema:system,fin:PEND,est:'Pendiente',origen:'Reglas locales',sha256:hash,
+          sensibilidad:['Salud','Biométrico','Genético'].indexOf(f.cat)!==-1?'Posible categoría sensible; requiere revisión contextual':PEND,
+          titular:PEND,responsable:PEND,acceso:PEND,almacenamiento:PEND,transferencia:PEND,retencion:PEND,
+          confianza:'Coincidencia por nombre; clasificación inferida',observaciones:'Detección literal del campo. Categoría sugerida por reglas. Verificar contexto y completar solo con evidencia.'}));added++;
+      });
+      if(working.length>10000){$('#analysis-result').textContent='Límite de 10 000 registros alcanzado. Exporta y organiza el inventario antes de añadir otra fuente.';return;}
+      data=working;saveInventory();clearFilters();
+      $('#analysis-result').textContent=fields.length+' campos reconocidos; '+added+' registros añadidos. '+(fields.length-added)+' duplicados omitidos. Revisa el Inventario.';
+      toast('Análisis terminado. Abre Inventario para revisar los resultados.');
+    }catch(e){$('#analysis-result').textContent='No se pudo completar el análisis. Inténtalo de nuevo.';}
+    finally{button.disabled=false;}
+  });
+
+  /* ---------- Init ---------- */
+  restoreInventory();
+  buildNav();buildFlow();buildPrompt();buildExample();
+  fill($('#f-cat'),'Todas las categorías',CATS);
+  fill($('#f-est'),'Todos los estados',ESTS);
+  renderRows();
+  var h='';try{h=(location.hash||'').replace('#','')}catch(e){}
+  show(h||'inicio',false);
+})();
+</script>
+
+</body></html>
