@@ -1,0 +1,213 @@
+{
+  "name": "Orquestador Multi-Agente PIMS - UNSA (ISO/IEC 27701:2025)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-trigger",
+      "name": "Iniciar Auditoría UNSA",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [160, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5001/api/inventario/consultar",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"sistema\": \"SISUNSA y Comedor Universitario\",\n  \"alcance\": \"Estudiantes y Docentes\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "node-inventario",
+      "name": "1. Agente de Inventario (Sistemas y PII)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [380, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5002/api/riesgos/evaluar",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"organizacion\": \"UNSA\",\n  \"tipo\": \"Privacidad y Biometría\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "node-riesgos",
+      "name": "2. Agente de Riesgos (DPIAs y Amenazas)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [380, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5003/api/evidencia/recolectar",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"entidad\": \"UNSA OTIC\",\n  \"alcance\": \"Resoluciones y Logs 2026\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "node-evidencia",
+      "name": "3. Agente de Evidencia (Archivos Probatorios)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [380, 440]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Consolidador de datos para el Agente de Controles\n// Combina los datos de Inventario, Riesgos y Evidencias de la UNSA\n\nconst perfil = {\n  organizacion: \"Universidad Nacional de San Agustín de Arequipa (UNSA)\",\n  rol: \"responsable\"\n};\n\nconst riesgos = [\n  {\n    id: \"R-UNSA-01\",\n    descripcion: \"Riesgo de filtración de notas, DNI y correos en SISUNSA\",\n    controles: [\"A.1.2.6\", \"A.3.12\"]\n  },\n  {\n    id: \"R-UNSA-02\",\n    descripcion: \"Tratamiento de huellas en Comedor sin DPIA formal\",\n    controles: [\"A.1.2.6\"]\n  }\n];\n\nconst evidencias = [\n  {\n    control: \"A.1.2.2\",\n    descripcion: \"[Archivo: Res-CU-045-2026-UNSA-Reglamento.pdf] Reglamento oficial de SISUNSA\",\n    estado: \"implementado\"\n  },\n  {\n    control: \"A.1.2.9\",\n    descripcion: \"[Archivo: Inventario-RAT-OTIC-2026.xlsx] Registro maestro de actividades\",\n    estado: \"implementado\"\n  },\n  {\n    control: \"A.1.2.6\",\n    descripcion: \"[Archivo: DPIA-Biometria-Borrador.docx] Avance preliminar de evaluación DPIA\",\n    estado: \"parcial\"\n  },\n  {\n    control: \"A.3.12\",\n    descripcion: \"[Archivo: Protocolo-CSIRT-UNSA.docx] Guía de respuesta ante incidentes en borrador\",\n    estado: \"parcial\"\n  }\n];\n\nreturn [{\n  json: {\n    operacion: \"generar_soa\",\n    perfil: perfil,\n    riesgos: riesgos,\n    evidencias: evidencias\n  }\n}];"
+      },
+      "id": "node-code-merge",
+      "name": "4. Ensamblar Contrato Tipado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [620, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5000/api/controles/ejecutar",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "node-controles-agente",
+      "name": "5. AGENTE DE CONTROLES (Ustedes)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [840, 320]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.datos.resumen.no_implementados }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "node-if-brechas",
+      "name": "¿Existen Brechas Críticas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1080, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Notificar las brechas a los agentes correspondientes\nconst brechas = $json.datos.brechas;\nconst lista = brechas.map(b => `• Control ${b.control} (${b.nombre}): Solicitar subsanación a -> ${b.solicitar_a}`).join('\\n');\n\nreturn [{\n  json: {\n    alerta: \"ALERTA DE AUDITORÍA PIMS - UNSA\",\n    total_brechas: brechas.length,\n    detalle: lista,\n    requiere_revision_humana: true,\n    destinatario: \"dpo@unsa.edu.pe\"\n  }\n}];"
+      },
+      "id": "node-alerta-brechas",
+      "name": "6a. Notificar Brechas a Agentes (Tareas)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 220]
+    },
+    {
+      "parameters": {
+        "jsCode": "// SoA completa lista para aprobación del DPO UNSA\nreturn [{\n  json: {\n    mensaje: \"SoA 100% conforme. Lista para firma digital del DPO.\",\n    soa: $json.datos.soa\n  }\n}];"
+      },
+      "id": "node-soa-conforme",
+      "name": "6b. SoA Conforme para DPO UNSA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 420]
+    }
+  ],
+  "connections": {
+    "Iniciar Auditoría UNSA": {
+      "main": [
+        [
+          {
+            "node": "1. Agente de Inventario (Sistemas y PII)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "2. Agente de Riesgos (DPIAs y Amenazas)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "3. Agente de Evidencia (Archivos Probatorios)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Agente de Inventario (Sistemas y PII)": {
+      "main": [
+        [
+          {
+            "node": "4. Ensamblar Contrato Tipado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Ensamblar Contrato Tipado": {
+      "main": [
+        [
+          {
+            "node": "5. AGENTE DE CONTROLES (Ustedes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. AGENTE DE CONTROLES (Ustedes)": {
+      "main": [
+        [
+          {
+            "node": "¿Existen Brechas Críticas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Existen Brechas Críticas?": {
+      "main": [
+        [
+          {
+            "node": "6a. Notificar Brechas a Agentes (Tareas)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "6b. SoA Conforme para DPO UNSA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

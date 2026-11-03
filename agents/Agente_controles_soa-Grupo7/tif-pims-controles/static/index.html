@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Auditoría de Privacidad (PIMS) - UNSA | ISO/IEC 27701:2025</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header Superior Institucional -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand-block">
+        <div class="brand-badge">UNSA · EPIS</div>
+        <div class="brand-text">
+          <h1>UNIVERSIDAD NACIONAL DE SAN AGUSTÍN DE AREQUIPA</h1>
+          <h2>Auditoría de Sistemas de Privacidad · Agente de Controles y Declaración SoA</h2>
+        </div>
+      </div>
+      <div class="header-status-group">
+        <div class="badge-meta">
+          <span>Norma:</span>
+          <strong>ISO/IEC 27701:2025</strong>
+        </div>
+        <div class="status-indicator">
+          <span class="status-dot online" id="status-dot"></span>
+          <span id="status-text">Agente Conectado (:5000)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner de contingencia si el servidor Flask está detenido -->
+  <div id="server-alert" class="server-banner" style="display: none;">
+    <strong>Aviso del sistema:</strong> El backend local no está corriendo en el puerto 5000. 
+    Para iniciar el servicio ejecute <code>python app.py</code> en su terminal. 
+    Actualmente el sistema opera con el motor de contingencia en el navegador.
+  </div>
+
+  <main class="main-container">
+
+    <!-- Navegación de 3 Ventanas -->
+    <nav class="tabs-navigation" role="tablist">
+      <button class="tab-trigger active" data-tab="tab-inputs">
+        <span class="tab-step">1</span>
+        <span>Entradas del Sistema (Inputs de Agentes)</span>
+      </button>
+      <button class="tab-trigger" data-tab="tab-skills">
+        <span class="tab-step">2</span>
+        <span>Evaluación de Controles (2 Skills)</span>
+      </button>
+      <button class="tab-trigger" data-tab="tab-rag">
+        <span class="tab-step">3</span>
+        <span>Base Normativa (RAG & Ollama)</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
+         VENTANA 1: ENTRADAS DEL SISTEMA (INPUTS DE LOS 3 AGENTES)
+         ==================================================================== -->
+    <section id="tab-inputs" class="tab-view active">
+      <div class="intro-lead">
+        <strong>¿Cómo funciona el flujo de entrada?</strong> Antes de iniciar la auditoría de controles, nuestro sistema recibe y consolida la información provista por <strong>tres agentes previos</strong>: el mapeo de sistemas universitarios (Inventario), las amenazas de privacidad (Riesgos) y los sustentos oficiales existentes (Evidencias).
+      </div>
+
+      <div class="grid-inputs-3">
+        <!-- Input 1: Agente de Inventario -->
+        <div class="input-agent-card">
+          <div class="input-agent-badge">Input 01</div>
+          <h3 class="input-agent-title">Agente de Inventario</h3>
+          <p class="input-agent-desc">
+            Identifica qué sistemas de la UNSA tratan datos personales y define el rol institucional frente a la norma ISO/IEC 27701.
+          </p>
+
+          <label style="font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 8px; display: block;">
+            Rol de la UNSA ante el tratamiento:
+          </label>
+          <div class="role-clean-group">
+            <label class="role-clean-option selected" id="opt-responsable">
+              <input type="radio" name="rol-eval" value="responsable" checked>
+              <div>
+                <div class="role-clean-title">Responsable (PII Controller)</div>
+                <div class="role-clean-detail">La UNSA define los fines y medios (SISUNSA, Comedor). Aplican controles A.1 y A.3.</div>
+              </div>
+            </label>
+
+            <label class="role-clean-option" id="opt-encargado">
+              <input type="radio" name="rol-eval" value="encargado">
+              <div>
+                <div class="role-clean-title">Encargado (PII Processor)</div>
+                <div class="role-clean-detail">Tratamiento por encargo de terceros externos. Aplican controles A.2 y A.3.</div>
+              </div>
+            </label>
+
+            <label class="role-clean-option" id="opt-ambos">
+              <input type="radio" name="rol-eval" value="ambos">
+              <div>
+                <div class="role-clean-title">Ambos Roles Simultáneos</div>
+                <div class="role-clean-detail">Evaluación exhaustiva de la totalidad del catálogo (A.1, A.2 y A.3).</div>
+              </div>
+            </label>
+          </div>
+
+          <div style="margin-top: 16px;">
+            <span style="font-size: 11.5px; font-weight: 600; color: var(--ink-subtle);">Sistemas UNSA Mapeados:</span>
+            <div class="tags-list-clean">
+              <span class="tag-clean">SISUNSA (Académico)</span>
+              <span class="tag-clean">Comedor (Biometría)</span>
+              <span class="tag-clean">SISADMISION</span>
+              <span class="tag-clean">Campus Virtual</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input 2: Agente de Riesgos -->
+        <div class="input-agent-card">
+          <div class="input-agent-badge">Input 02</div>
+          <h3 class="input-agent-title">Agente de Riesgos</h3>
+          <p class="input-agent-desc">
+            Amenazas de privacidad evaluadas. Los controles que mitigan estos riesgos reciben justificación prioritaria.
+          </p>
+
+          <div id="contenedor-riesgos-resumen" class="risk-items-stack">
+            <!-- Renderizado dinámico de los riesgos UNSA -->
+          </div>
+        </div>
+
+        <!-- Input 3: Agente de Evidencias -->
+        <div class="input-agent-card">
+          <div class="input-agent-badge">Input 03</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 class="input-agent-title" style="margin-bottom: 0;">Agente de Evidencias</h3>
+            <button class="btn-secondary-clean" id="btn-abrir-modal-evidencia" style="padding: 3px 8px; font-size: 11px;">+ Agregar</button>
+          </div>
+          <p class="input-agent-desc">
+            Sustentos normativos y técnicos recopilados. Sin evidencia oficial, un control no puede calificarse como Implementado.
+          </p>
+
+          <div id="contenedor-artefactos" class="evidence-clean-stack">
+            <!-- Renderizado dinámico de artefactos probatorios -->
+          </div>
+
+          <!-- Formulario rápido desplegable para registrar evidencia -->
+          <div id="form-registro-rapido" style="display: none; background: #ffffff; border: 1px solid var(--border); padding: 14px; border-radius: var(--radius-sm); margin-top: 10px;">
+            <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--ink);">Nueva Evidencia Documental:</div>
+            <div style="margin-bottom: 8px;">
+              <select id="sel-nuevo-control" class="form-select-clean" style="width: 100%; min-width: unset; font-size: 12px; padding: 6px;"></select>
+            </div>
+            <div style="margin-bottom: 8px;">
+              <select id="sel-nuevo-estado" class="form-select-clean" style="width: 100%; min-width: unset; font-size: 12px; padding: 6px;">
+                <option value="implementado">Implementado (Vigente / Oficial)</option>
+                <option value="parcial">Parcial (Borrador / Avance)</option>
+              </select>
+            </div>
+            <div style="margin-bottom: 8px;">
+              <input type="text" id="txt-nuevo-archivo" placeholder="Nombre de archivo (ej. Resolucion-001.pdf)" style="width: 100%; padding: 6px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px;">
+            </div>
+            <div style="margin-bottom: 10px;">
+              <input type="text" id="txt-nueva-desc" placeholder="Descripción breve de la evidencia" style="width: 100%; padding: 6px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px;">
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn-primary-clean" id="btn-guardar-documento" style="padding: 5px 10px; font-size: 11px;">Guardar</button>
+              <button class="btn-secondary-clean" id="btn-cancelar-documento" style="padding: 5px 10px; font-size: 11px;">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Transición -->
+      <div class="next-step-bar">
+        <span>Datos de entrada consolidados listos para auditar.</span>
+        <button class="btn-primary-clean" id="btn-ir-skills">
+          Pasar a Evaluación de Controles (Ventana 2) →
+        </button>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VENTANA 2: EVALUACIÓN CON LAS 2 SKILLS
+         ==================================================================== -->
+    <section id="tab-skills" class="tab-view">
+      
+      <!-- SKILL 1: Declaración de Aplicabilidad (SoA) -->
+      <div class="card-clean skill-card-section">
+        <div class="card-header-clean">
+          <div>
+            <div class="skill-header-meta">
+              <span class="skill-tag">Skill 01</span>
+              <h2 class="skill-name">Declaración de Aplicabilidad (SoA Integral)</h2>
+            </div>
+            <p>Evalúa los 10 controles normativos ISO/IEC 27701:2025 contra el rol, riesgos y evidencias de la UNSA.</p>
+          </div>
+          <button class="btn-primary-clean" id="btn-generar-soa">
+            ▶ Ejecutar Skill: Generar SoA
+          </button>
+        </div>
+
+        <div class="card-body-clean" id="panel-resultados-soa" style="display: none;">
+          <!-- Indicadores Métricos Principales -->
+          <div class="kpi-row-clean">
+            <div class="kpi-box-clean">
+              <span class="kpi-num" id="num-evaluados">0</span>
+              <span class="kpi-label">Evaluados</span>
+            </div>
+            <div class="kpi-box-clean">
+              <span class="kpi-num" id="num-aplican">0</span>
+              <span class="kpi-label">Aplican a UNSA</span>
+            </div>
+            <div class="kpi-box-clean">
+              <span class="kpi-num kpi-imp" id="num-implementados">0</span>
+              <span class="kpi-label">Implementados</span>
+            </div>
+            <div class="kpi-box-clean">
+              <span class="kpi-num kpi-parc" id="num-parciales">0</span>
+              <span class="kpi-label">Parciales</span>
+            </div>
+            <div class="kpi-box-clean">
+              <span class="kpi-num kpi-gap" id="num-brechas">0</span>
+              <span class="kpi-label">Brechas Críticas</span>
+            </div>
+          </div>
+
+          <!-- Traza de Pensamiento y Acciones del Agente (Agent Reasoning & Tool Trace) -->
+          <div id="traza-agente-soa" style="display:none; background:#181825; color:#cdd6f4; border:1px solid #313244; border-radius:8px; padding:16px; margin-bottom:20px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12.5px; box-shadow:0 4px 14px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #313244; padding-bottom:8px; margin-bottom:12px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-block; width:9px; height:9px; background:#a6e3a1; border-radius:50%; box-shadow:0 0 8px #a6e3a1;"></span>
+                <span style="font-weight:600; color:#89b4fa; letter-spacing:0.3px;">EXECUTION TRACE — AGENTE DE CONTROLES (ISO/IEC 27701:2025)</span>
+              </div>
+              <span id="badge-tiempo-total-soa" style="color:#6c7086; font-size:11px;">0.0s</span>
+            </div>
+            <div id="contenido-traza-soa"></div>
+          </div>
+
+          <!-- Dictamen Ejecutivo Técnico -->
+          <div id="cuadro-analisis-ia" class="brechas-card-clean" style="display:none; border-left: 4px solid #0284c7; background: #f8fafc; margin-bottom: 20px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <h4 style="margin:0; color:#0f172a; font-size:13.5px; font-weight:700;">Dictamen Ejecutivo de Privacidad (Evaluación SoA)</h4>
+            </div>
+            <p id="texto-analisis-ia" style="margin:0; font-size:13px; line-height:1.6; color:#334155; white-space:pre-line;"></p>
+          </div>
+
+          <!-- Cuadro de Brechas Prescriptivas -->
+          <div class="brechas-card-clean" id="cuadro-brechas">
+            <h4>Plan de Remediación de Brechas Identificadas</h4>
+            <p>Controles que aplican a la universidad pero carecen de implementación total. Se asigna automáticamente al agente responsable:</p>
+            <div id="contenedor-items-brechas" class="brechas-list-clean"></div>
+          </div>
+
+          <!-- Barra de Filtros y Acciones -->
+          <div class="table-toolbar-clean">
+            <div class="filter-pills-clean">
+              <button class="filter-pill-clean active" data-filter="todos">Todos (<span id="txt-count-todos">0</span>)</button>
+              <button class="filter-pill-clean" data-filter="brechas">Brechas (<span id="txt-count-brechas">0</span>)</button>
+              <button class="filter-pill-clean" data-filter="implementados">Implementados (<span id="txt-count-imp">0</span>)</button>
+              <button class="filter-pill-clean" data-filter="excluidos">Excluidos (<span id="txt-count-exc">0</span>)</button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-primary-clean" id="btn-descargar-docx" style="background:#0284c7; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:600; cursor:pointer;">Descargar Word (.docx)</button>
+              <button class="btn-secondary-clean" id="btn-descargar-json">Exportar JSON</button>
+              <button class="btn-secondary-clean" id="btn-imprimir-reporte">Imprimir SoA</button>
+            </div>
+          </div>
+
+          <!-- Tabla Formal SoA -->
+          <div class="table-wrapper-clean">
+            <table class="soa-table-clean" id="tabla-soa-oficial">
+              <thead>
+                <tr>
+                  <th style="width: 85px;">Control</th>
+                  <th style="width: 170px;">Denominación</th>
+                  <th style="width: 70px;">Aplica</th>
+                  <th>Justificación Técnica / Riesgos</th>
+                  <th style="width: 120px;">Estado</th>
+                  <th style="width: 180px;">Evidencia Oficial</th>
+                  <th style="width: 200px;">Directiva UNSA (RAG)</th>
+                  <th style="width: 130px;">Responsable</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-soa">
+                <!-- Se llena dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Nota de Supervisión Humana -->
+          <div class="human-review-clean">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <div>
+              <strong>Supervisión Humana Obligatoria (Gobernanza ISO/IEC 27701 Cl. 9.3):</strong>
+              Este reporte es una propuesta técnica automatizada. Para surtir efectos legales en la UNSA, debe ser revisado y firmado por el Oficial de Protección de Datos (DPO) o el Director de la OTIC.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SKILL 2: Verificación de un Control Individual -->
+      <div class="card-clean skill-card-section">
+        <div class="card-header-clean">
+          <div>
+            <div class="skill-header-meta">
+              <span class="skill-tag">Skill 02</span>
+              <h2 class="skill-name">Verificación Quirúrgica de un Control</h2>
+            </div>
+            <p>Inspecciona un control específico en aislamiento y emite una recomendación técnica prescriptiva.</p>
+          </div>
+        </div>
+
+        <div class="card-body-clean">
+          <div class="single-audit-box">
+            <div>
+              <label style="font-size: 12.5px; font-weight: 600; display: block; margin-bottom: 6px;">Seleccione el control a auditar:</label>
+              <select id="sel-control-individual" class="form-select-clean"></select>
+            </div>
+            <button class="btn-primary-clean" id="btn-auditar-individual">
+              Auditar Control Seleccionado
+            </button>
+          </div>
+
+          <!-- Traza de Pensamiento y Acciones del Agente para Auditoría Individual -->
+          <div id="traza-agente-individual" style="display:none; background:#181825; color:#cdd6f4; border:1px solid #313244; border-radius:8px; padding:14px; margin-bottom:16px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px;"></div>
+
+          <div id="resultado-control-individual" style="display: none;" class="single-result-card">
+            <!-- Se llena al auditar -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VENTANA 3: BASE NORMATIVA (RAG & OLLAMA)
+         ==================================================================== -->
+    <section id="tab-rag" class="tab-view">
+
+      <!-- Apartado Especial: Modelos de IA Local de Ollama -->
+      <div class="hf-banner-clean">
+        <div class="hf-banner-top">
+          <span class="hf-tag">Ollama Local AI</span>
+          <span class="hf-model-name">ollama: qwen2.5:7b (Generación) + all-minilm (Embeddings FAISS)</span>
+        </div>
+        <p class="hf-banner-desc">
+          Para fundamentar las respuestas conceptuales y vincular las directivas institucionales de la UNSA, el sistema utiliza el motor local de <strong>Ollama</strong> con embeddings semánticos y generación de lenguaje natural.
+        </p>
+
+        <div class="hf-features-grid">
+          <div class="hf-feature-box">
+            <div class="hf-feature-title">Vectores de 384 Dimensiones</div>
+            <div class="hf-feature-text">Transforma párrafos normativos en coordenadas semánticas optimizadas para español técnico y legal.</div>
+          </div>
+          <div class="hf-feature-box">
+            <div class="hf-feature-title">Motor Vectorial FAISS Local</div>
+            <div class="hf-feature-text">Búsqueda por producto interno unitario (similitud coseno) que calcula coincidencias en menos de 5 milisegundos.</div>
+          </div>
+          <div class="hf-feature-box">
+            <div class="hf-feature-title">100% Privado y Desconectado</div>
+            <div class="hf-feature-text">Soberanía de datos absoluta: ningún documento ni consulta institucional viaja a servidores externos o APIs comerciales.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buscador Semántico RAG -->
+      <div class="card-clean">
+        <div class="card-header-clean">
+          <div>
+            <h3>Buscador Normativo Semántico (RAG en Lenguaje Natural)</h3>
+            <p>Escriba cualquier pregunta o tema en lenguaje común; el modelo recuperará el artículo o directiva exacta correspondiente.</p>
+          </div>
+        </div>
+
+        <div class="card-body-clean">
+          <div class="rag-search-box">
+            <input type="text" id="txt-rag-query" class="rag-input-clean" placeholder="Escriba su consulta (ej. '¿Qué exige la norma para el comedor universitario y huellas dactilares?')...">
+            <button class="btn-primary-clean" id="btn-rag-buscar">
+              🔍 Buscar en Repositorio
+            </button>
+          </div>
+
+          <div class="rag-chips-row">
+            <span class="rag-chips-label">Consultas frecuentes:</span>
+            <button class="rag-chip" data-query="comedor universitario huellas dactilares biometria comensales">Comedor y Biometría</button>
+            <button class="rag-chip" data-query="consentimiento informado estudiantes postulantes SISADMISION">Consentimiento Informado</button>
+            <button class="rag-chip" data-query="ejercicio de derechos ARCO acceso rectificacion odp@unsa.edu.pe">Derechos ARCO</button>
+            <button class="rag-chip" data-query="gestion de incidentes de seguridad brechas CSIRT">Gestión de Incidentes</button>
+            <button class="rag-chip" data-query="contratos con terceros Google Workspace proveedores DPA">Terceros y Proveedores</button>
+          </div>
+
+          <!-- Traza de Pensamiento y Acciones del Agente para Búsqueda RAG -->
+          <div id="traza-agente-rag" style="display:none; background:#181825; color:#cdd6f4; border:1px solid #313244; border-radius:8px; padding:14px; margin-bottom:16px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px;"></div>
+
+          <!-- Contenedor de Resultados RAG -->
+          <div id="contenedor-rag-resultados" class="rag-results-stack">
+            <div style="text-align: center; color: var(--ink-subtle); padding: 30px 10px; font-size: 13px;">
+              Haga una consulta o seleccione una de las sugerencias superiores para explorar la base normativa institucional.
+            </div>
+          </div>
+
+          <!-- Documentos Indexados en la Base de Conocimiento -->
+          <div style="margin-top: 32px; border-top: 1px solid var(--border); padding-top: 20px;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px;">
+              Documentos Indexados en el Repositorio Local:
+            </div>
+            <div class="repo-grid-clean">
+              <div class="repo-card">
+                <div class="repo-card-title">Directiva DIR-OTIC-004-UNSA</div>
+                <div class="repo-card-desc">Política Integral de Privacidad y Protección de Datos Personales para la comunidad agustina.</div>
+                <div class="repo-card-path">knowledge/politicas/politica_privacidad_unsa.md</div>
+              </div>
+              <div class="repo-card">
+                <div class="repo-card-title">Norma Técnica ISO/IEC 27701:2025</div>
+                <div class="repo-card-desc">Estándar internacional de gestión de privacidad (PIMS), cláusulas 1 a 10 y Anexo A.</div>
+                <div class="repo-card-path">knowledge/normativa/resumen_27701.md</div>
+              </div>
+              <div class="repo-card">
+                <div class="repo-card-title">Catálogo Oficial de Controles</div>
+                <div class="repo-card-desc">Definiciones canónicas de controles de privacidad y asignación de agentes responsables.</div>
+                <div class="repo-card-path">knowledge/catalogo_controles.json</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Institucional -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p><strong>UNIVERSIDAD NACIONAL DE SAN AGUSTÍN DE AREQUIPA</strong> · Escuela Profesional de Ingeniería de Sistemas</p>
+      <p>Asignatura: Auditoría de Sistemas · Proyecto: Agente de Evaluación de Controles y Declaración SoA (PIMS ISO/IEC 27701:2025)</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

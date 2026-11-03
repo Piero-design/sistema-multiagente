@@ -1,0 +1,16 @@
+# NORMATIVA Y REGULACIONES INSTITUCIONALES DE LA UNSA (EVIDENCIAS DE PRIVACIDAD)
+
+Normativa UNSA - RCU N° 0127-2020 Reglamento General de Matrícula y Fines de SISUNSA:
+Aprobado mediante Resolución de Consejo Universitario N° 0127-2020 y modificatorias (RCU 0142-2021, RCU 0181-2023, RCU 0009-2026). Establece el régimen de matrícula presencial y virtual para estudiantes de pregrado de la UNSA. En sus artículos 1 al 15 norma los requisitos de inscripción, uso del DNI, correo institucional y legajo académico en el sistema SISUNSA. Constituye la evidencia preceptiva de legitimidad y finalidad educativa para el control A.1.2.2 (Identificar propósito) y base legal para el tratamiento de datos personales de alumnos regulares.
+
+Normativa UNSA - Directiva de Consentimiento y Términos de Admisión (SISADMISION):
+Establecida por la Dirección Universitaria de Admisión para procesos ordinarios, Ceprunsa y traslados. Establece que todo postulante que realiza su inscripción en línea debe validar obligatoriamente la cláusula: "He leído la Política de Protección de Datos de la Universidad Nacional de San Agustín de Arequipa. Comprendo y acepto lo establecido en el Reglamento de Admisión". Justifica el control A.1.2.2 respecto al consentimiento expreso, previo e informado para la toma de fotografía digital y verificación biométrica orientada a prevenir la suplantación de identidad en los exámenes.
+
+Normativa UNSA - RCU N° 0127-2025 Reglamento de Comedor Universitario y Biometría (DUDE):
+Aprobado por el Consejo Universitario el 10 de marzo de 2025 (Versión 03), deroga las RCU N° 0240-2024 y RCU N° 0441-2023. Regula la prestación del servicio de alimentación gratuita para estudiantes de condición socioeconómica vulnerable evaluados por la Dirección Universitaria de Desarrollo Estudiantil (DUDE). Dispone la autenticación diaria de comensales mediante lectores biométricos de huella dactilar. Por involucrar datos biométricos y socioeconómicos sensibles, constituye el activo crítico auditado que justifica la Evaluación de Impacto en la Privacidad del control A.1.2.6 (DPIA).
+
+Normativa UNSA - Procedimiento TUPA para Derechos ARCO y Atención de Titulares:
+Regulado bajo los alcances de la Ley N° 29733 y D.S. N° 003-2013-JUS. Establece los canales oficiales para que estudiantes, docentes, postulantes y egresados ejerzan sus derechos de Acceso, Rectificación, Cancelación y Oposición (ARCO). El trámite se gestiona de forma digital a través del correo institucional del Oficial de Protección de Datos (odp@unsa.edu.pe) y presencialmente mediante Mesa de Partes en Secretaría General (Calle San Agustín 115). Justifica el cumplimiento de los controles A.1.3.7 (Acceso y rectificación) y A.1.3.9 (Copia y portabilidad de PII).
+
+Normativa UNSA - Resoluciones Rectorales de Aprobación de Sistemas y Registro RAT:
+Conjunto de Resoluciones de Consejo Universitario (RCU 0127-2020 para SISUNSA, Resoluciones de Licenciamiento Institucional de SUNEDU y resoluciones de plataformas institucionales). Acreditan la existencia formal y autorización de los bancos de datos institucionales "Estudiantes", "Postulantes", "Recursos Humanos" y "Comedor Universitario" inscritos ante el Registro Nacional de Protección de Datos Personales de la ANPDP-MINJUS. Satisface el control A.1.2.9 (Registros de Actividades de Tratamiento - RAT).

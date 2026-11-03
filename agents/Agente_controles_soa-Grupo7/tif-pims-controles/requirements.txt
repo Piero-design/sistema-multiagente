@@ -1,0 +1,4 @@
+flask
+requests
+faiss-cpu
+numpy
