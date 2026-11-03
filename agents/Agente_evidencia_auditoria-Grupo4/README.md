@@ -1,6 +1,6 @@
 # 🛡️ AuditPIMS: Agente de Evidencia y Auditoría de Sistemas
 
-> **Para integrar este agente:** empieza por [GUIA_INTEGRACION.md](GUIA_INTEGRACION.md). Describe el contrato actual, las opciones de conexión y las limitaciones de la demostración.
+> **Para integrar este agente:** empieza por [GUIA_INTEGRACION.md](GUIA_INTEGRACION.md). Describe el contrato actual, las opciones de conexión y las limitaciones de la demostración. Es una referencia adaptable: el integrador puede cambiar la API, el dashboard, las carpetas o la ejecución para mejorar el sistema común.
 
 > **Plataforma Agéntica de Auditoría Interna, Integridad Criptográfica y Evaluación de Evidencias para Sistemas de Gestión de Privacidad de la Información (PIMS).**  
 > Basada en **ISO/IEC 27701:2025**, directrices de auditoría **ISO 19011:2018** y la normativa de protección de datos personales de Perú (**Ley N.º 29733** y nuevo reglamento **D.S. N.º 016-2024-JUS**).

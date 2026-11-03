@@ -15,3 +15,5 @@ Reúne documentación, registros y pruebas de control; verifica que los procesos
 La implementación del Grupo 4 está disponible en esta carpeta. Consulta [README.md](README.md) para instalar dependencias, iniciar el dashboard/API y ejecutar los casos de demostración. La skill y sus referencias están en [auditoria-evidencias-pims/SKILL.md](auditoria-evidencias-pims/SKILL.md).
 
 Para la integración multiagente, consultar primero [GUIA_INTEGRACION.md](GUIA_INTEGRACION.md). El material de desarrollo y análisis previo se conserva en `material_apoyo/`.
+
+La implementación se entrega como base reutilizable. Su API, dashboard y organización interna pueden adaptarse o sustituirse durante la integración para favorecer el funcionamiento conjunto de los ocho agentes.

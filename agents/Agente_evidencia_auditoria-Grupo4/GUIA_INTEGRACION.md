@@ -2,9 +2,13 @@
 
 ## Leer primero
 
+**Esta guía es descriptiva y orientativa; no impone una arquitectura al sistema común.** Documenta el avance del Grupo 4 para facilitar su comprensión y reutilización. La IA y el equipo integrador pueden refactorizarlo, reorganizar archivos, unificar dependencias, reemplazar la API por llamadas internas, compartir el cliente de IA o adaptar las entradas y salidas según lo que beneficie a los ocho agentes.
+
+No es obligatorio conservar nuestro dashboard, API HTTP, nombres de funciones, estructura de ejecución, proveedor ni modelo. Se priorizan los objetivos de auditoría, el conocimiento útil y la compatibilidad con el conjunto. El código entregado queda como referencia versionada; adaptar su implementación no implica descartar el avance previo. Las alternativas de esta guía son ejemplos y pueden combinarse o sustituirse por otra solución común.
+
 Esta entrega conserva el avance previo del Grupo 4: skill, conocimientos, plantillas, dashboard, API, CLI, casos de demostración y material académico de apoyo. La lógica de los tres programas principales se conserva sin cambios respecto al proyecto de origen [AuditPIMS](https://github.com/Piero-design/AuditPIMS), commit `8249c53`.
 
-El objetivo de la integración es reutilizar ese avance dentro del sistema de ocho agentes. La conexión con la skill maestra, la base SQLite compartida y el entorno Docker general todavía no está implementada en esta entrega. La elección de modelo local queda a cargo del equipo integrador.
+El objetivo de la integración es reutilizar ese avance dentro del sistema de ocho agentes. La conexión con la skill maestra, la base SQLite compartida y el entorno Docker general todavía no está implementada en esta entrega. La elección de modelo, proveedor y forma de ejecución queda a cargo del equipo integrador.
 
 Este documento describe el comportamiento actual del código. Para conocer las capacidades y límites reales, úsalo junto con el esquema de `/openapi.json`. El README previo se conserva como documentación del desarrollo y la exposición; sus porcentajes y ejemplos de resultados no son mediciones de datos compartidos del sistema integrado.
 
@@ -45,7 +49,7 @@ El puerto 8004 es una propuesta para ejecutar este agente de forma independiente
 
 También se conserva `python app_dashboard.py`, que usa el puerto 8000 por defecto y admite la variable `PORT`. Ese arranque activa recarga de desarrollo; para el contenedor usar el comando de Uvicorn anterior sin recarga.
 
-## Opciones para conectar con la skill maestra
+## Alternativas orientativas para la integración
 
 ### A. Conservar el agente como servicio HTTP
 
@@ -55,11 +59,11 @@ El coordinador envía la evidencia a `POST /api/auditar`. El dashboard no necesi
 
 También se pueden reutilizar `cargar_skill_prompt()`, `AuditoriaRequest` y `auditar_evidencia(req)` de `app_dashboard.py`. Esta última función devuelve el resultado o lanza una `HTTPException`; la integración deberá adaptar ese manejo si no usa FastAPI. Importar el módulo también requiere las dependencias del dashboard.
 
-Las carpetas actuales contienen guiones, por lo que no son nombres normales para imports de paquetes Python. Si se elige esta opción, el integrador puede crear un adaptador o cargar el archivo por su ruta manteniendo su ubicación. El código resuelve sus conocimientos mediante `Path(__file__).resolve().parent`: conservar la carpeta `auditoria-evidencias-pims/` junto al módulo.
+Las carpetas actuales contienen guiones, por lo que no son nombres normales para imports de paquetes Python. Si se elige esta opción, el integrador puede crear un adaptador o cargar el archivo por su ruta manteniendo su ubicación. El código actual resuelve sus conocimientos mediante `Path(__file__).resolve().parent`: si se mantiene sin adaptar, espera la carpeta `auditoria-evidencias-pims/` junto al módulo. Si se reorganiza, se pueden actualizar esas rutas o centralizar la carga de conocimientos.
 
 ### C. Reutilizar skill y conocimientos con el ejecutor común
 
-Si el sistema final ejecuta todas las skills con un cliente de IA central, cargar la skill, las referencias necesarias y las plantillas desde esta carpeta. Eso requiere implementar y validar el ejecutor; los `.md` no ejecutan funciones ni consultan SQLite por sí solos. Conservar el código actual como implementación de referencia y comparar resultados antes de sustituir su ejecución.
+Si el sistema final ejecuta todas las skills con un cliente de IA central, cargar la skill, las referencias necesarias y las plantillas desde esta carpeta. Eso requiere implementar y validar el ejecutor; los `.md` no ejecutan funciones ni consultan SQLite por sí solos. El historial de Git permite consultar la implementación anterior y comparar resultados cuando se adapte su ejecución.
 
 ## Contrato HTTP actual
 
@@ -114,16 +118,16 @@ La severidad se obtiene buscando frases en la respuesta del modelo. No existe to
 
 Errores principales: 400 para contenido vacío o credencial requerida ausente; 422 para solicitudes que no cumplen el esquema; 502 cuando falla el proveedor y no se activa contingencia. Configurar en el coordinador un tiempo de espera adecuado para inferencia local: el código puede intentar la llamada al modelo hasta tres veces.
 
-## Qué debe conectar el integrador
+## Decisiones para la integración común
 
-1. Definir cuándo la skill maestra delega una tarea al Grupo 4 y si lo hace por HTTP, módulo o ejecutor central.
-2. Acordar un modelo y una URL de inferencia comunes. Mantener diferenciadas las instrucciones y conocimientos de cada agente aunque compartan modelo.
+1. Elegir cuándo se delega una tarea al Grupo 4 y el mecanismo común de ejecución. No existe obligación de usar nuestra API HTTP.
+2. Acordar el acceso a modelos y la configuración que convenga al conjunto. Las instrucciones y conocimientos especializados pueden reutilizarse con un cliente común; los proveedores actuales del Grupo 4 no condicionan la elección.
 3. Definir el esquema SQLite y la responsabilidad de lectura/escritura. Actualmente AuditPIMS recibe texto y devuelve un resultado en memoria: no consulta ni crea tablas.
 4. Asociar un identificador de evidencia y de auditoría en el coordinador, guardar el resultado y la revisión humana. El SHA-256 identifica el contenido textual, no sustituye esos identificadores ni demuestra por sí mismo una cadena de custodia.
 5. Definir con el Grupo 7 la propiedad de la SoA compartida. La consolidación M3 existente sirve como avance del Grupo 4 y demostración; no es sincronización con la SoA del Grupo 7.
 6. Crear el Docker/Compose general, montar los conocimientos y la base persistente, configurar nombres de servicios y comprobar un flujo real con el modelo acordado. No hay Dockerfile ni base SQLite implementados por esta entrega.
 
-## Límites que deben conservarse visibles durante la integración
+## Comportamiento actual y puntos por revisar
 
 - `simulador` devuelve una plantilla de contrato con severidad fija. Sirve para comprobar transporte, interfaz y hash; no mide calidad de auditoría y no necesita IA.
 - El motor de contingencia se activa ante determinados errores de cuota/disponibilidad y aplica reglas limitadas. Sus textos son plantillas, no resultados de un LLM ni sustituto de una evaluación validada.
