@@ -251,7 +251,7 @@ export async function controlesPage(root) {
 
     const datos = cachedSoa;
     const resumen = datos.resumen || {};
-    const soaList = datos.soa || [];
+    const soaList = (datos.soa_canonico && datos.soa_canonico.length) ? datos.soa_canonico : (datos.soa || []);
     const riesgosList = datos.riesgos_residuales || [];
     const kpis = datos.kpis || {};
 
