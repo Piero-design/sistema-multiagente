@@ -160,11 +160,14 @@ async def terceros_a_controles(rid: str, p: dict, steps: list) -> dict:
     after = await _step("controles", "ejecutar", {"operacion": "generar_soa", **base, "evidencias": evid}, steps)
     rows = lambda o: {f["control"]: f for f in o["datos"]["soa"]}  # noqa: E731
     b, a = rows(before), rows(after)
-    changed = [{"control": k, "antes": b[k]["estado"], "despues": a[k]["estado"]} for k in a if a[k]["estado"] != b[k]["estado"]]
+    changed = [{"control": k, "antes": b[k]["estado"], "despues": a[k]["estado"]} for k in a if k in {e["control"] for e in evid} and a[k]["estado"] != b[k]["estado"]]
     in_catalog = [c["control"] for c in ctrls if c["control"] in a]
+    # G7 reads its own evidence when none is sent, so "before" is not an empty baseline: what is checked is that each state
+    # sent from G5 is the one G7 reports for that control
+    reflejo = [{"control": e["control"], "enviado": e["estado"], "en_soa": a[e["control"]]["estado"]} for e in evid if e["control"] in a]
     return {"expediente_g5": rid5, "controles_g5": len(ctrls), "controles_g5_en_catalogo_g7": len(in_catalog),
             "evidencias_enviadas_a_g7": len(evid), "controles_que_cambiaron_en_soa": changed,
-            "resumen_antes": before["datos"]["resumen"], "resumen_despues": after["datos"]["resumen"]}
+            "estado_en_soa_de_lo_enviado": reflejo, "resumen_antes": before["datos"]["resumen"], "resumen_despues": after["datos"]["resumen"]}
 
 
 # ---------------------------------------------------------------- G8 -> G1

@@ -36,9 +36,10 @@ def test_g5_results_feed_g7_soa():
     r = f["result"]
     assert [s["agent"] for s in f["steps"]].count("controles") == 2        # SoA before and after
     assert r["controles_g5"] == 26
-    # whatever G5 marked Cumple/Parcial and G7 knows must show up in G7's SoA with the matching state
-    assert r["resumen_despues"]["implementados"] + r["resumen_despues"]["parciales"] >= \
-        r["resumen_antes"]["implementados"] + r["resumen_antes"]["parciales"]
+    # whatever G5 marked Cumple/Parcial and G7 knows must show up in G7's SoA with the state G5 sent
+    # (G7 loads its own evidence when none is sent, so a before/after count is not comparable)
+    assert r["estado_en_soa_de_lo_enviado"], "G7 no reflejó ningún control de G5"
+    assert all(x["en_soa"] == x["enviado"] for x in r["estado_en_soa_de_lo_enviado"]), r["estado_en_soa_de_lo_enviado"]
     assert r["evidencias_enviadas_a_g7"] >= len(r["controles_que_cambiaron_en_soa"])
 
 

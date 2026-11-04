@@ -103,14 +103,18 @@ def test_g5_contract_with_injected_instructions_is_flagged_not_obeyed():
 
 # ---------------- G7 ----------------
 def test_g7_applicability_rules_by_role():
+    # G7 (advance 2): 142-control catalog. A.1 = controller, A.2 = processor, A.5-A.8 = ISO 27001 controls for both roles.
+    # The A.3.x rows are compatibility aliases whose assessment is recorded under their canonical A.5.x control.
     def soa(rol):
         o = out(run("controles", "ejecutar", {"operacion": "generar_soa", "perfil": {"rol": rol, "organizacion": "UNSA"},
                                               "riesgos": [], "evidencias": []}))
-        return {f["control"]: f["aplica"] for f in o["datos"]["soa"]}
+        assert o["datos"]["meta"]["catalogo"]["total"] == 142
+        return {f["control"]: f for f in o["datos"]["soa"]}
     resp, enc = soa("responsable"), soa("encargado")
-    assert all(v for k, v in resp.items() if k.startswith("A.1")) and not any(v for k, v in resp.items() if k.startswith("A.2"))
-    assert all(v for k, v in enc.items() if k.startswith("A.2")) and not any(v for k, v in enc.items() if k.startswith("A.1"))
-    assert all(resp[k] and enc[k] for k in resp if k.startswith("A.3"))
+    assert all(f["aplica"] for k, f in resp.items() if k.startswith("A.1")) and not any(f["aplica"] for k, f in resp.items() if k.startswith("A.2"))
+    assert all(f["aplica"] for k, f in enc.items() if k.startswith("A.2")) and not any(f["aplica"] for k, f in enc.items() if k.startswith("A.1"))
+    assert all(f["aplica"] for d in (resp, enc) for k, f in d.items() if k[:3] in ("A.5", "A.6", "A.7", "A.8"))
+    assert all(f["es_alias"] and f["control_canonico"].startswith("A.") for k, f in resp.items() if k.startswith("A.3"))
 
 
 def test_g7_invalid_input_is_rejected_not_invented():
@@ -272,5 +276,6 @@ def test_g8_expediente_documents_are_visible_in_the_platform():
 
 
 def test_g8_examples_and_autonomy_state_are_readable():
-    assert out(run("incidentes", "ejemplos", {}))["ejemplos"] or True
+    ej = out(run("incidentes", "ejemplos", {}))
+    assert len(ej["reportes"]) == 10 and len(ej["contexto"]) == 3
     assert "activo" in str(out(run("incidentes", "autonomia", {})).keys()) or out(run("incidentes", "autonomia", {}))
