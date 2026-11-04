@@ -73,7 +73,7 @@ services:
       GATEWAY_URL: http://llm-gateway:8080
       # Agent base URLs (services added in Step 7); an unreachable agent is reported as "caido".
       AGENT_G1_URL: http://agent-g1:8000
-      AGENT_G2_URL: http://agent-g2:4317
+      AGENT_G2_URL: http://agent-g2:4318
       AGENT_G3_URL: http://agent-g3:8001/mcp
       AGENT_G4_URL: http://agent-g4:8004
       AGENT_G5_URL: http://agent-g5:5678

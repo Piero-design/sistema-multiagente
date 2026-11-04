@@ -46,12 +46,15 @@ def _model(requested):
     return MODEL or requested
 
 
-async def _post(path: str, payload: dict) -> dict:
+async def _post(path: str, payload: dict, retry_429: bool = False) -> dict:
     last = None
-    for attempt in range(RETRIES + 1):
+    for attempt in range(RETRIES + 1 + (4 if retry_429 else 0)):
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT) as c:
                 r = await c.post(f"{_oa_base()}{path}", json=payload, headers=_headers())
+            if r.status_code == 429 and retry_429 and attempt < RETRIES + 4:
+                await asyncio.sleep(15)          # quota window: wait it out
+                continue
             if r.status_code in (429, 500, 502, 503) and attempt < RETRIES:
                 await asyncio.sleep(1.5 * (attempt + 1))
                 continue
@@ -77,6 +80,38 @@ def _track(t0, usage=None, err=None):
         stats["errors"] += 1
         stats["last_error"] = type(err).__name__
     log.info("mode=%s ms=%d ok=%s", MODE, ms, err is None)
+
+
+EMBED_BATCH = int(os.getenv("LLM_EMBED_BATCH", "100"))   # Gemini rejects >100 inputs per request
+
+
+EMBED_ITEMS_PER_MIN = int(os.getenv("LLM_EMBED_ITEMS_PER_MIN", "80"))   # provider quota guard (free tiers)
+_embed_window: list = []   # (timestamp, items)
+
+
+async def _embed_throttle(n: int) -> None:
+    """Sliding 60 s window: wait until n more items fit under the per-minute budget."""
+    while True:
+        now = time.time()
+        _embed_window[:] = [(t, k) for t, k in _embed_window if now - t < 60]
+        if sum(k for _, k in _embed_window) + n <= EMBED_ITEMS_PER_MIN:
+            _embed_window.append((now, n))
+            return
+        await asyncio.sleep(2)
+
+
+async def _embed(model: str | None, inputs: list, extra: dict | None = None) -> dict:
+    """Embeddings in provider-safe batches; returns an OpenAI-style {'data': [...]} in input order."""
+    data: list = []
+    last = {}
+    for i in range(0, len(inputs), EMBED_BATCH):
+        chunk = inputs[i:i + EMBED_BATCH]
+        body = {**(extra or {}), "model": model, "input": chunk}
+        await _embed_throttle(len(chunk))
+        last = await _post("/embeddings", body, retry_429=True)
+        for d in last["data"]:
+            data.append({**d, "index": i + d.get("index", 0)})
+    return {**last, "data": data}
 
 
 def _mock_text(messages) -> str:
@@ -166,9 +201,11 @@ async def oa_embed(req: Request):
                     for i, t in enumerate(inp)]
             _track(t0)
             return {"object": "list", "data": data, "model": "mock"}
-        body = {**body, "model": EMBED_MODEL or body.get("model")}
+        inp = body.get("input", [])
+        inp = [inp] if isinstance(inp, str) else inp
+        extra = {k: v for k, v in body.items() if k not in ("model", "input")}
         async with sem:
-            out = await _post("/embeddings", body)
+            out = await _embed(EMBED_MODEL or body.get("model"), inp, extra)
         _track(t0)
         return out
     except Exception as e:  # noqa: BLE001
@@ -239,7 +276,7 @@ async def api_embed(req: Request):
             _track(t0)
             return {"model": "mock", "embeddings": [_mock_vec(t) for t in inp]}
         async with sem:
-            out = await _post("/embeddings", {"model": EMBED_MODEL or body.get("model"), "input": inp})
+            out = await _embed(EMBED_MODEL or body.get("model"), inp)
         _track(t0)
         return {"model": out.get("model"), "embeddings": [d["embedding"] for d in out["data"]]}
     except Exception as e:  # noqa: BLE001

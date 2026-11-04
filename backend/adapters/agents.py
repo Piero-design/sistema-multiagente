@@ -91,7 +91,7 @@ class G2(_HttpAdapter):
     id, group, route = "riesgos", 2, "/agentes/riesgos"
     name = "Evaluación de riesgos"
     responsibility = "Identificación de riesgos, impacto y mitigación (ISO/IEC 27701)"
-    url_env, default_url, health_path = "AGENT_G2_URL", "http://agent-g2:4317", "/api/status"
+    url_env, default_url, health_path = "AGENT_G2_URL", "http://agent-g2:4318", "/api/status"
 
     def get_capabilities(self):
         return [{"action": "chat", "description": "Consulta al agente de riesgos vía Express → n8n Chat Trigger",
@@ -103,8 +103,8 @@ class G2(_HttpAdapter):
             s = r.json()
             reasons = []
             scope = s.get("scope") or {}
-            if scope and not scope.get("allowed", scope.get("reviewed", True)):
-                reasons.append("alcance bloqueado (SCOPE_N8N_REVIEWED=false)")
+            if scope and not scope.get("enabled", True):
+                reasons.append(f"alcance bloqueado por el propio agente ({scope.get('state')}): SCOPE_N8N_REVIEWED=false")
             if not s.get("configured"):
                 reasons.append("N8N_CHAT_URL no configurada / Chat Trigger no publicado")
             if os.getenv("G2_NORM_INGESTED", "false").lower() != "true":

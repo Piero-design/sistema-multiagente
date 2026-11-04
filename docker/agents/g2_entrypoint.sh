@@ -22,5 +22,7 @@ for i in $(seq 1 60); do wget -qO- http://127.0.0.1:5678/healthz >/dev/null 2>&1
 
 CHAT_ID=$(python3 -c "import json;d=json.load(open('$FLOWS/Agente_Evaluacion_Riesgos.json',encoding='utf-8'));print([n['webhookId'] for n in d['nodes'] if 'chatTrigger' in n['type']][0])")
 export N8N_CHAT_URL="http://127.0.0.1:5678/webhook/$CHAT_ID/chat" PORT=4317 NODE_ENV=production
+# Express binds 127.0.0.1 by hard-coded host; expose it to the internal network with a TCP forwarder.
+node -e "const n=require('net');n.createServer(c=>{const u=n.connect(4317,'127.0.0.1');c.pipe(u);u.pipe(c);u.on('error',()=>c.destroy());c.on('error',()=>u.destroy())}).listen(4318,'0.0.0.0')" &
 cd $APP/frontend
 exec node server/index.js
