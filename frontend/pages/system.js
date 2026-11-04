@@ -69,6 +69,6 @@ function teamKeyForm(l) {
       msg.replaceChildren(alertBox('info', method === 'DELETE' ? 'Clave quitada.' : `Clave de ${f.team.value.toUpperCase()} guardada y verificada. Recarga la página para ver el estado.`));
     } catch (e) { msg.replaceChildren(alertBox('bad', e.message)); }
   }
-  form.addEventListener('submit', (ev) => { ev.preventDefault(); send('PUT'); });
+  form.addEventListener('submit', (ev) => { ev.preventDefault(); send('POST'); });
   return form;
 }

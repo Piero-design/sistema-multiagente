@@ -111,3 +111,10 @@ def test_system_reports_key_source_but_never_a_key():
     assert set(teams) == {f"g{i}" for i in range(1, 9)}
     assert all("key" not in k.lower().replace("own_key", "").replace("key_source", "") for t in teams.values() for k in t)
     assert "AIza" not in r.text
+
+
+def test_team_key_form_endpoint_is_post_and_rejects_a_wrong_team_code():
+    # the web form saves with POST (a PUT used to fail with 405 and the form looked dead)
+    r = httpx.post(f"{BASE}/api/teams/g1/key", json={"code": "codigo-falso", "key": "AIzaSyFAKEFAKEFAKEFAKEFAKEFAKE12345"}, timeout=30)
+    assert r.status_code == 403 and "incorrecto" in r.json()["detail"].lower() or "código de acceso" in r.json()["detail"].lower()
+    assert httpx.put(f"{BASE}/api/teams/g1/key", json={"code": "x", "key": "x"}, timeout=30).status_code == 405
