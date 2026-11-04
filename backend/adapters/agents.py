@@ -212,12 +212,22 @@ class G4(_HttpAdapter):
     url_env, default_url, health_path = "AGENT_G4_URL", "http://agent-g4:8004", "/api/status"
 
     def get_capabilities(self):
-        return [{"action": "auditar", "description": "POST /api/auditar (M2: evaluar evidencia)",
+        return [{"action": "planificar", "description": "M1: checklist de evidencias según rol y alcance", "input": {"rol": "str", "alcance": "str"}},
+                {"action": "consolidar", "description": "M3: consolidar evaluaciones M2 persistidas", "input": {"execution_ids": "list[str]"}},
+                {"action": "auditar", "description": "POST /api/auditar (M2: evaluar evidencia)",
                  "input": {"nombre_archivo": "str", "contenido": "str"}},
                 {"action": "hash", "description": "SHA-256 del texto", "input": {"contenido": "str"}}]
 
     async def execute(self, req: ExecutionRequest):
         i = req["input"]
+        if req["action"] == "consolidar":
+            from backend.services.audit_modes import consolidate
+            out = consolidate(i.get("execution_ids"))
+            return {"output": out, "simulated": any(x["simulado"] for x in out["filas"])}
+        if req["action"] == "planificar":
+            r = await _post(f"{self.base}/api/planificar", json=i)
+            r.raise_for_status()
+            return {"output": r.json(), "native_status": r.status_code}
         if req["action"] == "hash":
             r = await _post(f"{self.base}/api/hash", data={"contenido": i["contenido"],
                             "nombre_archivo": i.get("nombre_archivo", "evidencia.txt")}, timeout=30)
@@ -230,8 +240,12 @@ class G4(_HttpAdapter):
         if r.status_code >= 400:
             raise RuntimeError(f"G4 HTTP {r.status_code}: {r.text[:300]}")
         out = r.json()
+        out["nombre_archivo"] = body["nombre_archivo"]
+        out["estado_revision"] = "Pendiente de validación humana"
         # The label "Ollama Local GPU" is fixed text in the agent; do not present it as the real provider.
-        out["proveedor_usado"] = f"Gateway LLM compartido ({os.getenv('LLM_MODE', 'cloud')})"
+        fallback = "Contingencia" in out.get("proveedor_usado", "")
+        out["proveedor_usado"] = "Motor de contingencia (sin LLM)" if fallback else f"Gateway LLM compartido ({os.getenv('LLM_MODE', 'cloud')})"
+        out["motor_contingencia"] = fallback
         return {"output": out, "native_status": r.status_code,
                 "simulated": os.getenv("LLM_MODE") == "mock"}
 
