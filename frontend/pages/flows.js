@@ -34,7 +34,7 @@ const FLOWS = [
 
 function render(f) {
   const r = f.result || {};
-  const box = h('div', {}, h('p', { class: 'small mute' }, `Estado: ${f.status} · pasos reales: ${(f.steps || []).map((s) => `${s.agent}.${s.action}`).join(' → ') || '—'}`));
+  const box = h('div', { style: 'margin-top:14px' });
   if (f.status === 'failed') return h('div', {}, box, alertBox('bad', f.error));
   if (f.flow === 'terceros_a_controles') {
     box.append(h('p', {}, `Controles de G5: ${r.controles_g5} · presentes en el catálogo de G7: ${r.controles_g5_en_catalogo_g7} · evidencias enviadas: ${r.evidencias_enviadas_a_g7}`),
@@ -56,10 +56,69 @@ function render(f) {
   return box;
 }
 
+// ---- Visual timeline: which agent is doing what, what it reads, what it produced (live while the flow runs)
+const WHO = {
+  formacion: ['G1', 'Formación', '#2b5cff'], riesgos: ['G2', 'Riesgos', '#7c3aed'], dsar: ['G3', 'Derechos (DSAR)', '#0e9f6e'],
+  auditoria: ['G4', 'Evidencia y auditoría', '#c2680a'], terceros: ['G5', 'Terceros y DPA', '#d6246e'], inventario: ['G6', 'Inventario de datos', '#0b8aa6'],
+  controles: ['G7', 'Controles y SoA', '#4f46e5'], incidentes: ['G8', 'Incidentes y brechas', '#d92d20'],
+};
+const who = (a) => WHO[a] || ['', a, '#6b7280'];
+
+function secs(iso) { return iso ? Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000)) : 0; }
+
+function avatar(agent) {
+  const [g, , color] = who(agent);
+  return h('span', { class: 'tl-av', style: `background:${color}` }, g || '⚙');
+}
+
+function activityList(st, running) {
+  const lines = (st.actividad && st.actividad.length ? st.actividad.map((e) => e.texto) : st.actividad_final) || [];
+  if (!lines.length) return running ? h('div', { class: 'tl-act mute' }, h('span', { class: 'spin' }), ' Esperando respuesta del agente…') : null;
+  const shown = running ? lines.slice(-8) : lines;
+  return h('div', { class: 'tl-act' }, shown.map((t) => {
+    const reading = /^leyendo/i.test(t);
+    return h('div', { class: 'tl-line' }, h('span', { class: 'tl-ic' }, reading ? '📖' : '•'), ' ', t);
+  }), running ? h('div', { class: 'tl-line mute' }, h('span', { class: 'spin' }), ' trabajando…') : null);
+}
+
+function stepCard(st) {
+  const [g, name, color] = who(st.agent);
+  const running = st.status === 'running';
+  const pill = running ? h('span', { class: 'badge b-run' }, h('span', { class: 'spin' }), ` En curso · ${secs(st.inicio)} s`)
+    : st.status === 'failed' ? h('span', { class: 'badge b-bad' }, '✕ Falló')
+      : h('span', { class: 'badge b-ok' }, `✓ Listo · ${st.segundos ?? 0} s`);
+  return h('div', { class: `tl-card${running ? ' running' : ''}${st.status === 'failed' ? ' failed' : ''}`, style: `--c:${color}` },
+    h('div', { class: 'tl-head' }, avatar(st.agent), h('div', { class: 'tl-who' }, h('b', {}, `${g} · ${name}`), h('div', { class: 'tl-title' }, st.titulo || st.action)), pill),
+    st.lee ? h('div', { class: 'tl-row' }, h('span', { class: 'tl-k' }, 'Recibe'), ' ', st.lee) : null,
+    activityList(st, running),
+    st.produce ? h('div', { class: 'tl-row' }, h('span', { class: 'tl-k ok' }, 'Entrega'), ' ', st.produce) : null,
+    st.error ? h('div', { class: 'tl-row bad' }, st.error) : null);
+}
+
+function connector(text) {
+  return h('div', { class: 'tl-conn' }, h('span', { class: 'tl-gear' }, '⚙'), h('div', {}, h('b', {}, 'Orquestador'), h('div', { class: 'small mute' }, text)));
+}
+
+function timeline(f) {
+  const steps = f.steps || [];
+  const box = h('div', { class: 'tl' });
+  steps.forEach((st) => { if (st.prep) box.append(connector(st.prep)); else if (st !== steps[0]) box.append(h('div', { class: 'tl-arrow' }, '↓')); box.append(stepCard(st)); });
+  if (f.status === 'running') {
+    (f.plan || []).slice(steps.length).forEach((p) => {
+      const [g, name, color] = who(p.agent);
+      box.append(h('div', { class: 'tl-arrow' }, '↓'), h('div', { class: 'tl-card pending', style: `--c:${color}` },
+        h('div', { class: 'tl-head' }, avatar(p.agent), h('div', { class: 'tl-who' }, h('b', {}, `${g} · ${name}`), h('div', { class: 'tl-title' }, p.titulo)), h('span', { class: 'badge b-off' }, 'En espera'))));
+    });
+  }
+  if (!steps.length) box.append(h('div', { class: 'tl-act mute' }, h('span', { class: 'spin' }), ' Iniciando el flujo…'));
+  return box;
+}
+
 export async function flowsPanel(root) {
   root.append(h('h2', { style: 'margin-top:24px' }, 'Flujos entre agentes'),
     h('p', { class: 'small mute' }, 'Cada paso es una ejecución real de un agente a través del orquestador y queda registrado en Actividad.'));
   const grid = h('div', { class: 'grid g2' });
+  const cards = new Map();
   for (const fl of FLOWS) {
     const out = h('div', { style: 'margin-top:12px' });
     const form = h('form', {}, fl.fields.map((f) => h('div', {}, h('label', {}, f.label),
@@ -71,20 +130,22 @@ export async function flowsPanel(root) {
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault(); btn.disabled = true;
       const v = Object.fromEntries(fl.fields.map((f) => [f.name, form.elements[f.name].value]));
-      out.replaceChildren(spinner('Ejecutando pasos reales…'));
-      const t0 = Date.now();
+      cards.get(fl.id).classList.add('wide');            // the timeline needs the full width
+      out.replaceChildren(spinner('Iniciando el flujo…'));
       try {
         const { flow_run_id } = await j(`/api/flows/${fl.id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ params: fl.params(v) }) });
         for (;;) {
           const f = await j(`/api/flows/${flow_run_id}`);
-          if (f.status !== 'running') { out.replaceChildren(render(f)); break; }
-          out.replaceChildren(spinner(`En curso · ${Math.round((Date.now() - t0) / 1000)} s · pasos hechos: ${f.steps?.length || 0}`));
-          await new Promise((r) => setTimeout(r, 3000));
+          if (f.status !== 'running') { out.replaceChildren(timeline(f), render(f)); break; }
+          out.replaceChildren(timeline(f));
+          await new Promise((r) => setTimeout(r, 2000));
         }
       } catch (e) { out.replaceChildren(alertBox('bad', e.message)); }
       btn.disabled = false;
     });
-    grid.append(h('div', { class: 'card' }, h('h2', {}, fl.title), h('p', { class: 'small mute' }, fl.about), form, out));
+    const card = h('div', { class: 'card' }, h('h2', {}, fl.title), h('p', { class: 'small mute' }, fl.about), form, out);
+    cards.set(fl.id, card);
+    grid.append(card);
   }
   root.append(grid);
   try {

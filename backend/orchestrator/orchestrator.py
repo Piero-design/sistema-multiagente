@@ -12,7 +12,7 @@ import httpx
 from typing import Any
 
 from backend.adapters.agents import ADAPTERS
-from backend.services import db
+from backend.services import db, progress
 from shared.contracts.agent_contract import ExecutionRequest
 
 _tasks: set[asyncio.Task] = set()
@@ -91,6 +91,7 @@ def submit(agent_id: str, action: str, payload: dict) -> str:
 
 
 async def _run(eid: str, adapter, action: str, payload: dict) -> None:
+    progress.current_execution.set(eid)
     db.execute("UPDATE orchestrator.execution SET status='running', started_at=now() WHERE id=%s", (eid,))
     _event(eid, adapter.id, "started", action)
     try:

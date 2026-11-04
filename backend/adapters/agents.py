@@ -11,6 +11,7 @@ import httpx
 
 from shared.contracts.agent_contract import (CAIDO, DEGRADADO, FUERA_DE_ALCANCE, OPERATIVO,
                                              AgentAdapter, ExecutionRequest)
+from backend.services import progress
 
 GATEWAY = os.getenv("GATEWAY_URL", "http://llm-gateway:8080")
 TIMEOUT = float(os.getenv("AGENT_TIMEOUT_SECONDS", "600"))
@@ -414,8 +415,12 @@ class G8(_HttpAdapter):
     # Credentials/connection (/api/auth) are managed by the gateway; activating the autonomous mode is left to the original UI.
 
     async def _wait_job(self, job: str):
+        seen = 0
         for _ in range(int(TIMEOUT // 3)):
             st = (await _get(f"{self.base}/api/job/{job}", timeout=15)).json()
+            for ev in (st.get("eventos") or [])[seen:]:          # what the agent reads/does, shown live in the flows page
+                progress.report("incidentes", ev.get("texto") if isinstance(ev, dict) else str(ev))
+            seen = len(st.get("eventos") or [])
             if st.get("status") not in ("running", "queued", None):   # native job fields: status/eventos/resultado/error
                 return {"output": st, "native_status": 200}
             await asyncio.sleep(3)

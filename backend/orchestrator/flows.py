@@ -19,6 +19,7 @@ import json
 import os
 import re
 import uuid
+from datetime import datetime, timezone
 
 import httpx
 
@@ -29,33 +30,137 @@ _tasks: set = set()
 
 
 class _Steps(list):
-    """Persists the executed steps as they happen, so the UI shows real progress."""
+    """Persists the executed steps as they happen, so the UI shows real progress (who is doing what, what it reads, what it produced)."""
 
     def __init__(self, rid: str):
         super().__init__()
         self.rid = rid
 
-    def append(self, item):
-        super().append(item)
+    def _save(self) -> None:
         try:
-            db.execute("UPDATE orchestrator.flow_run SET steps=%s::jsonb WHERE id=%s", (json.dumps(list(self)), self.rid))
+            db.execute("UPDATE orchestrator.flow_run SET steps=%s::jsonb WHERE id=%s", (json.dumps(list(self), default=str), self.rid))
         except Exception:  # noqa: BLE001
             pass
 
+    def begin(self, step: dict) -> dict:
+        super().append(step)
+        self._save()
+        return step
 
-async def _step(agent: str, action: str, payload: dict, steps: list, wait: int = 600) -> dict:
+    def finish(self, step: dict, **fields) -> None:
+        step.update(fields)
+        self._save()
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _cut(v, n: int = 170) -> str:
+    t = " ".join(str(v if v is not None else "").split())
+    return t if len(t) <= n else t[: n - 1] + "…"
+
+
+def _describe(agent: str, action: str, p: dict) -> tuple[str, str]:
+    """What the agent is about to do and what it is given (field names / short excerpts; never raw data values)."""
+    org = p.get("organizacion", "")
+    if (agent, action) == ("inventario", "consultar_inventario"):
+        return "Lee el inventario de activos de datos", f"Organización {org}"
+    if (agent, action) == ("inventario", "exportar_evidencia"):
+        return "Prepara su inventario como documento de evidencia", f"Organización {org} (solo nombres de campos, sin valores)"
+    if (agent, action) == ("inventario", "recibir_handoff"):
+        return "Verifica el hash del handoff de G3 y revisa qué cubre su inventario", f"Sobre de G3 (caso {_cut((p.get('handoff') or {}).get('case_ref'), 40)})"
+    if (agent, action) == ("auditoria", "auditar"):
+        return "Audita el documento como evidencia (pertinencia, suficiencia, trazabilidad)", f"{p.get('nombre_archivo', 'documento')} · {len(str(p.get('contenido', '')))} caracteres"
+    if (agent, action) == ("riesgos", "chat"):
+        return "Evalúa los riesgos de privacidad (ISO/IEC 27701, cláusula 6.1.2)", _cut(p.get("message"))
+    if (agent, action) == ("formacion", "chat"):
+        return "Propone capacitaciones a partir de las lecciones", _cut(p.get("mensaje"))
+    if (agent, action) == ("incidentes", "analizar"):
+        return "Analiza el incidente: clasifica, calcula severidad y redacta borradores", _cut(p.get("reporte"))
+    if (agent, action) == ("controles", "ejecutar"):
+        n = len(p.get("evidencias") or [])
+        return "Genera la declaración de aplicabilidad (SoA)", f"Rol {(p.get('perfil') or {}).get('rol', '—')} · {n} evidencias recibidas" if n else f"Rol {(p.get('perfil') or {}).get('rol', '—')} · sin evidencias enviadas (usa las suyas)"
+    if (agent, action) == ("terceros", "registro"):
+        return "Busca sus expedientes de auditoría de contratos", f"Organización {org}"
+    if (agent, action) == ("dsar", "dsar_handoffs"):
+        return "Entrega los handoffs que generó la decisión humana", f"Caso {p.get('case_id', '')}"
+    return f"Ejecuta {action}", ""
+
+
+def _produce(agent: str, action: str, out) -> tuple[str, list[str]]:
+    """Short summary of what the step returned, plus the lines of activity the agent reported (if any)."""
+    try:
+        o = out if isinstance(out, dict) else {}
+        d = o.get("data") if isinstance(o.get("data"), dict) else o
+        if (agent, action) == ("inventario", "consultar_inventario"):
+            acts = d.get("activos") or []
+            return f"{len(acts)} sistemas inventariados; {sum(1 for a in acts for c in a.get('campos', []) if c.get('es_pii'))} campos de datos personales", []
+        if (agent, action) == ("inventario", "exportar_evidencia"):
+            return f"{d.get('nombre_archivo')} · SHA-256 {_cut(d.get('sha256'), 12)}", []
+        if (agent, action) == ("inventario", "recibir_handoff"):
+            return "Hash verificado; cobertura de su inventario respondida", []
+        if (agent, action) == ("auditoria", "auditar"):
+            return f"Severidad propuesta: {o.get('severidad')} · SHA-256 {_cut(o.get('sha256'), 12)}", []
+        if (agent, action) in (("riesgos", "chat"), ("formacion", "chat")):
+            return f"Respuesta de {len(str(o.get('answer') or o.get('text') or ''))} caracteres", []
+        if (agent, action) == ("incidentes", "analizar"):
+            return f"Expediente {o.get('incidente')} en {o.get('segundos', '?')} s", [str(e.get("texto")) for e in (o.get("eventos") or []) if isinstance(e, dict)][:20]
+        if (agent, action) == ("controles", "ejecutar"):
+            r = (o.get("datos") or {}).get("resumen") or {}
+            return f"SoA con {r.get('implementados', 0)} controles implementados y {r.get('parciales', 0)} parciales (de {r.get('controles_en_soa', '?')})", []
+        if (agent, action) == ("terceros", "registro"):
+            return f"{len(o.get('registros') or [])} expedientes encontrados", []
+        if (agent, action) == ("dsar", "dsar_handoffs"):
+            n = len(out) if isinstance(out, list) else 1
+            return f"{n} handoffs generados", []
+    except Exception:  # noqa: BLE001
+        pass
+    return "Completado", []
+
+
+async def _step(agent: str, action: str, payload: dict, steps: list, wait: int = 600, prep: str | None = None) -> dict:
+    """Runs one REAL agent execution. `prep` = what the orchestrator did at the boundary just before (data transformation)."""
+    titulo, lee = _describe(agent, action, payload)
+    t0 = asyncio.get_event_loop().time()
     eid = orch.submit(agent, action, payload)
-    end = asyncio.get_event_loop().time() + wait
+    st = steps.begin({"agent": agent, "action": action, "execution_id": eid, "status": "running", "titulo": titulo, "lee": lee,
+                      "prep": prep, "inicio": _now()})
+    end = t0 + wait
     while asyncio.get_event_loop().time() < end:
-        st = orch.get_status(eid)
-        if st["status"] in ("succeeded", "failed"):
+        s = orch.get_status(eid)
+        if s["status"] in ("succeeded", "failed"):
             res = orch.get_result(eid)
-            steps.append({"agent": agent, "action": action, "execution_id": eid, "status": st["status"]})
-            if st["status"] == "failed":
+            secs = round(asyncio.get_event_loop().time() - t0, 1)
+            if s["status"] == "failed":
+                steps.finish(st, status="failed", segundos=secs, error=_cut(res.get("error"), 300))
                 raise RuntimeError(f"{agent}.{action} falló: {res.get('error')}")
-            return res["result"]["output"]
+            out = res["result"]["output"]
+            produce, actividad = _produce(agent, action, out)
+            steps.finish(st, status="succeeded", segundos=secs, produce=produce, actividad_final=actividad)
+            return out
         await asyncio.sleep(2)
+    steps.finish(st, status="failed", error="tiempo agotado")
     raise TimeoutError(f"{agent}.{action}")
+
+
+def _note(steps: list, agent: str, action: str, titulo: str, lee: str, produce: str, prep: str | None = None) -> None:
+    """A step done by the platform on behalf of an agent without an execution of its own (a read-only HTTP query or a hand-off)."""
+    st = steps.begin({"agent": agent, "action": action, "execution_id": None, "status": "succeeded", "titulo": titulo, "lee": lee,
+                      "prep": prep, "inicio": _now(), "segundos": 0, "produce": produce, "actividad_final": []})
+    steps.finish(st)
+
+
+# What each flow will do, so the page can show the steps that have not started yet.
+PLANS = {
+    "incidente_a_formacion": [("incidentes", "Analiza el incidente"), ("formacion", "Propone capacitaciones con las lecciones")],
+    "terceros_a_controles": [("terceros", "Busca su último expediente"), ("terceros", "Entrega el detalle de sus 26 controles"),
+                             ("controles", "Genera la SoA de partida"), ("controles", "Genera la SoA con las evidencias de G5")],
+    "inventario_a_auditoria": [("inventario", "Exporta el inventario como evidencia"), ("auditoria", "Audita la evidencia")],
+    "inventario_a_riesgos": [("inventario", "Lee el inventario"), ("riesgos", "Evalúa los riesgos del sistema elegido")],
+    "dsar_handoffs": [("dsar", "Entrega los handoffs del caso decidido"), ("auditoria", "G4 evalúa el sobre de evidencia"),
+                      ("terceros", "G5 recibe su sobre (pendiente de una persona)"), ("inventario", "G6 verifica el sobre de inventario")],
+}
 
 
 def start(flow: str, params: dict) -> str:
@@ -83,7 +188,16 @@ async def _run(rid: str, flow: str, params: dict) -> None:
 def get(rid: str) -> dict | None:
     r = db.query("SELECT id::text, flow, status, steps, result, error, created_at, finished_at "
                  "FROM orchestrator.flow_run WHERE id=%s", (rid,))
-    return r[0] if r else None
+    if not r:
+        return None
+    f = r[0]
+    for st in f.get("steps") or []:
+        if st.get("execution_id"):
+            ev = db.query("SELECT message, created_at FROM orchestrator.event WHERE execution_id=%s AND kind='actividad' "
+                          "ORDER BY id LIMIT 60", (st["execution_id"],))
+            st["actividad"] = [{"texto": e["message"], "hora": e["created_at"]} for e in ev]
+    f["plan"] = [{"agent": a, "titulo": t} for a, t in PLANS.get(f["flow"], [])]
+    return f
 
 
 def history(limit: int = 20) -> list[dict]:
@@ -115,16 +229,20 @@ async def dsar_handoffs(rid: str, p: dict, steps: list) -> dict:
         status, detail = "sin_receptor", {"motivo": "El agente destino no tiene receptor de handoffs en esta entrega"}
         if env.get("requires_hitl"):
             status, detail = "pendiente_humano", {"motivo": "El sobre exige revisión humana antes de actuar (requires_hitl)"}
+            _note(steps, to, "recibir_handoff", f"Recibe un sobre de G3 ({env.get('action')})", f"Caso {env.get('case_ref') or env.get('case_id')}",
+                  "Queda pendiente de una persona: el orquestador no ejecuta nada", prep="El orquestador guarda el sobre y lo marca para revisión humana (requires_hitl)")
         if to == "evidencia":
             # G4 evaluates evidence text; the envelope carries hashes/refs only (G3 never includes personal data values).
             res = await _step("auditoria", "auditar", {"nombre_archivo": f"handoff-{env.get('case_ref') or env.get('case_id')}.json",
-                                                      "contenido": json.dumps(env, ensure_ascii=False, indent=2)}, steps)
+                                                      "contenido": json.dumps(env, ensure_ascii=False, indent=2)}, steps,
+                                prep="El orquestador toma el sobre original de G3 (con su hash intacto) y se lo entrega a G4 como evidencia")
             status = "entregado"
             detail = {"severidad": res.get("severidad"), "sha256": res.get("sha256"),
                       "nota": "Dictamen propuesto por G4: requiere validación de un auditor humano"}
         if to == "inventario":
             org = p.get("organizacion", "UNSA-DEMO")
-            res = await _step("inventario", "recibir_handoff", {"organizacion": org, "handoff": env}, steps)
+            res = await _step("inventario", "recibir_handoff", {"organizacion": org, "handoff": env}, steps,
+                              prep="El orquestador entrega a G6 el sobre original de G3 para que verifique su hash")
             d = res.get("data") or {}
             status = "entregado"
             detail = {"hash_verificado": True, "cobertura": d,
@@ -154,12 +272,16 @@ async def terceros_a_controles(rid: str, p: dict, steps: list) -> dict:
         d = (await c.get(f"{os.getenv('AGENT_G5_URL', 'http://agent-g5:5678')}/webhook/pims/registro/detalle",
                          params={"id": rid5})).json()
     ctrls = d["resultado"]["controles"]
+    res5 = d["resultado"]
+    _note(steps, "terceros", "detalle_expediente", "Entrega el detalle de su expediente (consulta de solo lectura)", f"Expediente {rid5}",
+          f"{len(ctrls)} controles evaluados · puntaje {res5.get('puntaje', '—')} · {sum(1 for c in ctrls if c['estado'] in ESTADO_G5_A_G7)} cumplen o cumplen en parte")
     base = {"perfil": {"rol": rol, "organizacion": p.get("nombre_organizacion", "UNSA")}, "riesgos": []}
     before = await _step("controles", "ejecutar", {"operacion": "generar_soa", **base, "evidencias": []}, steps)
     evid = [{"control": c["control"], "estado": ESTADO_G5_A_G7[c["estado"]],
              "descripcion": f"[Agente de Terceros, expediente {rid5}] {c.get('evidencia') or c.get('observacion') or ''}"[:300]}
             for c in ctrls if c["estado"] in ESTADO_G5_A_G7]
-    after = await _step("controles", "ejecutar", {"operacion": "generar_soa", **base, "evidencias": evid}, steps)
+    after = await _step("controles", "ejecutar", {"operacion": "generar_soa", **base, "evidencias": evid}, steps,
+                        prep="El orquestador traduce los controles de G5 en evidencias para G7 (Cumple → implementado, Parcial → parcial) y se las entrega")
     rows = lambda o: {f["control"]: f for f in o["datos"]["soa"]}  # noqa: E731
     b, a = rows(before), rows(after)
     changed = [{"control": k, "antes": b[k]["estado"], "despues": a[k]["estado"]} for k in a if k in {e["control"] for e in evid} and a[k]["estado"] != b[k]["estado"]]
@@ -180,7 +302,8 @@ async def incidente_a_formacion(rid: str, p: dict, steps: list) -> dict:
     lessons = (m.group(1) if m else text)[:1800]
     q = ("Un incidente reciente dejó estas lecciones aprendidas (solo referencias, sin datos personales):\n"
          f"{lessons}\n\nPropón 3 capacitaciones concretas de concientización para el personal, indicando a quién va dirigida cada una.")
-    chat = await _step("formacion", "chat", {"mensaje": q}, steps)
+    chat = await _step("formacion", "chat", {"mensaje": q}, steps,
+                       prep="El orquestador extrae las lecciones aprendidas del informe de G8 (solo referencias, sin datos personales) y arma la pregunta para G1")
     return {"incidente_resumen": text[:400], "lecciones_enviadas_a_g1": lessons[:400], "recomendacion_g1": chat.get("text")}
 
 
@@ -192,7 +315,8 @@ async def inventario_a_auditoria(rid: str, p: dict, steps: list) -> dict:
     if not doc.get("contenido"):
         raise ValueError("El inventario está vacío: registra activos en G6 primero.")
     aud = await _step("auditoria", "auditar", {"nombre_archivo": doc.get("nombre_archivo", "inventario.json"),
-                                               "contenido": doc["contenido"]}, steps)
+                                               "contenido": doc["contenido"]}, steps,
+                      prep="El orquestador entrega a G4 el documento que preparó G6, tal cual y con su SHA-256")
     return {"documento": doc.get("nombre_archivo"), "sha256_g6": doc.get("sha256"), "enviado_por_g6": doc.get("enviado"),
             "severidad_propuesta_g4": aud.get("severidad"), "sha256_g4": aud.get("sha256"),
             "nota": "Dictamen propuesto por G4: requiere validación de un auditor humano"}
@@ -232,7 +356,8 @@ async def inventario_a_riesgos(rid: str, p: dict, steps: list) -> dict:
          f"transferencias: {resumen['transferencias']}\n"
          "Lo que figura como «no declarado» es información que falta. Identifica los 5 riesgos de privacidad más relevantes, con "
          "probabilidad, impacto y nivel de cada uno, y propón un tratamiento. Indica qué información faltante cambiaría la evaluación.")
-    chat = await _step("riesgos", "chat", {"message": q, "sessionId": f"flujo-{rid[:8]}-g6-g2"}, steps, wait=900)
+    chat = await _step("riesgos", "chat", {"message": q, "sessionId": f"flujo-{rid[:8]}-g6-g2"}, steps, wait=900,
+                       prep=f"El orquestador elige el sistema con más datos personales ({resumen['sistema']}) y arma la pregunta con nombres de campos, finalidad y titulares; nunca valores")
     return {"activo": a.get("id"), "sistema_evaluado": resumen["sistema"], "enviado_a_g2": resumen,
             "evaluacion_g2": chat.get("answer") or chat.get("text") or chat.get("output"),
             "nota": "Evaluación propuesta por G2 a partir de nombres de campos y contexto declarado: la valida una persona. No se enviaron valores de datos."}

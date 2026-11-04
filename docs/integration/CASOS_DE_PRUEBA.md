@@ -22,7 +22,7 @@ Todos los datos son ficticios (UNSA simulada). Plataforma arriba: `docker compos
 
 ## B. Flujos entre agentes (API del orquestador)
 
-Cada paso es una ejecución real y aparece en `/actividad`. Lanza un flujo con `POST /api/flows/<nombre>` y consulta con `GET /api/flows/<id>`.
+Cada paso es una ejecución real y aparece en `/actividad`. En el Panel general, al ejecutar un flujo la tarjeta se expande y muestra una **línea de tiempo en vivo**: qué agente actúa (G1–G8, con su color), qué recibe, lo que va leyendo o haciendo (en G8, cada archivo que abre) y qué entrega; entre agentes aparece lo que hace el **orquestador** (la transformación de datos) y los pasos que aún no empezaron figuran «En espera». Lanza un flujo con `POST /api/flows/<nombre>` y consulta con `GET /api/flows/<id>`.
 
 ### B1. `terceros_a_controles` — G5 → G7 (también desde el Panel general, sección "Flujos entre agentes")
 Solo 3 controles coinciden entre ambos catálogos: **A.2.5.7** (divulgación de subcontratistas), **A.3.11** (planificación de incidentes) y **A.3.12** (respuesta a incidentes). Por eso el resultado depende del contrato que audites en G5.
