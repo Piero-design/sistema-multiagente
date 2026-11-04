@@ -1,7 +1,9 @@
 """Backend API for the unified frontend."""
 from __future__ import annotations
 
+import hmac
 import os
+import asyncio
 
 import httpx
 from fastapi import FastAPI, HTTPException
@@ -116,3 +118,47 @@ async def get_flow(rid: str):
     if not r:
         raise HTTPException(404, "No existe")
     return r
+
+
+# ---------------------------------------------------------------- each team sets its own Gemini key
+class TeamKeyBody(BaseModel):
+    code: str
+    key: str = ""
+
+
+def _check_team_code(team: str, code: str) -> None:
+    if team not in [f"g{i}" for i in range(1, 9)]:
+        raise HTTPException(404, "Equipo desconocido")
+    expected = os.getenv(f"TEAM_CODE_{team.upper()}", "").strip()
+    if not expected:
+        raise HTTPException(403, "Este equipo todavía no tiene código de acceso: pídelo al administrador de la plataforma.")
+    if not hmac.compare_digest(expected.encode(), code.strip().encode()):
+        import time
+        time.sleep(1.5)                       # slows down guessing
+        raise HTTPException(403, "Código de equipo incorrecto")
+
+
+async def _gateway_key(method: str, team: str, body: dict | None = None):
+    async with httpx.AsyncClient(timeout=40) as c:
+        r = await c.request(method, f"{GATEWAY}/teams/{team}/key", json=body,
+                            headers={"X-Admin-Token": os.getenv("GATEWAY_ADMIN_TOKEN", "")})
+    if r.status_code >= 400:
+        detail = r.json().get("error") if r.headers.get("content-type", "").startswith("application/json") else r.text[:200]
+        raise HTTPException(r.status_code if r.status_code < 500 else 502, detail or "No se pudo guardar la clave")
+    return r.json()
+
+
+@app.post("/api/teams/{team}/key")
+async def set_team_key(team: str, b: TeamKeyBody):
+    _check_team_code(team, b.code)
+    res = await _gateway_key("PUT", team, {"key": b.key})
+    orch._event(None, "plataforma", "team_key_set", f"equipo {team.upper()} configuró su clave de Gemini")
+    return {"ok": True, "team": team, "key_source": res.get("key_source")}
+
+
+@app.delete("/api/teams/{team}/key")
+async def delete_team_key(team: str, b: TeamKeyBody):
+    _check_team_code(team, b.code)
+    res = await _gateway_key("DELETE", team)
+    orch._event(None, "plataforma", "team_key_removed", f"equipo {team.upper()} quitó su clave de Gemini")
+    return {"ok": True, "team": team, "key_source": res.get("key_source")}

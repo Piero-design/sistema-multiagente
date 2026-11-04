@@ -95,3 +95,19 @@ def test_g2_reports_real_state_with_reason():
     g2 = next(a for a in get("/api/agents", timeout=60).json() if a["group"] == 2)
     if g2["status"] != "operativo":
         assert g2["reason"]       # degraded/down must always say why
+
+
+# ---- each team sets its own Gemini key from the web (guarded by a team code) ----
+def test_team_key_endpoints_refuse_without_the_right_code():
+    r = httpx.post(f"{BASE}/api/teams/g1/key", json={"code": "codigo-incorrecto", "key": "AIza" + "x" * 30}, timeout=30)
+    assert r.status_code == 403 and "AIza" not in r.text
+    assert httpx.post(f"{BASE}/api/teams/g99/key", json={"code": "x", "key": "y"}, timeout=30).status_code == 404
+    assert httpx.request("DELETE", f"{BASE}/api/teams/g1/key", json={"code": "codigo-incorrecto"}, timeout=30).status_code == 403
+
+
+def test_system_reports_key_source_but_never_a_key():
+    r = get("/api/system")
+    teams = r.json()["llm"]["teams"]
+    assert set(teams) == {f"g{i}" for i in range(1, 9)}
+    assert all("key" not in k.lower().replace("own_key", "").replace("key_source", "") for t in teams.values() for k in t)
+    assert "AIza" not in r.text

@@ -78,3 +78,29 @@ def test_team_prefixes_work_in_mock_mode():
     assert c.post("/g8/openai/v1/chat/completions", json={"messages": [{"role": "user", "content": "x"}]}).status_code == 200
     assert c.post("/openai/v1/chat/completions", json={"messages": [{"role": "user", "content": "x"}]}).status_code == 200
     assert c.get("/g2/api/tags").json()["models"]
+
+
+def test_team_keys_set_from_the_web_are_stored_privately_and_override_env(monkeypatch, tmp_path):
+    monkeypatch.setenv("LLM_MODE", "mock")                      # no network: the provider check is skipped in mock mode
+    monkeypatch.setenv("TEAM_KEYS_FILE", str(tmp_path / "keys.json"))
+    monkeypatch.setenv("GATEWAY_ADMIN_TOKEN", "ADMIN")
+    monkeypatch.setenv("LLM_API_KEY_G2", "ENV-KEY-G2-0000000000000")
+    import gateway
+    importlib.reload(gateway)
+    c = TestClient(gateway.app)
+    good = "FAKE-team-key-for-tests-0000000000000000"
+    # only the backend (admin token) may change keys
+    assert c.put("/teams/g2/key", json={"key": good}).status_code == 401
+    assert c.put("/teams/g2/key", json={"key": good}, headers={"x-admin-token": "WRONG"}).status_code == 401
+    assert c.put("/teams/g2/key", json={"key": "corta"}, headers={"x-admin-token": "ADMIN"}).status_code == 400
+    assert c.get("/teams").json()["teams"]["g2"]["key_source"] == "env"
+    r = c.put("/teams/g2/key", json={"key": good}, headers={"x-admin-token": "ADMIN"})
+    assert r.status_code == 200 and good not in r.text
+    assert gateway.team_key("g2") == good                        # the key set on the web wins over the env file
+    t = c.get("/teams")
+    assert t.json()["teams"]["g2"]["key_source"] == "web" and good not in t.text
+    assert oct((tmp_path / "keys.json").stat().st_mode & 0o777) in ("0o600", "0o666")   # 600 on Linux
+    # removing it falls back to the env key
+    assert c.delete("/teams/g2/key", headers={"x-admin-token": "ADMIN"}).status_code == 200
+    assert gateway.team_key("g2") == "ENV-KEY-G2-0000000000000"
+    assert c.put("/teams/g99/key", json={"key": good}, headers={"x-admin-token": "ADMIN"}).status_code == 404

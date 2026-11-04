@@ -36,8 +36,39 @@ export async function configuracion(root) {
       h('p', { class: 'small mute' }, 'Cada equipo usa su propia clave a través del gateway, para no saturar la cuota de otro. Aquí solo se ve si existe y cuánto usó; las claves nunca se muestran.'),
       l.shared_fallback ? alertBox('warn', 'Modo desarrollo: los equipos sin clave propia usan la clave compartida (LLM_ALLOW_SHARED_FALLBACK=true). Desactívalo cuando cada equipo tenga la suya.') : null,
       l.teams ? table(['Equipo', 'Clave propia', 'Modelo', 'Llamadas', 'Errores', 'Tokens (ent./sal.)', 'Última'],
-        Object.entries(l.teams).map(([k, t]) => [k.toUpperCase(), t.own_key ? 'Sí' : (t.usable ? 'No (usa la compartida)' : 'No: falta'), t.model || '—',
+        Object.entries(l.teams).map(([k, t]) => [k.toUpperCase(), t.own_key ? (t.key_source === 'web' ? 'Sí (puesta desde la web)' : 'Sí (archivo .env)') : (t.usable ? 'No (usa la compartida)' : 'No: falta'), t.model || '—',
           t.requests, t.errors, `${t.prompt_tokens}/${t.completion_tokens}`, t.last_call_at || '—'])) : h('span', { class: 'mute' }, 'Sin datos.')),
+    h('h2', { style: 'margin-top:20px' }, 'Configurar la clave de mi equipo'),
+    teamKeyForm(l),
     h('h2', { style: 'margin-top:20px' }, 'Agentes'),
     h('div', { class: 'card' }, table(['Grupo', 'Agente', 'Estado', 'Motivo'], agents.map((a) => [`G${a.group}`, a.name, badge(a.status), a.reason || '']))));
+}
+
+function teamKeyForm(l) {
+  const msg = h('div', { style: 'margin-top:10px' });
+  const teams = Object.keys(l.teams || {});
+  const form = h('form', { class: 'card' },
+    h('p', { class: 'small mute' }, 'Cada equipo pega aquí su propia clave de Gemini (se obtiene en Google AI Studio). Necesitas el código de tu equipo, que entrega el administrador. La clave se prueba contra Google antes de guardarse, no se vuelve a mostrar y solo la usa tu agente.'),
+    h('div', { class: 'grid g2' },
+      h('div', {}, h('label', {}, 'Equipo'), h('select', { name: 'team' }, teams.map((t) => h('option', { value: t }, t.toUpperCase())))),
+      h('div', {}, h('label', {}, 'Código del equipo'), h('input', { name: 'code', type: 'password', autocomplete: 'off' }))),
+    h('label', {}, 'Clave de Gemini'), h('input', { name: 'key', type: 'password', autocomplete: 'off', placeholder: 'AIza…' }),
+    h('div', { class: 'row', style: 'margin-top:14px' },
+      h('button', { type: 'submit' }, 'Guardar clave'),
+      h('button', { type: 'button', class: 'ghost', onclick: () => send('DELETE') }, 'Quitar la clave guardada en la web')),
+    msg);
+  async function send(method) {
+    const f = form.elements;
+    msg.replaceChildren(spinner(method === 'DELETE' ? 'Quitando…' : 'Probando la clave con Google…'));
+    try {
+      const r = await fetch(`/api/teams/${f.team.value}/key`, { method, headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code: f.code.value, key: method === 'DELETE' ? '' : f.key.value }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || 'No se pudo guardar');
+      f.key.value = '';
+      msg.replaceChildren(alertBox('info', method === 'DELETE' ? 'Clave quitada.' : `Clave de ${f.team.value.toUpperCase()} guardada y verificada. Recarga la página para ver el estado.`));
+    } catch (e) { msg.replaceChildren(alertBox('bad', e.message)); }
+  }
+  form.addEventListener('submit', (ev) => { ev.preventDefault(); send('PUT'); });
+  return form;
 }

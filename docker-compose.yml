@@ -68,7 +68,11 @@ services:
       context: .
       dockerfile: docker/gateway.Dockerfile
     restart: unless-stopped
-    environment: *llm-env
+    environment:
+      <<: *llm-env
+      GATEWAY_ADMIN_TOKEN: ${GATEWAY_ADMIN_TOKEN:-}     # only the backend knows it (team keys set from the web)
+      TEAM_KEYS_FILE: /data/team_keys.json
+    volumes: [gwdata:/data]
     networks: [internal]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8080/health')"]
@@ -90,6 +94,16 @@ services:
       DB_USER: orchestrator_rw
       DB_PASSWORD: ${ORCHESTRATOR_DB_PASSWORD:-orch_dev_pw}
       GATEWAY_URL: http://llm-gateway:8080
+      GATEWAY_ADMIN_TOKEN: ${GATEWAY_ADMIN_TOKEN:-}
+      # Access code per team to set its own Gemini key from /configuracion (empty = that team cannot set it from the web)
+      TEAM_CODE_G1: ${TEAM_CODE_G1:-}
+      TEAM_CODE_G2: ${TEAM_CODE_G2:-}
+      TEAM_CODE_G3: ${TEAM_CODE_G3:-}
+      TEAM_CODE_G4: ${TEAM_CODE_G4:-}
+      TEAM_CODE_G5: ${TEAM_CODE_G5:-}
+      TEAM_CODE_G6: ${TEAM_CODE_G6:-}
+      TEAM_CODE_G7: ${TEAM_CODE_G7:-}
+      TEAM_CODE_G8: ${TEAM_CODE_G8:-}
       QDRANT_API_KEY: ${QDRANT_API_KEY:-qdrant_dev_key}
       HUMAN_BRIDGE_TOKEN: ${HUMAN_BRIDGE_TOKEN:-bridge_dev_token}
       # Demo accounts for the human-review page: user:password:role;... (change them in .env)
@@ -363,6 +377,7 @@ networks:
 volumes:
   pgdata:
   g1data:
+  gwdata:
   g6data:
   g2n8n:
   qdrantdata:

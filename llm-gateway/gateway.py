@@ -9,6 +9,8 @@ Bodies and API keys are never logged and never returned.
 """
 import asyncio
 import hashlib
+import hmac
+import json
 import logging
 import os
 import time
@@ -44,8 +46,46 @@ def _blank():
 stats = {a: _blank() for a in AGENTS + ["shared"]}
 
 
+# Keys that teams set themselves from the web (stored in a volume, mode 600, never returned by any endpoint).
+KEYS_FILE = os.getenv("TEAM_KEYS_FILE", "/data/team_keys.json")
+ADMIN_TOKEN = os.getenv("GATEWAY_ADMIN_TOKEN", "")
+_stored: dict = {"mtime": None, "keys": {}}
+
+
+def _stored_keys() -> dict:
+    try:
+        m = os.stat(KEYS_FILE).st_mtime
+    except OSError:
+        return {}
+    if _stored["mtime"] != m:
+        try:
+            _stored["keys"] = json.load(open(KEYS_FILE, encoding="utf-8"))
+            _stored["mtime"] = m
+        except (OSError, ValueError):
+            return {}
+    return _stored["keys"]
+
+
+def _save_keys(keys: dict) -> None:
+    os.makedirs(os.path.dirname(KEYS_FILE) or ".", exist_ok=True)
+    tmp = KEYS_FILE + ".tmp"
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(keys, f)
+    os.replace(tmp, KEYS_FILE)
+    _stored["mtime"] = None
+
+
+def key_source(agent: str) -> str:
+    if _stored_keys().get(agent):
+        return "web"
+    if os.getenv(f"LLM_API_KEY_{agent.upper()}", "").strip():
+        return "env"
+    return ""
+
+
 def team_key(agent: str) -> str:
-    own = os.getenv(f"LLM_API_KEY_{agent.upper()}", "").strip()
+    own = _stored_keys().get(agent) or os.getenv(f"LLM_API_KEY_{agent.upper()}", "").strip()
     if own:
         return own
     return SHARED_KEY if ALLOW_FALLBACK else ""
@@ -243,8 +283,8 @@ async def teams():
     out = {}
     for a in AGENTS:
         s = stats[a]
-        own = bool(os.getenv(f"LLM_API_KEY_{a.upper()}", "").strip())
-        out[a] = {"own_key": own, "usable": own or (ALLOW_FALLBACK and bool(SHARED_KEY)) or MODE != "cloud",
+        own = bool(key_source(a))
+        out[a] = {"own_key": own, "key_source": key_source(a) or None, "usable": own or (ALLOW_FALLBACK and bool(SHARED_KEY)) or MODE != "cloud",
                   "model": team_model(a), "requests": s["requests"], "errors": s["errors"],
                   "prompt_tokens": s["prompt_tokens"], "completion_tokens": s["completion_tokens"],
                   "last_latency_ms": s["last_latency_ms"], "last_error": s["last_error"], "last_call_at": s["last_call_at"]}
@@ -390,3 +430,51 @@ async def api_embed(req: Request):
     except Exception as e:  # noqa: BLE001
         _track(agent, t0, err=e)
         return _err(e)
+
+
+# ---------------------------------------------------------------- team key administration (backend only)
+def _admin(req: Request) -> None:
+    tok = req.headers.get("x-admin-token", "")
+    if not ADMIN_TOKEN or not hmac.compare_digest(tok, ADMIN_TOKEN):
+        raise HTTPException(401, "admin token required")
+
+
+async def _key_works(key: str) -> bool:
+    """Cheap real check against the provider (lists models); the key is never logged."""
+    if MODE != "cloud":
+        return True
+    try:
+        async with httpx.AsyncClient(timeout=20) as c:
+            r = await c.get(f"{_oa_base()}/models", headers={"Authorization": f"Bearer {key}"})
+        return r.status_code == 200
+    except Exception:  # noqa: BLE001
+        return False
+
+
+@app.put("/teams/{agent}/key")
+async def set_team_key(agent: str, req: Request):
+    _admin(req)
+    if agent not in AGENTS:
+        raise HTTPException(404, "unknown team")
+    key = str((await req.json()).get("key", "")).strip()
+    if len(key) < 20 or any(c.isspace() for c in key):
+        return JSONResponse({"ok": False, "error": "La clave no tiene el formato de una clave de API."}, status_code=400)
+    if not await _key_works(key):
+        return JSONResponse({"ok": False, "error": "El proveedor rechazó la clave: revisa que esté completa y activa."}, status_code=400)
+    keys = dict(_stored_keys())
+    keys[agent] = key
+    _save_keys(keys)
+    log.info("team=%s key set from web", agent)
+    return {"ok": True, "team": agent, "key_source": "web"}
+
+
+@app.delete("/teams/{agent}/key")
+async def delete_team_key(agent: str, req: Request):
+    _admin(req)
+    if agent not in AGENTS:
+        raise HTTPException(404, "unknown team")
+    keys = dict(_stored_keys())
+    keys.pop(agent, None)
+    _save_keys(keys)
+    log.info("team=%s web key removed", agent)
+    return {"ok": True, "team": agent, "key_source": key_source(agent) or None}
