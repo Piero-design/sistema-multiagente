@@ -27,10 +27,11 @@ function pickText(o) {
   return null;
 }
 
-export async function agentPage(root, key) {
+// `header: false` lets a group page that embeds this one draw its own title (G3).
+export async function agentPage(root, key, { header = true } = {}) {
   const cfg = AGENTS[key];
   const detail = await api.agents().then((l) => l.find((a) => a.group === cfg.group));
-  root.append(h('div', { class: 'row', style: 'justify-content:space-between' }, h('h1', {}, `G${cfg.group} · ${cfg.title}`), badge(detail.status)),
+  if (header) root.append(h('div', { class: 'row', style: 'justify-content:space-between' }, h('h1', {}, `G${cfg.group} · ${cfg.title}`), badge(detail.status)),
     h('p', { class: 'sub' }, cfg.about));
   if (detail.reason) root.append(alertBox(detail.status === 'caido' ? 'bad' : 'warn', detail.reason));
   root.append(alertBox('info', 'Los valores precargados son datos de demostración (organización simulada UNSA). Puedes editarlos.'));

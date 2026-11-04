@@ -322,9 +322,9 @@ def test_preview_of_an_already_extended_right_says_so_instead_of_recomputing_the
 
 
 def test_preview_explains_when_the_calendar_cannot_count_the_ceiling(build, peru_request, profiles):
-    package = build(peru_request(["access"]) | {"received_at": "2026-11-20"})
-    preview = extension_preview(package, profiles, "access", date(2026, 11, 23))
-    assert preview["allowed"] is False and "2027" in preview["reason"] and preview["legal_ceiling_at"] is None
+    package = build(peru_request(["access"]) | {"received_at": "2027-11-20"})
+    preview = extension_preview(package, profiles, "access", date(2027, 11, 22))
+    assert preview["allowed"] is False and "2028" in preview["reason"] and preview["legal_ceiling_at"] is None
 
 
 def test_a_suspension_after_an_extension_moves_the_legal_ceiling_too(build, peru_request, org, profiles):

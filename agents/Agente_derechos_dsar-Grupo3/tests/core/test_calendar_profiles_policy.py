@@ -40,14 +40,22 @@ def test_count_days_is_inverse_of_add_days(profiles):
 
 def test_year_without_holidays_fails(profiles):
     pe = holidays(profiles["PE-LEY29733"])
-    with pytest.raises(CalendarError, match="2027"):
-        add_days(date(2026, 12, 20), 20, "business", pe)
+    with pytest.raises(CalendarError, match="2028"):
+        add_days(date(2027, 12, 20), 20, "business", pe)
+
+
+def test_peru_2027_holidays_are_skipped(profiles):
+    pe = holidays(profiles["PE-LEY29733"])
+    # 2026-12-31 (jueves) + 1 día hábil: el 1 de enero es feriado, el siguiente hábil es el lunes 4.
+    assert add_days(date(2026, 12, 31), 1, "business", pe) == date(2027, 1, 4)
+    # Jueves y Viernes Santo de 2027 (25 y 26 de marzo).
+    assert add_days(date(2027, 3, 24), 1, "business", pe) == date(2027, 3, 29)
 
 
 def test_case_crossing_into_year_without_holidays_fails(build, peru_request):
     request = peru_request(["access"])
-    request["received_at"] = "2026-12-20"
-    with pytest.raises(CaseInputError, match="2027"):
+    request["received_at"] = "2027-12-20"
+    with pytest.raises(CaseInputError, match="2028"):
         build(request)
 
 

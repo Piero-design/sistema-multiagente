@@ -17,6 +17,7 @@ Lleva un expediente ya registrado hasta la decisión de una persona: explica qu�
 | "redacta", "borrador", "respuesta al titular", "carta" | Redactar respuesta | [tarea-redactar-respuesta.md](../../knowledge/references/tarea-redactar-respuesta.md) + [plantilla](../../knowledge/assets/response-template.md) | `dsar_borrador` (solo tras `APPROVED`) |
 | "qué falta para aprobar", "motivos", "revisión humana" | Revisar HITL | [workflow-and-states.md](../../knowledge/references/workflow-and-states.md) | `dsar_estado` |
 | Decisión humana registrada | Derivar a otros agentes | Tabla de derivación (abajo) | `dsar_handoffs` |
+| "qué controles", "qué cláusulas", "ISO 27701 de este caso" | Controles del expediente | [iso-control-map.md](../../knowledge/references/iso-control-map.md) | `dsar_controles` |
 
 ## Aprobación humana (HITL)
 

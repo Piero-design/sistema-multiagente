@@ -60,6 +60,27 @@ G3 solo genera handoffs **después de una decisión humana**. Ahora esa decisió
 | B4.5 | G8: analizar un incidente y, en `/revision`, aprobar o rechazar una acción propuesta | Se registra la decisión; el agente no ejecuta nada |
 Cuentas de demostración (cámbialas con `HUMAN_USERS` en `.env`): `dpo`/`demo-dpo` y `legal`/`demo-legal`.
 
+## B5. G3 · pestaña «Gestión (DPO)» de `/agentes/dsar`
+
+| # | Prueba | Esperado |
+|---|---|---|
+| B5.1 | Abrir la página sin sesión, o con `legal` | Pide iniciar sesión; con `legal`, aviso de que se requiere DPO (la API responde 401 / 403) |
+| B5.2 | Expediente de un caso con identidad pendiente | Cero registros, línea de tiempo con «Descubrimiento bloqueado», controles A.1 y cláusulas 8.3, 8.1, 5.3, 7.4, 9.1 y 9.2 |
+| B5.3 | «Verificar identidad» en el expediente y luego «Ver opciones» y «Aplicar prórroga» | Límites del art. 71; la prórroga queda con `decided_by` = el usuario con sesión |
+| B5.4 | «Redactar con el asistente» en modo `guided` y «Exportar expediente» | Borrador con plantilla y descarga de un JSON con expediente y borrador |
+| B5.5 | «Correos entrantes» → cargar 5 → revisar buzón | Los correos quedan en triaje (sin modelo local); confirmar uno crea un caso `DSAR-EMAIL-…` con identidad pendiente |
+| B5.6 | «Preparar correo» (identidad) y luego «Enviar» en la bandeja de salida | Se prepara el borrador; el envío responde 409: desactivado por defecto |
+| B5.7 | `/agentes/dsar` → «Preguntar al asistente» con un caso y «Redacta un borrador» | No devuelve el borrador: indica que lo prepara el DPO en la pestaña Gestión |
+
+**Automatizadas en un navegador real (Playwright):** `tests/e2e/test_g3_dsar_ui.py` recorre B5.1, B5.2, B5.5, verificar y aprobar desde el expediente, los gráficos de Indicadores y la herramienta «Controles y cláusulas ISO». Con la plataforma arriba:
+
+```bash
+pip install playwright==1.55.0 pytest httpx
+pytest tests/e2e/test_g3_dsar_ui.py -q
+```
+
+Usa el Chrome instalado (`PLAYWRIGHT_CHANNEL=chrome`; vacío = Chromium de Playwright tras `playwright install chromium`). `HEADED=1` muestra el navegador. Si la plataforma no responde, las pruebas se omiten.
+
 ## C. Reglas que no deben romperse
 
 | # | Prueba | Esperado |

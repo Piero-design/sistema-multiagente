@@ -1,7 +1,7 @@
 import { authed, login, session, whoami } from '../services/api.js';
 import { h, alertBox, spinner } from '../components/ui.js';
 
-function loginForm(root, onDone) {
+export function loginForm(root, onDone) {
   const err = h('div');
   const f = h('form', { class: 'card', style: 'max-width:420px' },
     h('h2', {}, 'Iniciar sesión'),

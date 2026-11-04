@@ -139,8 +139,10 @@ class G3(AgentAdapter):
     name = "Derechos de titulares (DSAR)"
     responsibility = "Registro, plazos y borradores de respuesta a solicitudes de derechos"
     # Model-callable tools only. verify_identity / decide are NOT here by design (human-only).
+    # dsar_controles is read-only (ISO/IEC 27701 controls and clauses of a case); dsar_asistente explains, never
+    # decides, and never returns a case draft. The rest of the agent's panel is human-only (backend/api/human.py).
     TOOLS = {"dsar_crear_caso", "dsar_estado", "dsar_plazos", "dsar_calcular_plazos", "dsar_listar",
-             "dsar_borrador", "dsar_consultar_norma", "dsar_handoffs"}
+             "dsar_borrador", "dsar_consultar_norma", "dsar_handoffs", "dsar_controles", "dsar_asistente"}
 
     @property
     def url(self):
@@ -153,8 +155,11 @@ class G3(AgentAdapter):
     async def _call(self, tool: str | None, args: dict | None = None):
         try:
             return await self._call_raw(tool, args)
-        except BaseExceptionGroup as eg:  # surface the real cause, not the TaskGroup wrapper
-            raise eg.exceptions[0]
+        except BaseExceptionGroup as eg:  # surface the real cause, not the TaskGroup wrappers (they can be nested)
+            cause: BaseException = eg
+            while isinstance(cause, BaseExceptionGroup):
+                cause = cause.exceptions[0]
+            raise cause
 
     async def _call_raw(self, tool: str | None, args: dict | None = None):
         from mcp import ClientSession

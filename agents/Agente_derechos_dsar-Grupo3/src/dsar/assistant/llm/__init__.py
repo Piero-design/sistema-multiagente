@@ -12,6 +12,8 @@ from typing import Any
 
 from dsar.assistant.llm.base import LLMError, LlmResult, Provider, prompt_hash
 from dsar.assistant.llm.claude_code import ClaudeCodeProvider
+from dsar.assistant.llm.gateway import GatewayProvider
+from dsar.assistant.llm.gateway import base_url as gateway_url
 from dsar.assistant.llm.gemini import GeminiProvider
 from dsar.assistant.llm.ollama import OllamaProvider
 
@@ -20,7 +22,10 @@ MIN_LEAK_LENGTH = 3
 
 
 def default_providers() -> dict[str, Provider]:
-    return {provider.name: provider for provider in (OllamaProvider(), GeminiProvider(), ClaudeCodeProvider())}
+    providers: list[Provider] = [OllamaProvider(), GeminiProvider(), ClaudeCodeProvider()]
+    if gateway_url():  # solo dentro de la plataforma multiagente
+        providers.append(GatewayProvider())
+    return {provider.name: provider for provider in providers}
 
 
 def record_values(package: dict[str, Any] | None) -> set[str]:

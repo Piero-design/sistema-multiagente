@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from backend.orchestrator import orchestrator as orch
@@ -133,6 +134,34 @@ async def dsar_decidir(b: DecideBody, who: dict = Depends(auth.require("DPO"))):
     if r.status_code >= 400:
         raise HTTPException(r.status_code, r.json().get("detail", r.text[:300]))
     return r.json()
+
+
+# G3 case work (expediente, draft, extension, export, mail intake, outbox, indicators, policy): DPO only.
+# Forwarded to the G3 bridge's /gestion routes; `reviewer` is always the signed-in person, never the client's value.
+G3_GESTION = re.compile(r"^[a-z]+(/[A-Za-z0-9-]+){0,3}$")
+
+
+@router.api_route("/human/dsar/gestion/{path:path}", methods=["GET", "POST", "PUT"])
+async def dsar_gestion(path: str, request: Request, who: dict = Depends(auth.require("DPO"))):
+    if not G3_GESTION.fullmatch(path):
+        raise HTTPException(404, "Ruta de gestión DSAR desconocida")
+    body = None
+    if request.method != "GET":
+        body = await request.json()
+        if not isinstance(body, dict):
+            raise HTTPException(422, "Se esperaba un objeto JSON")
+        body["reviewer"] = who["user"]
+    r = await _call(request.method, f"{G3_BRIDGE}/gestion/{path}", headers=BRIDGE_HEADERS,
+                    params=dict(request.query_params), json=body, timeout=150)   # a model draft can take ~2 min
+    if request.method != "GET":
+        _audit(who, "dsar", f"gestion_{path.split('/')[-1]}", path, f"HTTP {r.status_code}")
+    try:
+        data = r.json()
+    except ValueError:
+        data = {"detail": r.text[:300]}
+    if r.status_code >= 400:
+        raise HTTPException(r.status_code, data.get("detail", data) if isinstance(data, dict) else data)
+    return data
 
 
 # ---------------------------------------------------------------- G8: approve or reject a PROPOSED action (nothing is executed)

@@ -13,12 +13,17 @@ from typing import Any
 
 from mcp.server.mcpserver.exceptions import ToolError
 
-from dsar.services import cases, drafting, system
+from dsar.services import cases, chat, controls, drafting, system
 from dsar.services.context import ServiceContext
-from dsar.services.errors import CaseInputError, NotFoundError, TransitionError
+from dsar.services.errors import CaseInputError, LLMError, NotFoundError, TransitionError
 
 IDENTITY_STATES = frozenset({"verified", "pending"})
-EXPECTED_ERRORS = (CaseInputError, TransitionError, NotFoundError, ValueError)
+EXPECTED_ERRORS = (CaseInputError, TransitionError, NotFoundError, ValueError, LLMError)
+# Lo que sale del asistente por MCP: sin el borrador (lleva datos del titular; lo pide el DPO por la plataforma).
+ANSWER_FIELDS = ("question", "answer", "task", "scope", "scope_basis", "mode", "model", "warnings")
+SOURCE_FIELDS = ("chunk_id", "source", "section")
+DRAFT_ELSEWHERE = ("El borrador de un caso contiene datos del titular: lo prepara una persona en el panel del agente "
+                   "(en la plataforma, la pestaña «Gestión (DPO)» de G3). Tras la aprobación, usa dsar_borrador.")
 
 
 def _guard(call):
@@ -73,6 +78,26 @@ def calcular_plazos(ctx: ServiceContext, request_types: list[str], received_at: 
                     policy_id: str = "PE-LEY29733") -> dict[str, Any]:
     """T4: calcula plazos sin crear expediente (sin datos personales)."""
     return cases.deadlines(ctx, request_types, date.fromisoformat(received_at), policy_id)
+
+
+@_guard
+def controles(ctx: ServiceContext, case_id: str) -> dict[str, Any]:
+    """Controles del Anexo A y cláusulas de ISO/IEC 27701:2025 que evidencia un expediente (solo lectura)."""
+    package = cases.get(ctx, case_id)
+    return {"case_id": case_id, "status": package["status"], "controls": controls.applied_controls(package)}
+
+
+@_guard
+def asistente(ctx: ServiceContext, pregunta: str, case_id: str | None = None, modo: str = "guided") -> dict[str, Any]:
+    """Asistente DSAR: control de alcance y filtro de evasión antes del modelo; el modelo explica, no decide."""
+    result = chat.ask(ctx, pregunta[:2000], case_id or None, modo)
+    if result.get("draft"):
+        # El borrador de un caso lleva sus registros: no sale por MCP antes de la aprobación humana.
+        result["answer"] = DRAFT_ELSEWHERE
+    return {key: result.get(key) for key in ANSWER_FIELDS} | {
+        "case_id": case_id or None,
+        "sources": [{key: item.get(key) for key in SOURCE_FIELDS} for item in result.get("sources") or []],
+    }
 
 
 @_guard

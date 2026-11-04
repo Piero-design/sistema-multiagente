@@ -17,6 +17,10 @@ def _control(control: str, title: str, reason: str) -> dict[str, str]:
     return {"control": control, "title": title, "reason": reason}
 
 
+def _count(n: int, word: str) -> str:
+    return f"{n} {word}" + ("" if n == 1 else "s")
+
+
 def applied_controls(package: dict[str, Any]) -> list[dict[str, str]]:
     rights = set(package.get("request_types") or [package["request_type"]])
     records = package["discovered_records"]
@@ -63,12 +67,13 @@ def applied_clauses(package: dict[str, Any]) -> list[dict[str, str]]:
         _control("Cláusula 8.1", "Planificación y control operacional",
                  f"El motor determinista fija el estado {package['status']}; el modelo no decide."),
         _control("Cláusula 5.3", "Roles y autoridades",
-                 f"Aprobación humana requerida ({len(package['hitl']['reasons'])} motivos); solo una persona decide."
+                 f"Aprobación humana requerida ({_count(len(package['hitl']['reasons']), 'motivo')}); "
+                 "solo una persona decide."
                  if package["hitl"]["required"] else "Solo una persona aprueba o rechaza el expediente."),
         _control("Cláusula 7.4", "Comunicación",
                  "El borrador sigue una plantilla; el envío lo decide una persona desde la bandeja de salida."),
         _control("Cláusula 9.1", "Seguimiento y medición",
-                 f"Vencimiento por derecho registrado para su seguimiento ({len(package['deadlines'])} plazos)."),
+                 f"Vencimiento por derecho registrado para su seguimiento ({_count(len(package['deadlines']), 'plazo')})."),
         _control("Cláusula 9.2", "Auditoría interna",
                  "El rastro de auditoría y los hashes permiten auditar cada paso del expediente."),
     ]

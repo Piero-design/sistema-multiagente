@@ -5,6 +5,7 @@ import { dashboard } from './pages/dashboard.js';
 import { agentPage } from './pages/agent.js';
 import { actividad, configuracion } from './pages/system.js';
 import { revision } from './pages/revision.js';
+import { dsarPage } from './pages/dsar.js';
 
 const app = document.getElementById('app');
 
@@ -15,7 +16,7 @@ async function shell(path) {
   ORDER.forEach(([to, label], i) => {
     if (i === 1) nav.append(h('h6', {}, 'Agentes'));
     if (to === '/revision') nav.append(h('h6', {}, 'Sistema'));
-    nav.append(h('a', { href: to, class: to === path ? 'on' : '', 'data-link': '' }, label, status[to] ? h('span', { class: `dot ${status[to]}` }) : null));
+    nav.append(h('a', { href: to, class: to === path || (to !== '/' && path.startsWith(to + '/')) ? 'on' : '', 'data-link': '' }, label, status[to] ? h('span', { class: `dot ${status[to]}` }) : null));
   });
   const main = h('main');
   app.replaceChildren(h('div', { class: 'shell' }, h('aside', { class: 'side' }, h('div', { class: 'brand' }, h('i'), 'PIMS multiagente'), nav), main));
@@ -26,6 +27,8 @@ async function route() {
   const path = location.pathname.replace(/\/$/, '') || '/';
   const main = await shell(path);
   try {
+    // G3 has its own page (tools + DPO management); every other agent uses the generic page below.
+    if (path === '/agentes/dsar' || path === '/agentes/dsar/gestion') return await dsarPage(main, route);
     const m = path.match(/^\/agentes\/(\w+)$/);
     if (path === '/') await dashboard(main);
     else if (m) await agentPage(main, m[1]);

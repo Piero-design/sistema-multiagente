@@ -169,6 +169,17 @@ services:
       DSAR_HANDOFF_DIR: /data/handoffs
       DSAR_EXPORT_DIR: /data/exports
       HUMAN_BRIDGE_TOKEN: ${HUMAN_BRIDGE_TOKEN:-bridge_dev_token}
+      # Assistant and "Redactar con el asistente" (mode "gateway"): treated as cloud, minimized facts only.
+      DSAR_GATEWAY_URL: http://llm-gateway:8080/v1
+      # Mail intake: a folder in the volume by default (IMAP and sending only if the .env says so).
+      DSAR_MAIL_SOURCE: ${G3_MAIL_SOURCE:-folder}
+      DSAR_MAIL_INBOX_DIR: /data/mail/entrada
+      DSAR_MAIL_IMAP_HOST: ${G3_MAIL_IMAP_HOST:-}
+      DSAR_MAIL_USER: ${G3_MAIL_USER:-}
+      DSAR_MAIL_PASSWORD: ${G3_MAIL_PASSWORD:-}
+      DSAR_MAIL_SMTP_HOST: ${G3_MAIL_SMTP_HOST:-}
+      DSAR_MAIL_ALLOWED_SENDERS: ${G3_MAIL_ALLOWED_SENDERS:-*@example.test}
+      DSAR_MAIL_SEND_ENABLED: ${G3_MAIL_SEND_ENABLED:-false}
     volumes: [g3data:/data]
     networks: [internal]
 
