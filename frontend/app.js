@@ -27,9 +27,10 @@ async function route() {
   const path = location.pathname.replace(/\/$/, '') || '/';
   const main = await shell(path);
   try {
+    // G3 has its own page (tools + DPO management); every other agent uses the generic page below.
+    if (path === '/agentes/dsar' || path === '/agentes/dsar/gestion') return await dsarPage(main, route);
     const m = path.match(/^\/agentes\/(\w+)$/);
     if (path === '/') await dashboard(main);
-    else if (path === '/agentes/dsar' || path === '/agentes/dsar/gestion') await dsarPage(main, route);
     else if (m && m[1] === 'inventario') inventarioPage(main);
     else if (m) await agentPage(main, m[1]);
     else if (path === '/revision') await revision(main, route);

@@ -72,6 +72,15 @@ Cuentas de demostración (cámbialas con `HUMAN_USERS` en `.env`): `dpo`/`demo-d
 | B5.6 | «Preparar correo» (identidad) y luego «Enviar» en la bandeja de salida | Se prepara el borrador; el envío responde 409: desactivado por defecto |
 | B5.7 | `/agentes/dsar` → «Preguntar al asistente» con un caso y «Redacta un borrador» | No devuelve el borrador: indica que lo prepara el DPO en la pestaña Gestión |
 
+**Automatizadas en un navegador real (Playwright):** `tests/e2e/test_g3_dsar_ui.py` recorre B5.1, B5.2, B5.5, verificar y aprobar desde el expediente, los gráficos de Indicadores y la herramienta «Controles y cláusulas ISO». Con la plataforma arriba:
+
+```bash
+pip install playwright==1.55.0 pytest httpx
+pytest tests/e2e/test_g3_dsar_ui.py -q
+```
+
+Usa el Chrome instalado (`PLAYWRIGHT_CHANNEL=chrome`; vacío = Chromium de Playwright tras `playwright install chromium`). `HEADED=1` muestra el navegador. Si la plataforma no responde, las pruebas se omiten.
+
 ## C. Reglas que no deben romperse
 
 | # | Prueba | Esperado |

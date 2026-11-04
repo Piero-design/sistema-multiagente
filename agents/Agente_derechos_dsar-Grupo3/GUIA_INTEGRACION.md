@@ -88,7 +88,7 @@ El agente no trae interfaz de decisión: verificar la identidad y aprobar o rech
 - `dsar.services.cases.verify_identity(ctx, case_id, verified_by, method, ...)`
 - `dsar.services.decisions.decide(ctx, case_id, reviewer, decision, note)`
 
-La plataforma las expone **solo a una persona con sesión y rol DPO** en `/revision`, mediante un puente interno (`docker/agents/g3_human.py`) que únicamente llama el backend. **No deben exponerse como herramientas MCP**, porque un modelo podría aprobar casos. Por eso «Crear caso» en `/agentes/dsar` siempre registra la identidad como pendiente.
+La plataforma las expone **solo a una persona con sesión y rol DPO** en `/revision`, mediante un puente interno (`docker/agents/g3_human.py`; las rutas de gestión están en `g3_gestion.py`) que únicamente llama el backend. **No deben exponerse como herramientas MCP**, porque un modelo podría aprobar casos. Por eso «Crear caso» en `/agentes/dsar` siempre registra la identidad como pendiente.
 
 El resto del panel del agente está en la pestaña **Gestión (DPO)** de `/agentes/dsar` (solo DPO; también verifica la identidad y decide), por el mismo puente (rutas `/gestion/*`) y el proxy `/api/human/dsar/gestion/*` del backend, que fija como revisor a la persona con sesión:
 
@@ -114,5 +114,7 @@ La lectura de correos solo usa un modelo local (Ollama en 127.0.0.1). En el cont
 | `DSAR_MAIL_*` | — | Entrada por correo (`python -m dsar.worker`); opcional |
 | `DSAR_GATEWAY_URL` | — | Gateway LLM de la plataforma (API compatible con OpenAI). Activa el modo `gateway`, tratado como nube |
 | `DSAR_GATEWAY_MODEL` | `plataforma` | Modelo pedido al gateway (el gateway puede imponer el suyo) |
+
+En la plataforma, `docker-compose.yml` fija estas variables para `agent-g3` y lee del `.env` raíz, todas opcionales: `G3_MAIL_SOURCE` (`folder` o `imap`), `G3_MAIL_IMAP_HOST`, `G3_MAIL_USER`, `G3_MAIL_PASSWORD`, `G3_MAIL_SMTP_HOST`, `G3_MAIL_ALLOWED_SENDERS` (por defecto `*@example.test`) y `G3_MAIL_SEND_ENABLED` (por defecto `false`). Sin ellas, el buzón es una carpeta del volumen y no se envía ningún correo.
 
 Las rutas son relativas a esta carpeta. No guardes claves ni datos reales en el repositorio.
