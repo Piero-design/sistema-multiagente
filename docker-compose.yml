@@ -104,7 +104,9 @@ services:
       AGENT_G6_URL: http://agent-g6:8006
       AGENT_G7_URL: http://agent-g7:5007
       AGENT_G8_URL: http://agent-g8:3100
-    networks: [internal]
+    networks:
+      internal:
+        aliases: [pims-backend]      # unique name: shared networks (Traefik) may host other projects' "backend"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 10s

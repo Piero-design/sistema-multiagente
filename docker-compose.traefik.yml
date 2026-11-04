@@ -1,0 +1,31 @@
+# Despliegue detrás de un Traefik existente (proveedor Docker). Se usa junto al compose principal:
+#   docker compose -p pims-multiagente -f docker-compose.yml -f docker-compose.traefik.yml up -d --build
+#
+# Variables del .env (nada de esto se versiona):
+#   PIMS_DOMAIN             dominio con el que se publica la plataforma (obligatorio)
+#   TRAEFIK_CERTRESOLVER    resolvedor de certificados definido en tu Traefik (por defecto: letsencrypt)
+#   PIMS_MIDDLEWARES        middlewares de Traefik opcionales, p. ej. de autenticación (por defecto: ninguno)
+#
+# - Solo el frontend se une a la red compartida `traefik_proxy`; el resto sigue en la red interna del proyecto.
+# - No se publica ningún puerto del host: Traefik llega al contenedor por la red.
+# - AVISO: sin un middleware de autenticación, la plataforma queda abierta a Internet y cualquiera puede
+#   gastar la cuota de las claves de Gemini de los equipos. Se recomienda definir PIMS_MIDDLEWARES.
+services:
+  frontend:
+    ports: !reset []
+    networks:
+      - internal
+      - traefik_proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_proxy
+      - traefik.http.routers.pims.entrypoints=web,websecure
+      - traefik.http.routers.pims.rule=Host(`${PIMS_DOMAIN:?define PIMS_DOMAIN en el .env}`)
+      - traefik.http.routers.pims.middlewares=${PIMS_MIDDLEWARES:-}
+      - traefik.http.routers.pims.tls=true
+      - traefik.http.routers.pims.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.pims.loadbalancer.server.port=80
+
+networks:
+  traefik_proxy:
+    external: true
