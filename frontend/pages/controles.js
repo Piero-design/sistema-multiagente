@@ -32,15 +32,15 @@ async function downloadWordSoA(data) {
 function badgeEstado(st) {
   const s = (st || '').toLowerCase();
   if (s.includes('implementado') && !s.includes('no') && !s.includes('parcial')) {
-    return h('span', { style: 'background:#dff5ec; color:#12805c; padding:3px 9px; border-radius:99px; font-weight:600; font-size:12px; white-space:nowrap;' }, '✔ Implementado');
+    return h('span', { style: 'background:#dff5ec; color:#12805c; padding:3px 9px; border-radius:99px; font-weight:600; font-size:12px; white-space:nowrap;' }, 'Implementado');
   }
   if (s.includes('parcial')) {
-    return h('span', { style: 'background:#fdf0d5; color:#9a5b00; padding:3px 9px; border-radius:99px; font-weight:600; font-size:12px; white-space:nowrap;' }, '⚡ Parcial');
+    return h('span', { style: 'background:#fdf0d5; color:#9a5b00; padding:3px 9px; border-radius:99px; font-weight:600; font-size:12px; white-space:nowrap;' }, 'Parcial');
   }
   if (s.includes('no aplica') || s.includes('excluido')) {
-    return h('span', { style: 'background:#e9ebf2; color:#555d70; padding:3px 9px; border-radius:99px; font-weight:600; font-size:12px; white-space:nowrap;' }, '— No Aplica');
+    return h('span', { style: 'background:#e9ebf2; color:#555d70; padding:3px 9px; border-radius:99px; font-weight:600; font-size:12px; white-space:nowrap;' }, 'No Aplica');
   }
-  return h('span', { style: 'background:#fde4e2; color:#b3261e; padding:3px 9px; border-radius:99px; font-weight:600; font-size:12px; white-space:nowrap;' }, '✖ Brecha (No Imp.)');
+  return h('span', { style: 'background:#fde4e2; color:#b3261e; padding:3px 9px; border-radius:99px; font-weight:600; font-size:12px; white-space:nowrap;' }, 'Brecha (No Imp.)');
 }
 
 function badgeDictamen(dic) {
@@ -86,10 +86,10 @@ export async function controlesPage(root) {
 
   const renderTabs = () => {
     navTabs.replaceChildren(
-      h('button', { class: activeTab === 'inputs' ? 'on' : '', onclick: () => switchTab('inputs') }, '📥 1. Entradas del Sistema (Inputs)'),
-      h('button', { class: activeTab === 'soa' ? 'on' : '', onclick: () => switchTab('soa') }, '📊 2. Dashboard Ejecutivo & SoA Oficial (DOCX)'),
-      h('button', { class: activeTab === 'rag' ? 'on' : '', onclick: () => switchTab('rag') }, '🧠 3. Base Normativa & RAG (Chat FAISS)'),
-      h('button', { class: activeTab === 'catalogo' ? 'on' : '', onclick: () => switchTab('catalogo') }, '📖 4. Catálogo Maestro (142 Controles)')
+      h('button', { class: activeTab === 'inputs' ? 'on' : '', onclick: () => switchTab('inputs') }, '1. Entradas del Sistema (Inputs)'),
+      h('button', { class: activeTab === 'soa' ? 'on' : '', onclick: () => switchTab('soa') }, '2. Dashboard Ejecutivo & SoA Oficial (DOCX)'),
+      h('button', { class: activeTab === 'rag' ? 'on' : '', onclick: () => switchTab('rag') }, '3. Base Normativa & RAG (Chat FAISS)'),
+      h('button', { class: activeTab === 'catalogo' ? 'on' : '', onclick: () => switchTab('catalogo') }, '4. Catálogo Maestro (142 Controles)')
     );
   };
 
@@ -130,42 +130,290 @@ export async function controlesPage(root) {
       )
     );
 
-    // Grid de entradas institucionales
-    const gridInputs = h('div', { class: 'grid g3', style: 'display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:14px; margin-top:16px;' },
-      // Input 1: Inventario
-      h('div', { class: 'card' },
-        h('h3', { style: 'font-size:15px; margin:0 0 6px;' }, '🏛️ Input 01: Área de Gobierno TI & Activos (G6)'),
-        h('p', { class: 'small mute', style: 'margin:0 0 8px;' }, 'Sistemas críticos universitarios mapeados:'),
-        h('ul', { style: 'margin:0; padding-left:18px; font-size:13px; line-height:1.6;' },
-          h('li', {}, h('strong', {}, 'SISUNSA:'), ' Calificaciones académicas, matrículas y filiación estudiantil.'),
-          h('li', {}, h('strong', {}, 'Comedor Universitario:'), ' Huellas dactilares biométricas (Datos Sensibles).'),
-          h('li', {}, h('strong', {}, 'Portal de Admisión:'), ' Postulantes y menores de edad.'),
-          h('li', {}, h('strong', {}, 'Google Workspace UNSA:'), ' Correos y almacenamiento institucional.'),
-          h('li', {}, h('strong', {}, 'Repositorio de Tesis:'), ' Propiedad intelectual e investigaciones.')
+    // Tablas estructuradas de entradas institucionales
+    const activosData = [
+      {
+        sistema: 'SISUNSA',
+        area: 'DUTIC / Dirección de Registro Académico',
+        datos: 'Nombres, DNI, calificaciones, récord de matrícula, filiación estudiantil',
+        sensibilidad: 'PII Ordinaria / Académica',
+        finalidad: 'Gestión académica oficial y registro de grados y títulos (Ley N° 30220)'
+      },
+      {
+        sistema: 'Comedor Universitario',
+        area: 'Dirección Universitaria de Bienestar',
+        datos: 'Huellas dactilares biométricas, código de alumno, evaluación socioeconómica',
+        sensibilidad: 'DATO SENSIBLE (Biométrico)',
+        finalidad: 'Control de acceso al beneficio alimentario universitario (Ley N° 29733, Art. 13)'
+      },
+      {
+        sistema: 'Portal de Admisión UNSA',
+        area: 'Dirección Universitaria de Admisión',
+        datos: 'DNI, fotografía biométrica, antecedentes escolares, menores de edad',
+        sensibilidad: 'PII Menores de Edad',
+        finalidad: 'Inscripción, evaluación y selección en concursos de admisión'
+      },
+      {
+        sistema: 'Google Workspace UNSA',
+        area: 'DUTIC / Redes y Comunicaciones',
+        datos: 'Correos institucionales (@unsa.edu.pe), mensajería, documentos en la nube',
+        sensibilidad: 'PII / Comunicaciones',
+        finalidad: 'Plataforma de colaboración académica, investigación y gestión docente'
+      },
+      {
+        sistema: 'Repositorio Institucional de Tesis',
+        area: 'Vicerrectorado de Investigación (VRI)',
+        datos: 'Metadatos de graduandos, código ORCID, producción científica y patentes',
+        sensibilidad: 'PII Pública / Autores',
+        finalidad: 'Divulgación científica y depósito nacional legal (RENATI / SUNEDU)'
+      }
+    ];
+
+    const riesgosData = [
+      {
+        codigo: 'RSK-UNSA-01',
+        activo: 'SISUNSA',
+        amenaza: 'Inyección SQL y fuga masiva de actas por falta de sanitización web',
+        impacto: 'ALTO',
+        score: '4.2',
+        controles: ['A.8.20', 'A.8.24', 'A.1.2.6']
+      },
+      {
+        codigo: 'RSK-UNSA-02',
+        activo: 'Comedor Universitario',
+        amenaza: 'Tratamiento de huellas biométricas sin DPIA formal ni consentimiento explícito',
+        impacto: 'CRÍTICO',
+        score: '4.8',
+        controles: ['A.1.2.6 (DPIA)', 'A.1.2.2']
+      },
+      {
+        codigo: 'RSK-UNSA-03',
+        activo: 'Portal de Admisión',
+        amenaza: 'Ataques DDoS durante el cierre de inscripciones con caída del servicio',
+        impacto: 'ALTO',
+        score: '3.9',
+        controles: ['A.8.6', 'A.8.20']
+      },
+      {
+        codigo: 'RSK-UNSA-04',
+        activo: 'Google Workspace UNSA',
+        amenaza: 'Campañas de phishing y suplantación de identidad para captura de credenciales',
+        impacto: 'MEDIO',
+        score: '2.8',
+        controles: ['A.5.15', 'A.3.17']
+      },
+      {
+        codigo: 'RSK-UNSA-05',
+        activo: 'Repositorio de Tesis',
+        amenaza: 'Exfiltración de borradores de patentes o investigaciones previas a publicación',
+        impacto: 'MEDIO',
+        score: '2.4',
+        controles: ['A.5.15', 'A.8.3']
+      }
+    ];
+
+    const evidenciasData = [
+      {
+        area: 'Secretaría General / DUTIC [G4]',
+        codigo: 'RCU-2024-089',
+        documento: 'Resolución de Consejo Universitario: Política General de Seguridad de la Información',
+        jerarquia: 'Resolución Vigente',
+        controles: 'A.5.1, A.5.2',
+        estado: 'implementado'
+      },
+      {
+        area: 'Secretaría General / DUTIC [G4]',
+        codigo: 'RCU-0127-2020',
+        documento: 'Reglamento General de Matrícula y Derechos y Deberes Académicos de Estudiantes',
+        jerarquia: 'Resolución Vigente',
+        controles: 'A.1.2.2',
+        estado: 'implementado'
+      },
+      {
+        area: 'Secretaría General / DUTIC [G4]',
+        codigo: 'DIR-OTIC-004-UNSA',
+        documento: 'Directiva de Gestión de Cuentas de Acceso y Uso Aceptable de Red Institucional',
+        jerarquia: 'Directiva Vigente',
+        controles: 'A.5.15, A.5.18',
+        estado: 'implementado'
+      },
+      {
+        area: 'Secretaría General / DUTIC [G4]',
+        codigo: 'Borrador-DPIA-Comedor-2025.docx',
+        documento: 'Evaluación de Impacto de Privacidad para Sistema Biométrico del Comedor',
+        jerarquia: 'Borrador Técnico',
+        controles: 'A.1.2.6',
+        estado: 'parcial'
+      },
+      {
+        area: 'Secretaría General / DUTIC [G4]',
+        codigo: 'POL-SEG-BACKUP-v1.1.pdf',
+        documento: 'Procedimiento de Respaldo, Custodia y Restauración de Bases de Datos',
+        jerarquia: 'Directiva Vigente',
+        controles: 'A.8.13',
+        estado: 'implementado'
+      },
+      {
+        area: 'Secretaría General / DUTIC [G4]',
+        codigo: 'MAN-DES-SISUNSA-v2.pdf',
+        documento: 'Manual de Ciclo de Vida de Desarrollo Seguro de Software (DUTIC)',
+        jerarquia: 'Manual Técnico',
+        controles: 'A.8.25, A.8.28',
+        estado: 'implementado'
+      },
+      {
+        area: 'Asesoría Legal / Contratos [G5]',
+        codigo: 'DPA-Google-Workspace-2024.pdf',
+        documento: 'Acuerdo de Tratamiento de Datos (DPA) formal con Google Cloud EMEA',
+        jerarquia: 'Contrato Firmado',
+        controles: 'A.1.2.7, A.5.19',
+        estado: 'implementado'
+      },
+      {
+        area: 'Asesoría Legal / Contratos [G5]',
+        codigo: 'Contrato-AWS-Cloud-UNSA.pdf',
+        documento: 'Adenda de Privacidad, Confidencialidad y Acuerdos de Nivel de Servicio (SLA)',
+        jerarquia: 'Contrato Firmado',
+        controles: 'A.5.20, A.5.22',
+        estado: 'implementado'
+      },
+      {
+        area: 'Oficialía de Protección de Datos [G3]',
+        codigo: 'TUPA-PROC-ARCO-UNSA.pdf',
+        documento: 'Procedimiento Oficial TUPA para Solicitudes de Derechos ARCO (odp@unsa.edu.pe)',
+        jerarquia: 'Procedimiento Vigente',
+        controles: 'A.1.3.7, A.1.3.9',
+        estado: 'implementado'
+      },
+      {
+        area: 'Oficialía de Protección de Datos [G3]',
+        codigo: 'Formulario-ARCO-Web-v1.0.pdf',
+        documento: 'Formulario Digital Único para Ejercicio de Derechos de Acceso, Rectificación y Supresión',
+        jerarquia: 'Formulario Oficial',
+        controles: 'A.1.3.1',
+        estado: 'implementado'
+      },
+      {
+        area: 'Seguridad / CSIRT-UNSA [G8]',
+        codigo: 'Protocolo-CSIRT-UNSA-v0.2.docx',
+        documento: 'Procedimiento Operativo de Respuesta a Incidentes de Privacidad y Notificación 48h a la ANPD',
+        jerarquia: 'Borrador Técnico',
+        controles: 'A.3.12',
+        estado: 'parcial'
+      },
+      {
+        area: 'Seguridad / CSIRT-UNSA [G8]',
+        codigo: 'BITACORA-CSIRT-2024-Q3.xlsx',
+        documento: 'Registro de Monitoreo de Eventos de Seguridad y Detección de Anomalías de Red',
+        jerarquia: 'Registro Operativo',
+        controles: 'A.8.16',
+        estado: 'implementado'
+      },
+      {
+        area: 'Desarrollo Docente / RRHH [G1]',
+        codigo: 'Plan-Capacitacion-Privacidad-2024.pdf',
+        documento: 'Plan Anual de Formación y Concientización en Protección de Datos Personales',
+        jerarquia: 'Plan Aprobado',
+        controles: 'A.3.17, A.6.3',
+        estado: 'implementado'
+      },
+      {
+        area: 'Desarrollo Docente / RRHH [G1]',
+        codigo: 'Registro-Asistencia-Taller.pdf',
+        documento: 'Actas de Concurrencia y Evaluación de Talleres de Inducción de Ley N° 29733',
+        jerarquia: 'Evidencia Ejecutada',
+        controles: 'A.6.3',
+        estado: 'implementado'
+      }
+    ];
+
+    // Card Input 1: Activos
+    const cardActivos = h('div', { class: 'card', style: 'margin-top:16px; overflow-x:auto;' },
+      h('h3', { style: 'font-size:15px; margin:0 0 4px;' }, 'Input 01: Mapeo de Activos Críticos & Tratamientos (Grupo 6 - Inventario)'),
+      h('p', { class: 'small mute', style: 'margin:0 0 10px;' }, 'Inventario institucional de sistemas que tratan datos personales (PII) bajo la responsabilidad de la UNSA:'),
+      h('table', { style: 'width:100%; border-collapse:collapse; font-size:12px;' },
+        h('thead', {},
+          h('tr', {},
+            h('th', { style: 'width:160px;' }, 'Sistema / Activo'),
+            h('th', { style: 'width:210px;' }, 'Área Custodia'),
+            h('th', { style: 'min-width:240px;' }, 'Datos Personales Tratados'),
+            h('th', { style: 'width:180px;' }, 'Clasificación'),
+            h('th', { style: 'min-width:220px;' }, 'Finalidad Institucional & Base Legal')
+          )
+        ),
+        h('tbody', {},
+          activosData.map(a => h('tr', {},
+            h('td', { style: 'font-weight:700;' }, a.sistema),
+            h('td', { class: 'small mute' }, a.area),
+            h('td', {}, a.datos),
+            h('td', {},
+              a.sensibilidad.includes('SENSIBLE')
+                ? h('span', { style: 'background:#fde4e2; color:#b3261e; padding:2px 8px; border-radius:4px; font-weight:700; font-size:11px;' }, a.sensibilidad)
+                : h('span', { style: 'background:#e9ebf2; color:#3b5998; padding:2px 8px; border-radius:4px; font-weight:600; font-size:11px;' }, a.sensibilidad)
+            ),
+            h('td', { class: 'small' }, a.finalidad)
+          ))
         )
-      ),
-      // Input 2: Riesgos
-      h('div', { class: 'card' },
-        h('h3', { style: 'font-size:15px; margin:0 0 6px;' }, '⚠️ Input 02: Área de Riesgos Operativos & DPIA (G2)'),
-        h('p', { class: 'small mute', style: 'margin:0 0 8px;' }, 'Apreciación de riesgos bajo ISO 27005 / ISO 29134:'),
-        h('ul', { style: 'margin:0; padding-left:18px; font-size:13px; line-height:1.6;' },
-          h('li', {}, h('span', { class: 'badge b-bad', style: 'font-size:10px; margin-right:4px;' }, 'CRÍTICO'), h('strong', {}, 'RSK-UNSA-02:'), ' Huellas del Comedor sin DPIA integral.'),
-          h('li', {}, h('span', { class: 'badge b-warn', style: 'font-size:10px; margin-right:4px;' }, 'ALTO'), h('strong', {}, 'RSK-UNSA-01:'), ' Inyección SQL y fuga notas en SISUNSA.'),
-          h('li', {}, h('span', { class: 'badge b-warn', style: 'font-size:10px; margin-right:4px;' }, 'ALTO'), h('strong', {}, 'RSK-UNSA-03:'), ' Ataque DDoS en Portal de Admisión.'),
-          h('li', {}, h('span', { class: 'badge b-operativo', style: 'font-size:10px; margin-right:4px;' }, 'MEDIO'), h('strong', {}, 'RSK-UNSA-04:'), ' Suplantación de identidad en correo UNSA.'),
-          h('li', {}, h('span', { class: 'badge b-operativo', style: 'font-size:10px; margin-right:4px;' }, 'MEDIO'), h('strong', {}, 'RSK-UNSA-05:'), ' Exfiltración en repositorio de posgrado.')
+      )
+    );
+
+    // Card Input 2: Riesgos
+    const cardRiesgos = h('div', { class: 'card', style: 'margin-top:16px; overflow-x:auto;' },
+      h('h3', { style: 'font-size:15px; margin:0 0 4px;' }, 'Input 02: Matriz de Riesgos Operativos & DPIA (Grupo 2 - ISO 27005 / ISO 29134)'),
+      h('p', { class: 'small mute', style: 'margin:0 0 10px;' }, 'Apreciación de amenazas y vulnerabilidades que sustentan la justificación de controles (Cláusula 6.1.3 d):'),
+      h('table', { style: 'width:100%; border-collapse:collapse; font-size:12px;' },
+        h('thead', {},
+          h('tr', {},
+            h('th', { style: 'width:100px;' }, 'Código'),
+            h('th', { style: 'width:160px;' }, 'Activo Afectado'),
+            h('th', { style: 'min-width:260px;' }, 'Amenaza & Vulnerabilidad Identificada'),
+            h('th', { style: 'width:120px; text-align:center;' }, 'Impacto Residual'),
+            h('th', { style: 'min-width:180px;' }, 'Controles Mitigadores ISO 27701')
+          )
+        ),
+        h('tbody', {},
+          riesgosData.map(r => {
+            const badgeStyle = r.impacto === 'CRÍTICO'
+              ? 'background:#fde4e2; color:#b3261e;'
+              : (r.impacto === 'ALTO' ? 'background:#fdf0d5; color:#9a5b00;' : 'background:#e9ebf2; color:#3b5998;');
+            return h('tr', {},
+              h('td', { style: 'font-weight:700;' }, r.codigo),
+              h('td', { style: 'font-weight:600;' }, r.activo),
+              h('td', {}, r.amenaza),
+              h('td', { style: 'text-align:center;' },
+                h('span', { style: `${badgeStyle} padding:3px 8px; border-radius:4px; font-weight:700; font-size:11px;` }, `${r.impacto} (${r.score})`)
+              ),
+              h('td', {}, r.controles.map(c => h('span', { class: 'badge', style: 'margin:1px 3px; font-size:10px;' }, c)))
+            );
+          })
         )
-      ),
-      // Input 3: Evidencias por Área Institucional
-      h('div', { class: 'card' },
-        h('h3', { style: 'font-size:15px; margin:0 0 6px;' }, '📑 Input 03: Evidencias por Área Institucional'),
-        h('p', { class: 'small mute', style: 'margin:0 0 8px;' }, 'Evidencias auditadas según jerarquía probatoria (ISO 19011):'),
-        h('ul', { style: 'margin:0; padding-left:18px; font-size:13px; line-height:1.6;' },
-          h('li', {}, h('strong', {}, 'Secretaría General / DUTIC [G4]:'), ' RCU-2024-089 (Pol. Seguridad) y RCU-0127-2020 (Matrícula).'),
-          h('li', {}, h('strong', {}, 'Asesoría Legal / Contratos [G5]:'), ' DPA Google Workspace y Contrato Cloud AWS.'),
-          h('li', {}, h('strong', {}, 'Oficialía de Protección Datos [G3]:'), ' Procedimiento TUPA Derechos ARCO (odp@unsa.edu.pe).'),
-          h('li', {}, h('strong', {}, 'Seguridad / CSIRT-UNSA [G8]:'), ' Protocolo Notificación Brechas 48h (Borrador v0.2).'),
-          h('li', {}, h('strong', {}, 'Desarrollo Docente / RRHH [G1]:'), ' Plan de Capacitación en Privacidad.')
+      )
+    );
+
+    // Card Input 3: Evidencias por Área
+    const cardEvidencias = h('div', { class: 'card', style: 'margin-top:16px; overflow-x:auto;' },
+      h('h3', { style: 'font-size:15px; margin:0 0 4px;' }, 'Input 03: Repositorio Probatorio por Área Universitaria (Grupos 4, 5, 3, 8 y 1)'),
+      h('p', { class: 'small mute', style: 'margin:0 0 10px;' }, 'Documentos probatorios auditados bajo jerarquía probatoria (ISO 19011 y Cláusula 7.5 de ISO 27001):'),
+      h('table', { style: 'width:100%; border-collapse:collapse; font-size:12px;' },
+        h('thead', {},
+          h('tr', {},
+            h('th', { style: 'width:200px;' }, 'Área Emisora / Grupo'),
+            h('th', { style: 'width:190px;' }, 'Código / Archivo'),
+            h('th', { style: 'min-width:240px;' }, 'Documento Probatorio Auditado'),
+            h('th', { style: 'width:140px;' }, 'Jerarquía Probatoria'),
+            h('th', { style: 'width:110px;' }, 'Controles'),
+            h('th', { style: 'width:110px;' }, 'Estado')
+          )
+        ),
+        h('tbody', {},
+          evidenciasData.map(e => h('tr', {},
+            h('td', { style: 'font-weight:600; font-size:11px;' }, e.area),
+            h('td', { style: 'font-family:monospace; font-size:11px; font-weight:600;' }, e.codigo),
+            h('td', {}, e.documento),
+            h('td', { class: 'small mute' }, e.jerarquia),
+            h('td', { style: 'font-weight:600; font-size:11px; color:var(--brand);' }, e.controles),
+            h('td', {}, badgeEstado(e.estado))
+          ))
         )
       )
     );
@@ -191,10 +439,10 @@ export async function controlesPage(root) {
           alert('Error al generar SoA: ' + err.message);
         } finally {
           btnEjecutar.disabled = false;
-          btnEjecutar.replaceChildren(document.createTextNode('🚀 Ejecutar Auditoría y Generar SoA Oficial'));
+          btnEjecutar.replaceChildren(document.createTextNode('Ejecutar Auditoría y Generar SoA Oficial'));
         }
       }
-    }, '🚀 Ejecutar Auditoría y Generar SoA Oficial');
+    }, 'Ejecutar Auditoría y Generar SoA Oficial');
 
     formBox.replaceChildren(
       h('h2', {}, 'Configuración de Auditoría Institucional'),
@@ -205,7 +453,9 @@ export async function controlesPage(root) {
         )
       ),
       roleSelector,
-      gridInputs,
+      cardActivos,
+      cardRiesgos,
+      cardEvidencias,
       btnEjecutar
     );
 
@@ -219,7 +469,7 @@ export async function controlesPage(root) {
     if (!cachedSoa) {
       contentArea.replaceChildren(
         h('div', { class: 'card', style: 'text-align:center; padding:40px 20px;' },
-          h('h2', {}, '📊 La Declaración de Aplicabilidad (SoA) aún no ha sido generada'),
+          h('h2', {}, 'La Declaración de Aplicabilidad (SoA) aún no ha sido generada'),
           h('p', { class: 'mute' }, 'Presione el botón para ejecutar la auditoría determinista sobre los 142 controles y riesgos institucionales:'),
           h('button', {
             style: 'margin-top:14px; font-size:15px; padding:10px 22px;',
@@ -240,10 +490,10 @@ export async function controlesPage(root) {
               } catch (err) {
                 alert('Error: ' + err.message);
                 e.target.disabled = false;
-                e.target.textContent = '🚀 Generar SoA Ahora';
+                e.target.textContent = 'Generar SoA Ahora';
               }
             }
-          }, '🚀 Generar SoA Ahora')
+          }, 'Generar SoA Ahora')
         )
       );
       return;
@@ -271,9 +521,9 @@ export async function controlesPage(root) {
     const dashboardCards = h('div', { class: 'kpis', style: 'display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:16px;' },
       h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Total Evaluados'), h('div', { class: 'kpi' }, String(totalEvaluados))),
       h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Controles Aplicables'), h('div', { class: 'kpi', style: 'color:var(--brand);' }, String(aplicables))),
-      h('div', { class: 'card' }, h('div', { class: 'small mute' }, '✔ Implementados'), h('div', { class: 'kpi', style: 'color:var(--ok);' }, String(implementados))),
-      h('div', { class: 'card' }, h('div', { class: 'small mute' }, '⚡ Parciales'), h('div', { class: 'kpi', style: 'color:var(--warn);' }, String(parciales))),
-      h('div', { class: 'card' }, h('div', { class: 'small mute' }, '✖ Brechas Críticas'), h('div', { class: 'kpi', style: 'color:var(--bad);' }, String(brechas))),
+      h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Implementados'), h('div', { class: 'kpi', style: 'color:var(--ok);' }, String(implementados))),
+      h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Parciales'), h('div', { class: 'kpi', style: 'color:var(--warn);' }, String(parciales))),
+      h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Brechas Críticas'), h('div', { class: 'kpi', style: 'color:var(--bad);' }, String(brechas))),
       h('div', { class: 'card' },
         h('div', { class: 'small mute' }, 'Madurez CMMI'),
         h('div', { class: 'kpi', style: 'font-size:18px;' }, `Nivel ${cmmiPromedio} / 5`),
@@ -288,11 +538,11 @@ export async function controlesPage(root) {
       type: 'button',
       style: 'background:#1d6f42; color:#fff; font-weight:700; display:flex; align-items:center; gap:6px; padding:9px 18px;',
       onclick: () => downloadWordSoA(datos)
-    }, '📄 Descargar Declaración SoA Oficial (.docx)');
+    }, 'Descargar Declaración SoA Oficial (.docx)');
 
     const searchInput = h('input', {
       type: 'text',
-      placeholder: '🔍 Buscar control por código o nombre...',
+      placeholder: 'Buscar control por código o nombre...',
       value: tableSearch,
       style: 'max-width:280px; padding:7px 10px;',
       oninput: (e) => {
@@ -424,12 +674,12 @@ export async function controlesPage(root) {
 
     // 5. Banner de Gobernanza Human-in-the-Loop y JSON Técnico
     const humanGovernanceCard = h('div', { class: 'alert warn', style: 'margin-bottom:16px;' },
-      h('strong', {}, '⚖️ Cláusula de Gobernanza y Supervisión Humana (Human-in-the-Loop): '),
+      h('strong', {}, 'Cláusula de Gobernanza y Supervisión Humana (Human-in-the-Loop): '),
       'La presente Declaración de Aplicabilidad es un dictamen técnico determinista emitido por el Agente G7. De conformidad con la Cláusula 6.1.3 de ISO/IEC 27701:2025 y la Ley N° 29733, la validez legal y certificación institucional definitiva requiere la validación y firma digital del Oficial de Protección de Datos (DPO) de la UNSA y del Director de OTIC.'
     );
 
     const jsonDetails = h('details', { class: 'card', style: 'margin-top:14px;' },
-      h('summary', { style: 'cursor:pointer; font-weight:600;' }, '🔍 Ver Payload JSON Completo (Auditoría Técnica)'),
+      h('summary', { style: 'cursor:pointer; font-weight:600;' }, 'Ver Payload JSON Completo (Auditoría Técnica)'),
       h('pre', { style: 'max-height:300px; overflow:auto; margin-top:10px;' }, JSON.stringify(datos, null, 2))
     );
 
@@ -501,10 +751,10 @@ export async function controlesPage(root) {
 
         outResults.replaceChildren(
           h('div', { class: 'card', style: 'background:var(--panel); border:1px solid var(--brand); margin-bottom:14px;' },
-            h('h3', { style: 'margin:0 0 8px; color:var(--brand);' }, '💡 Dictamen del Agente de Controles'),
+            h('h3', { style: 'margin:0 0 8px; color:var(--brand);' }, 'Dictamen del Agente de Controles'),
             h('div', { class: 'md', style: 'line-height:1.6; font-size:14px;' }, respTexto)
           ),
-          h('h3', { style: 'font-size:15px; margin:16px 0 6px;' }, `📄 Fuentes Recuperadas por Búsqueda Vectorial FAISS (${hits.length} fragmentos)`),
+          h('h3', { style: 'font-size:15px; margin:16px 0 6px;' }, `Fuentes Recuperadas por Búsqueda Vectorial FAISS (${hits.length} fragmentos)`),
           ...hitsDom
         );
       } catch (err) {
@@ -518,7 +768,7 @@ export async function controlesPage(root) {
       type: 'button',
       style: 'padding:10px 20px; font-weight:700;',
       onclick: ejecutarConsulta
-    }, '🔍 Consultar Agente (Búsqueda Vectorial FAISS)');
+    }, 'Consultar Agente (Búsqueda Vectorial FAISS)');
 
     ragBox.replaceChildren(
       h('h2', {}, 'Búsqueda Semántica Vectorial (RAG con FAISS & directivas UNSA)'),
@@ -586,7 +836,7 @@ export async function controlesPage(root) {
           h('div', { class: 'row', style: 'gap:10px; margin-top:10px;' },
             h('input', {
               type: 'text',
-              placeholder: '🔍 Filtrar por código, nombre o descripción...',
+              placeholder: 'Filtrar por código, nombre o descripción...',
               value: catSearch,
               style: 'max-width:300px;',
               oninput: (e) => { catSearch = e.target.value.toLowerCase(); drawCatalogo(); }

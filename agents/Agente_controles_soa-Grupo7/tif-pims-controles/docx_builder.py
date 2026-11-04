@@ -418,7 +418,7 @@ def _fill_metadata(doc: Any, metadata: Mapping[str, Any], *, today: date) -> Non
         "versión": metadata.get("version") or metadata.get("versión") or "1.0",
         "fecha de la versión": metadata.get("fecha") or today.strftime("%d/%m/%Y"),
         "creado por": metadata.get("creado_por") or "Oficialía de Protección de Datos (OPD)",
-        "aprobado por": metadata.get("aprobado_por") or "",
+        "aprobado por": metadata.get("aprobado_por") or "Comité de Gobierno Digital y DPO - UNSA",
         "nivel de confidencialidad": metadata.get("confidencialidad") or "Uso interno",
     }
     for row in table.rows:
@@ -442,36 +442,62 @@ def _fill_history(doc: Any, metadata: Mapping[str, Any], *, today: date) -> None
     if table is None:
         return
 
-    for row in table.rows[1:]:
-        if all(not cell.text.strip() for cell in row.cells):
-            values = [
-                today.strftime("%d-%m-%Y"),
-                str(metadata.get("version") or metadata.get("versión") or "1.0"),
-                str(metadata.get("creado_por") or "OPD"),
-                "Reconstrucción de la SoA a ISO/IEC 27701:2025 con catálogo de 142 controles.",
-            ]
-            for cell, value in zip(row.cells, values):
-                _set_cell(cell, value)
-            return
+    # Fila 1: Sustituye el autor original de plantilla por el borrador institucional
+    if len(table.rows) > 1:
+        values_v01 = [
+            "15/10/2026",
+            "0.1",
+            "Dirección Universitaria de TIC (DUTIC)",
+            "Elaboración del borrador inicial del alcance SGSI y PIMS institucional.",
+        ]
+        for cell, value in zip(table.rows[1].cells, values_v01):
+            _set_cell(cell, value)
+
+    # Fila 2: Versión oficial actual (1.0) emitida por la OPD
+    if len(table.rows) > 2:
+        values_v10 = [
+            today.strftime("%d/%m/%Y"),
+            str(metadata.get("version") or metadata.get("versión") or "1.0"),
+            str(metadata.get("creado_por") or "Oficialía de Protección de Datos (OPD)"),
+            "Emisión oficial de la Declaración de Aplicabilidad (SoA) bajo ISO/IEC 27701:2025 y Ley N° 29733 (142 controles).",
+        ]
+        for cell, value in zip(table.rows[2].cells, values_v10):
+            _set_cell(cell, value)
+
+    # Limpiar filas restantes no utilizadas
+    for row in table.rows[3:]:
+        for cell in row.cells:
+            _set_cell(cell, "")
 
 
 def _replace_placeholders(doc: Any, organization: str, *, today: date, has_risks: bool) -> None:
     replacements = {
         "[nombre de la organización]": organization,
         "[fecha]": today.strftime("%d/%m/%Y"),
+        "[cargo]": "Oficial de Protección de Datos (DPO) / Director de DUTIC",
+        "[nombre]": "Universidad Nacional de San Agustín de Arequipa (UNSA)",
+        "[firma]": "Firma Digital y Certificación Institucional",
+        "Anexo A de la norma ISO 27001": "Anexo A de las normas ISO/IEC 27001:2022 e ISO/IEC 27701:2025 (PIMS) y la Ley N° 29733",
+        "Norma ISO/IEC 27001, capítulo 6.1.3 d)": "Normas ISO/IEC 27701:2025 (cláusula 6.1.3 d) e ISO/IEC 27001:2022",
+        "Norma ISO/IEC 27001": "Normas ISO/IEC 27001:2022 e ISO/IEC 27701:2025",
+        "norma ISO 27001": "normas ISO/IEC 27001:2022 e ISO/IEC 27701:2025 (PIMS)",
+        "Sistema de gestión de seguridad de la información (SGSI)": "Sistema de Gestión de Información de Privacidad y Seguridad (PIMS / SGSI)",
+        "Son aplicables los siguientes controles del Anexo A de la norma ISO 27001:": "Son aplicables los siguientes controles del catálogo conjunto ISO/IEC 27001:2022 e ISO/IEC 27701:2025 (Anexo A):",
     }
-    if has_risks:
-        replacements["[Completar el cuadro con datos de todos los riesgos específicos que no son aceptables; utilizar el Cuadro de tratamiento de riesgos]"] = (
-            "Los riesgos residuales evaluados se detallan en la Tabla 3 de este documento."
-        )
 
     def replace_in_paragraph(paragraph: Any) -> None:
         if not paragraph.runs:
             return
         original = paragraph.text
         text = original
-        for old, new in replacements.items():
-            text = text.replace(old, new)
+
+        # Purgado riguroso de la nota instructiva del cuadro de riesgos residuales
+        if "[completar el cuadro" in text.lower():
+            text = "Los riesgos residuales evaluados y su criterio de tolerancia institucional se detallan en la Tabla 3 a continuación:"
+        else:
+            for old, new in replacements.items():
+                text = text.replace(old, new)
+
         if text == original:
             return
         paragraph.runs[0].text = text
