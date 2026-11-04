@@ -126,19 +126,22 @@ async def terceros_validar_perfil(b: ValidarPerfil, who: dict = Depends(auth.req
 
 
 class Eliminar(BaseModel):
-    tipo: str                # expediente | perfil
-    id: str                  # id_registro (expediente) or organization id (perfil)
+    tipo: str                # expediente | perfil | documento
+    id: str                  # id_registro (expediente) or organization id (perfil, documento)
+    nombre: str = ""         # file name of the institutional document (documento)
 
 
 @router.post("/human/terceros/eliminar")
 async def terceros_eliminar(b: Eliminar, who: dict = Depends(auth.require("DPO"))):
     """The DPO deletes the files of an expediente (json, md, contract copy, chat) or an organization profile, in the
     agent's own storage. A person decides it (signed-in DPO) and the deletion is recorded with who did it."""
-    if b.tipo not in ("expediente", "perfil"):
-        raise HTTPException(400, "tipo debe ser expediente o perfil")
-    body = {"tipo": b.tipo, "id": b.id} if b.tipo == "expediente" else {"tipo": b.tipo, "organizacion": b.id}
+    if b.tipo not in ("expediente", "perfil", "documento"):
+        raise HTTPException(400, "tipo debe ser expediente, perfil o documento")
+    body = ({"tipo": b.tipo, "id": b.id} if b.tipo == "expediente" else
+            {"tipo": b.tipo, "organizacion": b.id, "nombre": b.nombre} if b.tipo == "documento" else
+            {"tipo": b.tipo, "organizacion": b.id})
     r = await _call("POST", f"{G5}/webhook/pims/eliminar", json=body)
-    _audit(who, "terceros", f"eliminar_{b.tipo}", b.id, f"HTTP {r.status_code}")
+    _audit(who, "terceros", f"eliminar_{b.tipo}", f"{b.id}/{b.nombre}" if b.nombre else b.id, f"HTTP {r.status_code}")
     if r.status_code >= 400:
         raise HTTPException(r.status_code, r.text[:300])
     return r.json()

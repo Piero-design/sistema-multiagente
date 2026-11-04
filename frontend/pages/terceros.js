@@ -37,17 +37,19 @@ function dlCSV(name, rows, cols) {
   download(name, '﻿' + lines.join('\r\n'), 'text/csv;charset=utf-8');
 }
 // ---- deletion: a human decision (signed-in DPO, from «Revisión humana»); the backend records who deleted what ----
-async function eliminar(tipo, id, onDone) {
-  const que = tipo === 'expediente' ? `el expediente ${id} (informe, JSON, copia del contrato y su chat)` : `el perfil de «${id}» (los documentos y la configuración se conservan)`;
+async function eliminar(tipo, id, onDone, nombre) {
+  const que = tipo === 'expediente' ? `el expediente ${id} (informe, JSON, copia del contrato y su chat)`
+    : tipo === 'documento' ? `el documento «${nombre}» de «${id}» (el perfil ya generado no cambia hasta que lo vuelvas a generar)`
+    : `el perfil de «${id}» (los documentos y la configuración se conservan)`;
   if (!session.token) { alert('Para eliminar, inicia sesión como DPO en «Revisión humana» y vuelve a esta página.'); return; }
   if (!confirm(`¿Eliminar ${que}?
 
 Se borran los archivos del agente y no se puede deshacer. Descárgalo antes si lo necesitas.`)) return;
-  try { const r = await authed('/api/human/terceros/eliminar', { tipo, id }); alert(`Eliminado: ${(r.eliminados || []).length} archivo(s).`); onDone?.(); }
+  try { const r = await authed('/api/human/terceros/eliminar', nombre ? { tipo, id, nombre } : { tipo, id }); alert(`Eliminado: ${(r.eliminados || []).length} archivo(s).`); onDone?.(); }
   catch (err) { alert(`No se pudo eliminar: ${err.message}`); }
 }
-const deleteButton = (tipo, id, onDone, label = 'Eliminar') =>
-  h('button', { class: 'ghost', style: 'color:var(--bad)', title: 'Requiere sesión de DPO', onclick: () => eliminar(tipo, id, onDone) }, label);
+const deleteButton = (tipo, id, onDone, label = 'Eliminar', nombre) =>
+  h('button', { class: 'ghost', style: 'color:var(--bad)', title: 'Requiere sesión de DPO', onclick: () => eliminar(tipo, id, onDone, nombre) }, label);
 
 const downloadButtons = (id, det) => h('span', { class: 'row' },
   h('button', { class: 'ghost', onclick: () => dlMD(`${id}.md`, det.informe) }, 'Descargar informe (.md)'),
@@ -341,7 +343,7 @@ async function tabOrganizacion(box, orgs, reload) {
             } }, 'Generar perfil desde los documentos')),
           h('p', { class: 'small mute' }, 'El perfilador (Agente 1 en el código del grupo) resume los documentos institucionales. Puede tardar varios minutos.')),
         card(h('h2', {}, `Documentos institucionales (${(docs.documentos || []).length})`),
-          (docs.documentos || []).length ? table(['Documento', 'Tamaño'], docs.documentos.map((d) => [d.nombre, d.tam])) : h('p', { class: 'mute' }, 'Sin documentos.'),
+          (docs.documentos || []).length ? table(['Documento', 'Tamaño', ''], docs.documentos.map((d) => [d.nombre, d.tam, deleteButton('documento', id, load, 'Eliminar', d.nombre)])) : h('p', { class: 'mute' }, 'Sin documentos.'),
           h('div', { class: 'row', style: 'margin-top:10px' }, h('span', { style: 'max-width:340px' }, up),
             h('button', { class: 'ghost', onclick: async () => {
               const file = up.files[0]; if (!file) return;

@@ -96,6 +96,7 @@ def test_g5_deletion_is_a_dpo_only_human_action_and_rejects_paths():
     assert post("/api/human/terceros/eliminar", body, login("legal")).status_code == 403
     dpo = login("dpo")
     for bad in ({"tipo": "expediente", "id": "../../datos/config_modelo"}, {"tipo": "perfil", "id": "../unsa"},
-                {"tipo": "otro", "id": "x"}):
+                {"tipo": "otro", "id": "x"}, {"tipo": "documento", "id": "unsa", "nombre": "../config_organizacion.json"},
+                {"tipo": "documento", "id": "unsa", "nombre": "ROF.exe"}):
         assert post("/api/human/terceros/eliminar", bad, dpo).status_code == 400, bad
     assert post("/api/human/terceros/eliminar", body, dpo).status_code == 404       # nothing to delete

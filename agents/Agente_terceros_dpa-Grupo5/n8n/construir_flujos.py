@@ -417,21 +417,26 @@ return [{ json: { ok: j.ok !== false, omitido: true, error: j.error || null } }]
 
 def flujo_eliminar():
     f = Flujo("eliminar", "PIMS · Eliminar archivos (requiere Execute Command)",
-              "POST /webhook/pims/eliminar {tipo: expediente, id} o {tipo: perfil, organizacion}. Borra los archivos del "
+              "POST /webhook/pims/eliminar {tipo: expediente, id}, {tipo: perfil, organizacion} o {tipo: documento, organizacion, "
+              "nombre}. Borra los archivos del "
               "expediente (.json, .md, .contrato.txt y su chat) o del perfil de la organización (perfil y archivos del "
-              "perfilador; la configuración y los documentos se conservan) con n8n/scripts/eliminar.js. Es una acción "
+              "perfilador; la configuración y los documentos se conservan) o un documento institucional, con "
+              "n8n/scripts/eliminar.js. Es una acción "
               "humana: en la plataforma solo la invoca el backend con una sesión de DPO.")
     f.webhook("Webhook eliminar", (0, 0), "POST", "pims/eliminar")
     f.code("Preparar eliminación", (220, 0), r"""
 const b = $input.first().json.body || {};
 const tipo = String(b.tipo || '');
-const id = String(tipo === 'perfil' ? (b.organizacion || b.id || '') : (b.id || ''));
+const id = String(tipo === 'expediente' ? (b.id || '') : (b.organizacion || b.id || ''));
 let error = null;
 if (tipo === 'expediente') { if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,139}$/.test(id) || id.includes('..')) error = "Falta 'id' del expediente o no es válido."; }
-else if (tipo === 'perfil') { if (!idValido(id) || id.startsWith('_')) error = "Falta 'organizacion' o no es un id válido."; }
-else error = "'tipo' debe ser expediente o perfil.";
+else if (tipo === 'perfil' || tipo === 'documento') { if (!idValido(id) || id.startsWith('_')) error = "Falta 'organizacion' o no es un id válido."; }
+else error = "'tipo' debe ser expediente, perfil o documento.";
+const nombre = String(b.nombre || '');
+if (!error && tipo === 'documento' && (!/^[A-Za-z0-9][A-Za-z0-9 ._()-]{0,150}\.(pdf|md|txt)$/i.test(nombre) || nombre.includes('..')))
+  error = "Falta 'nombre' del documento o no es válido (.pdf, .md o .txt, sin rutas).";
 if (error) return [{ json: { ok: false, codigo: 400, respuesta: { ok: false, error } } }];
-return [{ json: { ok: true, comando: `node "${R('n8n', 'scripts', 'eliminar.js')}" "${RAIZ}" ${tipo} "${id}"` } }];
+return [{ json: { ok: true, comando: `node "${R('n8n', 'scripts', 'eliminar.js')}" "${RAIZ}" ${tipo} "${id}"` + (tipo === 'documento' ? ` "${nombre}"` : '') } }];
 """)
     f.si("¿Petición válida?", (440, 0), "={{ $json.ok }}")
     f.nodo("Ejecutar", "n8n-nodes-base.executeCommand", 1, {"executeOnce": True, "command": "={{ $json.comando }}"},
