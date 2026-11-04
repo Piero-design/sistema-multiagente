@@ -53,6 +53,9 @@ La salida de un LLM no es idéntica byte a byte. Se compararon estructura, campo
 - Un test comprueba que el rol `agente7` no puede borrar en `core_asset` (permission denied).
 - **Por qué no lo usan G1, G2, G3, G4, G7 ni G8:** las tablas de negocio de Gestitel guardan códigos de listas (tipo, estado, clasificación) definidos en los modelos Django, no en la base; mapearlos sería inventar valores. G3 además no debe guardar datos del solicitante (`core_arcorequest` exige nombre y documento). G2 y G7 no tienen almacén propio que migrar. Para hacerlo falta el código de los modelos Django del profesor.
 
+- **Adaptación posible sin inventar datos:** cada ejecución de cualquier agente deja una fila de solo metadatos en `demo.core_securitylog` (texto libre y JSON; las tablas de negocio no se tocan). Test: la fila existe y no contiene datos de entrada.
+- Se comprobó que el script del profesor no trae comentarios, restricciones CHECK ni catálogos para los códigos de las tablas de negocio (solo las tablas de G5 los tienen), por lo que no se mapearon incidentes, auditorías ni solicitudes.
+
 ## Pendiente o no verificado
 
 - **Modo `ollama`**: solo `docker compose --profile ollama config`. Ver `docs/installation/OLLAMA_OTRA_PC.md`.

@@ -191,3 +191,12 @@ def test_agent_roles_cannot_write_outside_their_module():
     r = subprocess.run(["docker", "compose", "exec", "-T", "-e", "PGPASSWORD=agente7_dev_pw", "postgres", "psql", "-h", "localhost",
                         "-U", "agente7", "-d", "gestitel", "-tAc", "delete from demo.core_asset"], capture_output=True, text=True, timeout=60)
     assert "permission denied" in (r.stderr + r.stdout).lower()
+
+
+def test_every_execution_leaves_a_metadata_only_trail_in_gestitel():
+    before = int(_psql("select count(*) from demo.core_securitylog where username='orquestador'"))
+    e = run("dsar", "dsar_listar", {})
+    assert int(_psql("select count(*) from demo.core_securitylog where username='orquestador'")) == before + 1
+    row = _psql(f"select detail::text from demo.core_securitylog where detail->>'execution_id'='{e['id']}'")
+    assert '"status": "succeeded"' in row and "dsar_listar" in row
+    assert "principal_id" not in row and "request_text" not in row          # no input data in the trail

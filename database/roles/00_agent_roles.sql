@@ -31,3 +31,7 @@ SELECT format('REVOKE ALL ON %I.auth_user FROM agente_g1, agente_g2, agente_g3, 
 GRANT USAGE ON SCHEMA orchestrator TO orchestrator_rw;
 GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA orchestrator TO orchestrator_rw;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA orchestrator TO orchestrator_rw;
+
+-- Orchestrator writes ONE generic audit row per agent execution into Gestitel's security log
+-- (free-text action/module + jsonb detail; never the agent input or any personal data).
+SELECT format('GRANT INSERT ON %I.core_securitylog TO orchestrator_rw', :'schema') \gexec

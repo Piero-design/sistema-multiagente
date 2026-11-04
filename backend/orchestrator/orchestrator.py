@@ -24,6 +24,19 @@ def _event(execution_id, agent_id: str, kind: str, message: str = "") -> None:
         pass
 
 
+def _gestitel_log(eid: str, agent_id: str, action: str, status: str, seconds: float | None, simulated: bool) -> None:
+    """Shared operational trail in Gestitel (demo.core_securitylog). Metadata only: no input, no output."""
+    try:
+        db.execute(
+            "INSERT INTO demo.core_securitylog (username, action, module, object_type, detail, created_at) "
+            "VALUES ('orquestador', 'agent_execute', %s, 'execution', %s::jsonb, now())",
+            (agent_id, json.dumps({"execution_id": eid, "agent_action": action, "status": status,
+                                   "llm_mode": os.getenv("LLM_MODE", "cloud"), "simulated": simulated,
+                                   "seconds": seconds, "source": "plataforma-multiagente"})))
+    except Exception:  # noqa: BLE001  the platform never fails because of the trail
+        pass
+
+
 def list_agents() -> list[dict]:
     return [a.get_info() for a in sorted(ADAPTERS.values(), key=lambda a: a.group)]
 
@@ -69,10 +82,12 @@ async def _run(eid: str, adapter, action: str, payload: dict) -> None:
                    "simulated=%s WHERE id=%s",
                    (json.dumps(res, default=str), bool(res.get("simulated")) or os.getenv("LLM_MODE") == "mock", eid))
         _event(eid, adapter.id, "finished", action)
+        _gestitel_log(eid, adapter.id, action, "succeeded", None, bool(res.get("simulated")) or os.getenv("LLM_MODE") == "mock")
     except Exception as e:  # noqa: BLE001  one agent failing never crashes the platform
         db.execute("UPDATE orchestrator.execution SET status='failed', finished_at=now(), error=%s WHERE id=%s",
                    (f"{type(e).__name__}: {e}"[:1000], eid))
         _event(eid, adapter.id, "failed", f"{type(e).__name__}")
+        _gestitel_log(eid, adapter.id, action, "failed", None, os.getenv("LLM_MODE") == "mock")
 
 
 def get_status(eid: str) -> dict | None:
