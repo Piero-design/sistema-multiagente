@@ -23,14 +23,15 @@ SYSTEMS = [
 
 
 def call(path, body):
-    req = urllib.request.Request(BASE + path, data=json.dumps(body).encode(), headers={"content-type": "application/json"})
+    req = urllib.request.Request(BASE + path, data=json.dumps(body).encode(),
+                                 headers={"content-type": "application/json", "User-Agent": "pims-seed-demo/1.0"})   # proxies (e.g. Cloudflare) reject the default Python agent
     return json.load(urllib.request.urlopen(req, timeout=60))
 
 
 def run(agent, action, inp):
     eid = call(f"/api/agents/{agent}/execute", {"action": action, "input": inp})["execution_id"]
     for _ in range(60):
-        e = json.load(urllib.request.urlopen(f"{BASE}/api/executions/{eid}", timeout=30))
+        e = json.load(urllib.request.urlopen(urllib.request.Request(f"{BASE}/api/executions/{eid}", headers={"User-Agent": "pims-seed-demo/1.0"}), timeout=30))
         if e["status"] in ("succeeded", "failed"):
             return e
         time.sleep(1.5)
