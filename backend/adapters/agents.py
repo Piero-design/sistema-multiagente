@@ -233,38 +233,90 @@ class G4(_HttpAdapter):
 
 # ---------------------------------------------------------------- Group 5 (n8n)
 class G5(_HttpAdapter):
+    """Agente 7 (Terceros/DPA). Exposes the agent's own API (the same one its original page uses), except the
+    human decisions (pims/aprobar, pims/perfil/validar: /revision with login) and the model settings (pims/config:
+    the shared gateway decides the model)."""
     llm_team = "g5"
     id, group, route = "terceros", 5, "/agentes/terceros"
     name = "Terceros y DPA"
     responsibility = "Auditoría de contratos de encargo de tratamiento contra ISO/IEC 27701 y Ley 29733"
     url_env, default_url, health_path = "AGENT_G5_URL", "http://agent-g5:5678", "/webhook/pims/estado"
 
+    # action -> (method, native path, asynchronous job?)
+    NATIVE = {
+        "auditar": ("POST", "auditar", True), "perfilar": ("POST", "perfilar", True), "chat": ("POST", "chat", True),
+        "trabajo": ("GET", "trabajo", False), "registro": ("GET", "registro", False),
+        "detalle": ("GET", "registro/detalle", False), "organizaciones": ("GET", "organizaciones", False),
+        "perfil": ("GET", "perfil", False), "documentos": ("GET", "documentos", False),
+        "renovaciones": ("GET", "renovaciones", False), "jurisdicciones": ("GET", "jurisdicciones", False),
+        "conversacion": ("GET", "chat", False), "estado": ("GET", "estado", False),
+        "crear_organizacion": ("POST", "organizacion", False), "subir_documento": ("POST", "documento", False),
+    }
+
     def get_capabilities(self):
-        return [{"action": "auditar", "description": "POST pims/auditar (asíncrono, 2-5 min)",
-                 "input": {"organizacion": "str", "contrato_texto": "str"}},
-                {"action": "trabajo", "description": "GET pims/trabajo?id=", "input": {"id": "str"}},
-                {"action": "registro", "description": "GET pims/registro?organizacion=", "input": {"organizacion": "str"}},
-                {"action": "organizaciones", "description": "GET pims/organizaciones", "input": {}}]
-    # pims/aprobar (DPO/Legal) is a human action: exposed by the backend with human auth, never as model tool.
+        d = {
+            "auditar": ("POST pims/auditar (asíncrono). Contexto de la organización: perfil (por defecto), bd (base del PIMS, "
+                        "solo lectura) o ambos", {"organizacion": "str", "contrato_texto": "str?", "archivo": "{nombre, base64}?",
+                                                  "proveedor": "str?", "fecha_ref": "AAAA-MM-DD?", "contexto": "perfil|bd|ambos"}),
+            "perfilar": ("POST pims/perfilar (asíncrono): genera el perfil de la organización desde sus documentos (Agente 1). "
+                         "Queda en Borrador hasta que el DPO lo valide en /revision", {"organizacion": "str"}),
+            "chat": ("POST pims/chat (asíncrono): pregunta sobre un expediente o una organización; no modifica nada",
+                     {"ambito": "expediente|organizacion", "id": "str", "organizacion": "str", "pregunta": "str"}),
+            "trabajo": ("GET pims/trabajo?id=", {"id": "str"}),
+            "registro": ("GET pims/registro?organizacion=&estado=", {"organizacion": "str?", "estado": "str?"}),
+            "detalle": ("GET pims/registro/detalle?id= (expediente JSON + informe Markdown)", {"id": "str"}),
+            "organizaciones": ("GET pims/organizaciones (con terceros sin DPA evaluado)", {}),
+            "perfil": ("GET pims/perfil?organizacion=", {"organizacion": "str"}),
+            "documentos": ("GET pims/documentos?organizacion=", {"organizacion": "str"}),
+            "renovaciones": ("GET pims/renovaciones", {}),
+            "jurisdicciones": ("GET pims/jurisdicciones", {}),
+            "conversacion": ("GET pims/chat?ambito=&id= (conversación guardada)", {"ambito": "str", "id": "str"}),
+            "estado": ("GET pims/estado", {}),
+            "crear_organizacion": ("POST pims/organizacion", {"id": "str", "nombre": "str", "jurisdiccion": "str",
+                                                              "cargo_dpo": "str", "cargo_legal": "str"}),
+            "subir_documento": ("POST pims/documento (documento institucional para el perfil)",
+                                {"organizacion": "str", "nombre": "str", "texto": "str?", "base64": "str?"}),
+        }
+        return [{"action": a, "description": desc, "input": inp} for a, (desc, inp) in d.items()]
+    # pims/aprobar and pims/perfil/validar (DPO/Legal) are human actions: exposed by the backend with human auth
+    # (/api/human/terceros/...), never as model tools. pims/config is not exposed: the gateway manages the model.
+
+    async def _call(self, method: str, path: str, i: dict, timeout: float = 60):
+        url = f"{self.base}/webhook/pims/{path}"
+        r = await (_post(url, json=i, timeout=timeout) if method == "POST" else _get(url, params=i, timeout=timeout))
+        try:
+            body = r.json()
+        except ValueError:
+            body = {"ok": False, "error": r.text[:300]}
+        if r.status_code >= 400 or (isinstance(body, dict) and body.get("ok") is False and body.get("error")):
+            raise RuntimeError(f"G5 HTTP {r.status_code}: {(body.get('error') if isinstance(body, dict) else body) or r.text[:300]}")
+        return body
+
+    async def _wait(self, jid: str) -> dict:
+        for _ in range(int(TIMEOUT // 4)):           # real polling; no fabricated progress
+            await asyncio.sleep(4)
+            st = await self._call("GET", "trabajo", {"id": jid}, timeout=15)
+            if st.get("estado") in ("terminado", "error"):
+                return st
+        raise TimeoutError("G5: el trabajo no terminó a tiempo")
 
     async def execute(self, req: ExecutionRequest):
-        a, i = req["action"], req.get("input") or {}
-        w = f"{self.base}/webhook/pims"
-        if a == "auditar":
-            r = await _post(f"{w}/auditar", json=i, timeout=60)
-            job = r.json()
-            jid = job.get("trabajo") or job.get("id")
-            for _ in range(int(TIMEOUT // 5)):          # real polling; no fabricated progress
-                await asyncio.sleep(5)
-                st = (await _get(f"{w}/trabajo", params={"id": jid if isinstance(jid, str) else jid.get("id")},
-                                 timeout=15)).json()
-                if st.get("estado") in ("terminado", "listo", "error", "fallido") or st.get("dictamen"):
-                    return {"output": st, "native_status": 200}
-            raise TimeoutError("G5: el trabajo no terminó a tiempo")
-        if a in ("trabajo", "registro", "organizaciones"):
-            r = await _get(f"{w}/{a}", params=i, timeout=30)
-            return {"output": r.json(), "native_status": r.status_code}
-        raise PermissionError(f"Acción no soportada para G5: {a}")
+        a, i = req["action"], dict(req.get("input") or {})
+        if a not in self.NATIVE:
+            raise PermissionError(f"Acción no soportada para G5: {a}")
+        method, path, is_job = self.NATIVE[a]
+        mock = os.getenv("LLM_MODE") == "mock"
+        if not is_job:
+            return {"output": await self._call(method, path, i), "native_status": 200}
+        job = await self._call(method, path, i)
+        st = await self._wait(job.get("trabajo"))
+        if a == "auditar" and st.get("estado") == "terminado" and st.get("id_registro"):
+            # The full expediente (JSON + Markdown report) so the page can show and download it.
+            st["expediente"] = await self._call("GET", "registro/detalle", {"id": st["id_registro"]})
+        if mock and st.get("estado") == "error":
+            st["nota_plataforma"] = ("El gateway está en LLM_MODE=mock: el modelo simulado responde un texto fijo, sin el JSON "
+                                     "del registro. Use LLM_MODE=cloud con LLM_API_KEY_G5 para auditar de verdad.")
+        return {"output": st, "native_status": 200, "simulated": mock}
 
 
 # ---------------------------------------------------------------- Group 6

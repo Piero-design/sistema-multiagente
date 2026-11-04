@@ -16,7 +16,9 @@ c.update({"proveedor": "openai", "url_openai": os.environ["GATEWAY_V1_URL"],
 json.dump(c, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 PY
 
-# Gestitel: what n8n/configurar_bd.py does by hand (credential "PIMS Postgres" + activo=true), non-interactively.
+# Gestitel: what n8n/configurar_bd.py does by hand (credential "PIMS Postgres"), non-interactively.
+# By default the credential is the READ-ONLY role agente_g5_lectura: audits stay in files (activo=false) and the
+# database is only read for the organization context (contexto_bd). G5_BD_ESCRIBIR=true restores the write mode.
 python3 - <<'PY'
 import json, os, subprocess, sys
 sys.path.insert(0, "n8n")
@@ -30,7 +32,9 @@ subprocess.run(["n8n", "import:credentials", "--input=/tmp/g5cred.json"], check=
 os.remove("/tmp/g5cred.json")
 p = "datos/config_bd.json"
 c = json.load(open(p, encoding="utf-8"))
-c.update({"activo": True, "esquema": "demo", "usuario_autor_id": int(os.environ.get("G5_AUTHOR_ID", "1"))})
+c.update({"activo": os.environ.get("G5_BD_ESCRIBIR", "false").lower() == "true", "esquema": "demo",
+          "usuario_autor_id": int(os.environ.get("G5_AUTHOR_ID", "1")),
+          "contexto_bd": {"activo": True, "esquema": "demo"}})
 json.dump(c, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 PY
 

@@ -60,7 +60,7 @@ export const AGENTS = {
   },
   terceros: {
     route: '/agentes/terceros', title: 'Terceros y DPA', group: 5,
-    about: 'Audita contratos de encargo de tratamiento (DPA). El número lo calcula el código, no el modelo. Las aprobaciones DPO y Legal son humanas y se hacen en la interfaz original del grupo.',
+    about: 'Audita contratos de encargo de tratamiento (DPA). El número lo calcula el código, no el modelo. Las aprobaciones DPO y Legal son humanas y se hacen en «Revisión humana». Página propia: frontend/pages/terceros.js.',
     actions: [
       { id: 'auditar', label: 'Auditar contrato', long: true, fields: [
         { name: 'organizacion', label: 'Organización', type: 'text', demo: 'unsa' },

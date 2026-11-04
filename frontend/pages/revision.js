@@ -45,12 +45,18 @@ export async function revision(root, rerender) {
   // G5: DPO first, then Legal (the agent enforces the order)
   box.append(h('div', { class: 'card' }, h('h2', {}, 'G5 · Contratos con proveedores (aprobación DPO → Legal)'),
     d.terceros.length ? d.terceros.map((x) => row(h('span', {}, h('strong', {}, x.proveedor || x.id_registro), h('br'),
-      h('span', { class: 'small mute' }, `${x.id_registro} · puntaje ${x.puntaje} · ${x.banda} · ${x.estado}`)),
+      h('span', { class: 'small mute' }, `${x.id_registro}${x.organizacion ? ' · ' + x.organizacion : ''} · puntaje ${x.puntaje} · ${x.banda} · ${x.estado}`)),
       h('span', { class: 'row' },
         actionBox('Aprobar', (v) => authed('/api/human/terceros/aprobar', { id_registro: x.id_registro, decision: 'aprobar', comentario: v.c }), [{ name: 'c', ph: 'Comentario' }]),
         actionBox('Rechazar', (v) => authed('/api/human/terceros/aprobar', { id_registro: x.id_registro, decision: 'rechazar', comentario: v.c }), [{ name: 'c', ph: 'Motivo' }]))))
       : h('p', { class: 'mute' }, 'No hay expedientes pendientes.'),
-    h('p', { class: 'small mute' }, 'Un expediente sigue «Pendiente DPO» hasta que decida el DPO; después le toca a Legal. Fuera de turno, el agente rechaza la decisión (409).')));
+    h('p', { class: 'small mute' }, 'Un expediente sigue «Pendiente DPO» hasta que decida el DPO; después le toca a Legal. Fuera de turno, el agente rechaza la decisión (409).'),
+    h('h2', { style: 'margin-top:14px' }, 'G5 · Perfiles de organización por validar (DPO)'),
+    (d.terceros_perfiles || []).length ? d.terceros_perfiles.map((p) => row(h('span', {}, h('strong', {}, p.nombre || p.organizacion), h('br'),
+      h('span', { class: 'small mute' }, `${p.organizacion} · ${p.estado || 'sin estado'}${p.valido === false ? ' · con errores de formato' : ''}`)),
+      actionBox('Validar perfil', () => authed('/api/human/terceros/perfil/validar', { organizacion: p.organizacion }))))
+      : h('p', { class: 'mute' }, 'No hay perfiles en borrador.'),
+    h('p', { class: 'small mute' }, 'El agente genera el perfil a partir de los documentos institucionales y lo deja en Borrador; mientras no lo valide el DPO, cada auditoría lo advierte.')));
 
   // G3: identity then decision (DPO)
   box.append(h('div', { class: 'card', style: 'margin-top:14px' }, h('h2', {}, 'G3 · Solicitudes de derechos (verificar identidad y decidir)'),

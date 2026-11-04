@@ -56,6 +56,9 @@ services:
       ORCHESTRATOR_DB_PASSWORD: ${ORCHESTRATOR_DB_PASSWORD:-orch_dev_pw}
       AGENTE7_DB_PASSWORD: ${AGENTE7_DB_PASSWORD:-agente7_dev_pw}
       AGENTE7_RO_PASSWORD: ${AGENTE7_RO_PASSWORD:-agente7ro_dev_pw}
+      # G5: by default only a read-only role (no tables). true = also apply the group's own extension (6 tables).
+      G5_BD_EXTENSION: ${G5_BD_EXTENSION:-false}
+      AGENTE_G5_RO_PASSWORD: ${AGENTE_G5_RO_PASSWORD:-agente_g5_ro_dev_pw}
     volumes:
       - ./database:/database:ro
       - ./agents/Agente_terceros_dpa-Grupo5/bd:/g5bd:ro
@@ -94,6 +97,10 @@ services:
       DB_USER: orchestrator_rw
       DB_PASSWORD: ${ORCHESTRATOR_DB_PASSWORD:-orch_dev_pw}
       GATEWAY_URL: http://llm-gateway:8080
+      # uvicorn runs on uvloop, which resolves host names in libuv's pool (4 threads by default). Each agent that is
+      # down holds a thread ~4 s while its lookup fails, so with a few agents down the lookup of a healthy agent waited
+      # past the 5 s health timeout and it was shown as "caido" (ConnectTimeout). A bigger pool removes that queue.
+      UV_THREADPOOL_SIZE: "64"
       GATEWAY_ADMIN_TOKEN: ${GATEWAY_ADMIN_TOKEN:-}
       # Access code per team to set its own Gemini key from /configuracion (empty = that team cannot set it from the web)
       TEAM_CODE_G1: ${TEAM_CODE_G1:-}
@@ -234,11 +241,14 @@ services:
       GATEWAY_V1_URL: http://llm-gateway:8080/g5/v1
       LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       N8N_USER_FOLDER: /n8n-home
-      # Gestitel (the group's own supported mode: config_bd.json activo=true + n8n credential "PIMS Postgres")
+      # Gestitel. Audits are stored in files (datos/registro/); the database is only READ for the organization
+      # context (option "contexto: bd | ambos"), with the read-only role agente_g5_lectura (n8n credential "PIMS Postgres").
+      # G5_BD_EXTENSION=true restores the group's write mode (extension tables + role agente7).
       G5_DB_HOST: postgres
       G5_DB_NAME: ${POSTGRES_DB:-gestitel}
-      G5_DB_USER: agente7
-      G5_DB_PASSWORD: ${AGENTE7_DB_PASSWORD:-agente7_dev_pw}
+      G5_BD_ESCRIBIR: ${G5_BD_EXTENSION:-false}
+      G5_DB_USER: ${G5_DB_USER:-agente_g5_lectura}
+      G5_DB_PASSWORD: ${G5_DB_PASSWORD:-${AGENTE_G5_RO_PASSWORD:-agente_g5_ro_dev_pw}}
     volumes:
       - g5n8n:/n8n-home
       - g5datos:/app/g5/datos

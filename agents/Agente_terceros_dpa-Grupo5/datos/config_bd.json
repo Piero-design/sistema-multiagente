@@ -1,7 +1,11 @@
 {
-  "_descripcion": "Base de datos del PIMS Gestitel (PostgreSQL) para el Agente 7. Con 'activo' en false el agente solo escribe archivos, como en la v2.0. La credencial (usuario agente7 y su contraseña) vive cifrada en n8n como 'PIMS Postgres'; se crea con: python n8n/configurar_bd.py",
+  "_descripcion": "Base de datos del PIMS Gestitel (PostgreSQL) para el Agente 7. 'activo' controla la ESCRITURA de auditorías en las tablas de la extensión (bd/agente7_terceros_dpa.sql); con false el agente solo escribe archivos, como en la v2.0. 'contexto_bd.activo' controla la LECTURA (solo SELECT) de las tablas del script del docente para usarlas como contexto de la organización (opción contexto: bd o ambos). La credencial vive cifrada en n8n como 'PIMS Postgres'; se crea con: python n8n/configurar_bd.py",
   "activo": false,
   "esquema": "demo",
   "usuario_autor_id": 1,
-  "doble_escritura_archivos": true
+  "doble_escritura_archivos": true,
+  "contexto_bd": {
+    "activo": false,
+    "esquema": "demo"
+  }
 }
