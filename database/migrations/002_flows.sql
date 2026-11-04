@@ -13,4 +13,5 @@ CREATE TABLE IF NOT EXISTS orchestrator.flow_run (
     created_at  timestamptz NOT NULL DEFAULT now(),
     finished_at timestamptz
 );
-GRANT SELECT, INSERT, UPDATE ON orchestrator.flow_run TO orchestrator_rw;
+-- No GRANT here: the orchestrator_rw role is created later by database/roles/00_agent_roles.sql,
+-- which grants SELECT/INSERT/UPDATE on ALL tables of the orchestrator schema (including this one).
