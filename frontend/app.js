@@ -1,10 +1,10 @@
 import { h } from './components/ui.js';
 import { api } from './services/api.js';
 import { ORDER } from './services/agents-config.js';
-import { dashboard } from './pages/dashboard.js?v=20261104e';
+import { dashboard } from './pages/dashboard.js?v=20261104f';
 import { agentPage } from './pages/agent.js';
 import { tercerosPage } from './pages/terceros.js';
-import { actividad, configuracion } from './pages/system.js?v=20261104e';
+import { actividad, configuracion } from './pages/system.js?v=20261104f';
 import { revision } from './pages/revision.js';
 import { dsarPage } from './pages/dsar.js';
 import { controlesPage } from './pages/controles.js';

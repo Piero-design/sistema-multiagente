@@ -1,7 +1,7 @@
 import { api } from '../services/api.js';
 import { h, badge, fmtTime, alertBox } from '../components/ui.js';
 import { AGENTS } from '../services/agents-config.js';
-import { flowsPanel } from './flows.js?v=20261104e';
+import { flowsPanel } from './flows.js?v=20261104f';
 
 export async function dashboard(root) {
   root.append(h('h1', {}, 'Panel general'), h('p', { class: 'sub' }, 'Estado real de los ocho agentes, del gateway LLM y de PostgreSQL.'));
