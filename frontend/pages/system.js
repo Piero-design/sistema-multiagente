@@ -1,0 +1,36 @@
+import { api } from '../services/api.js';
+import { h, badge, fmtTime, alertBox } from '../components/ui.js';
+import { table } from './dashboard.js';
+
+export async function actividad(root) {
+  root.append(h('h1', {}, 'Actividad'), h('p', { class: 'sub' }, 'Ejecuciones y eventos reales registrados por el orquestador en PostgreSQL.'));
+  const [ex, act, sys] = await Promise.all([api.executions(), api.activity(), api.system()]);
+  const l = sys.llm;
+  root.append(h('div', { class: 'card' }, h('h2', {}, 'Gateway LLM'),
+    h('p', { class: 'small' }, `Llamadas: ${l.requests} · errores: ${l.errors} · latencia media: ${l.avg_latency_ms} ms · tokens entrada/salida: ${l.prompt_tokens}/${l.completion_tokens}`)),
+    h('h2', { style: 'margin-top:20px' }, 'Ejecuciones recientes'),
+    h('div', { class: 'card' }, ex.length ? table(['Hora', 'Agente', 'Acción', 'Estado', 'Modo', 'Error'],
+      ex.map((r) => [fmtTime(r.created_at), r.agent_id, r.action, r.status, r.llm_mode + (r.simulated ? ' (simulado)' : ''), r.error || ''])) : h('span', { class: 'mute' }, 'Sin ejecuciones.')),
+    h('h2', { style: 'margin-top:20px' }, 'Eventos'),
+    h('div', { class: 'card' }, act.events.length ? table(['Hora', 'Agente', 'Evento', 'Detalle'],
+      act.events.map((e) => [fmtTime(e.created_at), e.agent_id, e.kind, e.message || ''])) : h('span', { class: 'mute' }, 'Sin eventos.')));
+}
+
+export async function configuracion(root) {
+  root.append(h('h1', {}, 'Configuración'), h('p', { class: 'sub' }, 'Solo lectura. La configuración se cambia en el archivo .env y reiniciando los servicios.'));
+  const [sys, agents] = await Promise.all([api.system(), api.agents()]);
+  const l = sys.llm;
+  if (l.data_leaves_machine) root.append(alertBox('warn', 'Los datos salen de esta máquina: el modo es "nube" y cada consulta a un agente se envía al proveedor del modelo.'));
+  if (l.simulated) root.append(alertBox('sim', 'Modo simulado: ninguna respuesta proviene de un modelo real.'));
+  const out = h('div', { class: 'small', style: 'margin-top:10px' });
+  root.append(h('div', { class: 'grid g2' },
+    h('div', { class: 'card' }, h('h2', {}, 'Gateway LLM'), table(['Parámetro', 'Valor'], [
+      ['Modo (LLM_MODE)', l.mode], ['Modelo', l.model || '—'], ['Modelo de embeddings', l.embed_model || '—'],
+      ['Datos salen de la máquina', l.data_leaves_machine ? 'Sí' : 'No'], ['Simulado', l.simulated ? 'Sí' : 'No']]),
+      h('button', { style: 'margin-top:12px', onclick: async (ev) => { ev.target.disabled = true; out.textContent = 'Probando…';
+        try { const r = await api.probe(); out.textContent = `Respuesta real en ${r.latency_ms} ms (${r.model}).`; } catch (e) { out.textContent = 'Falló: ' + e.message; } ev.target.disabled = false; } }, 'Probar conexión con el modelo'), out),
+    h('div', { class: 'card' }, h('h2', {}, 'Base de datos'), table(['Parámetro', 'Valor'], [
+      ['PostgreSQL', sys.database.ok ? 'Conectado' : 'Sin conexión'], ['Base', sys.database.db || '—'], ['Tablas en esquema demo', sys.database.demo_tables ?? '—']]))),
+    h('h2', { style: 'margin-top:20px' }, 'Agentes'),
+    h('div', { class: 'card' }, table(['Grupo', 'Agente', 'Estado', 'Motivo'], agents.map((a) => [`G${a.group}`, a.name, badge(a.status), a.reason || '']))));
+}

@@ -80,14 +80,23 @@ services:
       AGENT_G5_URL: http://agent-g5:5678
       AGENT_G7_URL: http://agent-g7:5007
       AGENT_G8_URL: http://agent-g8:3100
-    networks: [internal, public]
-    ports:
-      - "${FRONTEND_PORT:-8080}:8000"   # until the frontend service exists, the backend serves /api
+    networks: [internal]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 10s
       timeout: 3s
       retries: 10
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend: {condition: service_healthy}
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"      # the only published port
+    networks: [internal]
 
   # ---------------- Agents (one container each; originals untouched, config by env only) ----------------
   agent-g1:
