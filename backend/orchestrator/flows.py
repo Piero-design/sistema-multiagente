@@ -272,7 +272,7 @@ async def terceros_a_controles(rid: str, p: dict, steps: list) -> dict:
         d = (await c.get(f"{os.getenv('AGENT_G5_URL', 'http://agent-g5:5678')}/webhook/pims/registro/detalle",
                          params={"id": rid5})).json()
     ctrls = d["resultado"]["controles"]
-    res5 = d["resultado"]
+    res5 = {**d["resultado"], **({"puntaje": reg["registros"][0].get("puntaje")} if "id_registro" not in p and reg.get("registros") else {})}
     _note(steps, "terceros", "detalle_expediente", "Entrega el detalle de su expediente (consulta de solo lectura)", f"Expediente {rid5}",
           f"{len(ctrls)} controles evaluados · puntaje {res5.get('puntaje', '—')} · {sum(1 for c in ctrls if c['estado'] in ESTADO_G5_A_G7)} cumplen o cumplen en parte")
     base = {"perfil": {"rol": rol, "organizacion": p.get("nombre_organizacion", "UNSA")}, "riesgos": []}
@@ -288,7 +288,10 @@ async def terceros_a_controles(rid: str, p: dict, steps: list) -> dict:
     in_catalog = [c["control"] for c in ctrls if c["control"] in a]
     # G7 reads its own evidence when none is sent, so "before" is not an empty baseline: what is checked is that each state
     # sent from G5 is the one G7 reports for that control
-    reflejo = [{"control": e["control"], "enviado": e["estado"], "en_soa": a[e["control"]]["estado"]} for e in evid if e["control"] in a]
+    # an A.3.x row is a compatibility alias: G7 records its evidence under the canonical control (A.5.x), so follow it
+    canon = lambda c: (a[c].get("controles_canonicos") or [c])[0] if a[c].get("es_alias") else c  # noqa: E731
+    reflejo = [{"control": e["control"], "registrado_en": canon(e["control"]), "enviado": e["estado"], "en_soa": a[canon(e["control"])]["estado"]}
+               for e in evid if e["control"] in a and canon(e["control"]) in a]
     return {"expediente_g5": rid5, "controles_g5": len(ctrls), "controles_g5_en_catalogo_g7": len(in_catalog),
             "evidencias_enviadas_a_g7": len(evid), "controles_que_cambiaron_en_soa": changed,
             "estado_en_soa_de_lo_enviado": reflejo, "resumen_antes": before["datos"]["resumen"], "resumen_despues": after["datos"]["resumen"]}
