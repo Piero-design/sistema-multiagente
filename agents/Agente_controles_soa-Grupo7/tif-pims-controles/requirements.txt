@@ -2,3 +2,5 @@ flask
 requests
 faiss-cpu
 numpy
+python-docx
+psycopg[binary]
