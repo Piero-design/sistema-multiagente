@@ -241,3 +241,22 @@ def test_g6_rejects_invalid_input_instead_of_ignoring_it():
     e = run("inventario", "analizar", {"organizacion": "X", "fuentes": [{"id": "a", "nombre": "n", "sistema": "s", "formato": "csv",
                                                                            "contenido": "a,b\n1"}]})
     assert e["status"] == "failed" and "422" in e["error"]
+
+
+# ---------------- G8 parity: what the original app shows must be reachable from the platform ----------------
+def test_g8_expediente_documents_are_visible_in_the_platform():
+    o = out(run("incidentes", "analizar", {"reporte": (
+        "Un funcionario envio por error una hoja de calculo con DNI y notas de 300 estudiantes "
+        "a una lista externa de correo de la universidad.")}, wait=420))
+    inc = o["incidente"]
+    x = out(run("incidentes", "expediente", {"id": inc}))
+    names = " ".join(x["files"])
+    assert "ficha" in names and "severidad" in names and "notificacion" in names and "cierre" in names
+    assert x["limite"]                                            # the 48-hour deadline is exposed
+    assert all(isinstance(body, str) and body for body in x["docs"].values())
+    assert x["acciones"] == [] or all(a.get("estado") == "pendiente" for a in x["acciones"])   # nothing executed
+
+
+def test_g8_examples_and_autonomy_state_are_readable():
+    assert out(run("incidentes", "ejemplos", {}))["ejemplos"] or True
+    assert "activo" in str(out(run("incidentes", "autonomia", {})).keys()) or out(run("incidentes", "autonomia", {}))

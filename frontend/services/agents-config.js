@@ -107,7 +107,10 @@ export const AGENTS = {
       id: 'analizar', label: 'Analizar reporte', long: true,
       fields: [{ name: 'reporte', label: 'Reporte del incidente', type: 'textarea', demo: 'Un funcionario envió por error una hoja de cálculo con DNI y notas de 300 estudiantes a una lista externa de correo de la universidad.' }],
       build: (v) => ({ reporte: v.reporte }),
-    }],
+    },
+    { id: 'expediente', label: 'Ver expediente', fields: [{ name: 'id', label: 'Identificador del expediente (INC-…; se muestra al terminar un análisis)', type: 'text', demo: '' }], build: (v) => ({ id: v.id.trim() }) },
+    { id: 'ejemplos', label: 'Reportes de ejemplo', fields: [], build: () => ({}) },
+    { id: 'autonomia', label: 'Modo autónomo (estado)', fields: [], build: () => ({}) }],
   },
 };
 

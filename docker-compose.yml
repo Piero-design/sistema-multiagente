@@ -271,6 +271,57 @@ services:
       - ./ocr_output:/out
     networks: [internal]
 
+  # ---- Optional profile `standalone`: the groups' ORIGINAL interfaces, on localhost only ----
+  standalone-g8:                      # original UI of G8 (tu aplicación original, con expedientes, buzón, autonomía y contextos)
+    profiles: [standalone]
+    image: alpine/socat
+    restart: unless-stopped
+    command: TCP-LISTEN:3100,fork,reuseaddr TCP:agent-g8:3100
+    ports:
+      - "127.0.0.1:3100:3100"   # localhost only; never exposed to the network
+    depends_on: [agent-g8]
+    networks: [internal]
+
+  standalone-g4:                      # original UI of G4 (dashboard original)
+    profiles: [standalone]
+    image: alpine/socat
+    restart: unless-stopped
+    command: TCP-LISTEN:8004,fork,reuseaddr TCP:agent-g4:8004
+    ports:
+      - "127.0.0.1:8004:8004"   # localhost only; never exposed to the network
+    depends_on: [agent-g4]
+    networks: [internal]
+
+  standalone-g5:                      # original UI of G5 (página original de n8n: /webhook/pims/app)
+    profiles: [standalone]
+    image: alpine/socat
+    restart: unless-stopped
+    command: TCP-LISTEN:5678,fork,reuseaddr TCP:agent-g5:5678
+    ports:
+      - "127.0.0.1:5678:5678"   # localhost only; never exposed to the network
+    depends_on: [agent-g5]
+    networks: [internal]
+
+  standalone-g7:                      # original UI of G7 (interfaz original)
+    profiles: [standalone]
+    image: alpine/socat
+    restart: unless-stopped
+    command: TCP-LISTEN:5007,fork,reuseaddr TCP:agent-g7:5007
+    ports:
+      - "127.0.0.1:5007:5007"   # localhost only; never exposed to the network
+    depends_on: [agent-g7]
+    networks: [internal]
+
+  standalone-g2:                      # original UI of G2 (ISO Studio original)
+    profiles: [standalone]
+    image: alpine/socat
+    restart: unless-stopped
+    command: TCP-LISTEN:4318,fork,reuseaddr TCP:agent-g2:4318
+    ports:
+      - "127.0.0.1:4318:4318"   # localhost only; never exposed to the network
+    depends_on: [agent-g2]
+    networks: [internal]
+
   # ---- Optional profile: only for the machine that runs Ollama ----
   ollama:
     profiles: [ollama]

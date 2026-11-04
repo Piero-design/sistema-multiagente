@@ -329,10 +329,27 @@ class G8(_HttpAdapter):
 
     def get_capabilities(self):
         return [{"action": "analizar", "description": "POST /api/analizar → job → expediente (solo borradores)",
-                 "input": {"reporte": "str (>=20 chars)", "contexto": "str?"}}]
-    # Approving/rejecting proposed actions (POST /api/acciones/...) is a human decision, not a model tool.
+                 "input": {"reporte": "str (>=20 chars)", "contexto": "str?"}},
+                {"action": "expediente", "description": "GET /api/expediente/{id}: ficha, severidad, borradores (ANPD, titulares, CNSD), plan y cierre",
+                 "input": {"id": "str"}},
+                {"action": "ejemplos", "description": "GET /api/archivos-demo: reportes y contextos de ejemplo del agente", "input": {}},
+                {"action": "autonomia", "description": "GET /api/autonomia: estado del modo autónomo y del buzón (solo lectura)", "input": {}}]
+    # Approving/rejecting proposed actions (POST /api/acciones/...) is a human decision (page /revision), not a model tool.
+    # Credentials/connection (/api/auth) are managed by the gateway; activating the autonomous mode is left to the original UI.
 
     async def execute(self, req: ExecutionRequest):
+        a, i = req["action"], req.get("input") or {}
+        if a == "expediente":
+            r = await _get(f"{self.base}/api/expediente/{i['id']}", timeout=30)
+            if r.status_code >= 400:
+                raise RuntimeError(f"G8 HTTP {r.status_code}: {r.text[:200]}")
+            return {"output": r.json(), "native_status": r.status_code}
+        if a == "ejemplos":
+            r = await _get(f"{self.base}/api/archivos-demo", timeout=30)
+            return {"output": r.json(), "native_status": r.status_code}
+        if a == "autonomia":
+            r = await _get(f"{self.base}/api/autonomia", timeout=30)
+            return {"output": r.json(), "native_status": r.status_code}
         r = await _post(f"{self.base}/api/analizar", json=req["input"], timeout=30)
         if r.status_code >= 400:
             raise RuntimeError(f"G8 HTTP {r.status_code}: {r.text[:300]}")

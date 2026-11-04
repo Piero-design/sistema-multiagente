@@ -59,11 +59,18 @@ export async function agentPage(root, key) {
     formBox.replaceChildren(h('h2', {}, current.label), current.fields.length ? '' : h('p', { class: 'mute small' }, 'Esta acción no requiere datos.'), form);
   };
 
+  const docsView = (o) => h('div', {}, h('p', { class: 'small mute' }, `Expediente ${o.id} · ${o.files?.length || 0} documentos${o.limite ? ' · hora límite ' + o.limite : ''}`),
+    ...Object.entries(o.docs || {}).map(([name, body]) => h('details', { open: /informe|ficha/i.test(name) }, h('summary', {}, name), h('div', { class: 'md', style: 'margin:8px 0' }, body))),
+    (o.acciones || []).length ? h('p', { class: 'small mute' }, `${o.acciones.length} acción(es) propuesta(s). Las decisiones se toman en «Revisión humana».`) : null);
+
   function showResult(e) {
     if (e.status === 'failed') return out.replaceChildren(alertBox('bad', `Falló: ${e.error}`));
     const r = e.result || {}, o = r.output ?? r, text = pickText(o);
+    if (o && o.docs) return out.replaceChildren(h('div', { class: 'card' }, docsView(o)));
+    const incId = o && typeof o.incidente === 'string' && o.incidente !== 'None' ? o.incidente : null;
     out.replaceChildren(h('div', { class: 'card' },
       h('div', { class: 'row small mute' }, `Duración ${Math.round(e.seconds || 0)} s · modo LLM: ${e.llm_mode}`, e.simulated ? h('span', { class: 'badge b-sim' }, 'simulado') : null),
+      incId ? h('button', { style: 'margin:8px 0', onclick: async (ev) => { ev.target.disabled = true; try { const x = await api.run(key, 'expediente', { id: incId }); out.replaceChildren(h('div', { class: 'card' }, docsView((x.result || {}).output || {}))); } catch (err) { out.append(alertBox('bad', err.message)); } } }, `Ver el expediente completo (${incId})`) : null,
       text ? h('div', { class: 'md', style: 'margin:10px 0' }, text) : null,
       h('details', { open: !text }, h('summary', {}, 'Resultado completo (JSON)'), h('pre', {}, JSON.stringify(o, null, 2)))));
   }
