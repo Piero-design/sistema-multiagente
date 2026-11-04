@@ -77,6 +77,11 @@ function markdown(md) {
   const box = h('div', { class: 'mdr' }); const lines = String(md || '').replace(/\r/g, '').split('\n');
   for (let i = 0; i < lines.length;) {
     const l = lines[i];
+    if (/^\s*<svg[\s>]/i.test(l)) {
+      const svg = []; while (i < lines.length) { svg.push(lines[i]); if (/<\/svg>/i.test(lines[i++])) break; }
+      box.append(svgImagen(svg.join('\n'), 'Radar de cumplimiento por sección del Anexo A'));
+      continue;
+    }
     if (/^\s*\|.*\|\s*$/.test(l)) {
       const rows = []; while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) rows.push(lines[i++]);
       const cells = (r) => r.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
@@ -110,6 +115,82 @@ const busy = (box, t) => box.replaceChildren(card(spinner(t)));
 const fail = (box, err) => box.replaceChildren(alertBox('bad', String(err.message || err)));
 
 // ---- expediente view (summary + report + downloads) ----
+// ---- traffic light of the 26 controls, as in the agent's original page (web/index.html) ----
+const SEM = {
+  'Cumple': { c: 'cumple', col: '#2e9d62' }, 'Parcial': { c: 'parcial', col: '#d49a1f' }, 'No cumple': { c: 'nocumple', col: '#d0453a' },
+  'Sin evidencia': { c: 'sinevidencia', col: '#8a94a6' }, 'No aplica': { c: 'noaplica', col: '#8a94a6' },
+};
+const SECCION_DE = {
+  'Condiciones de recolección y tratamiento': 'A.2.2', 'Obligaciones con los titulares': 'A.2.3',
+  'Privacidad desde el diseño y por defecto': 'A.2.4', 'Compartición, transferencia y comunicación': 'A.2.5',
+  'Consideraciones de seguridad': 'A.3',
+};
+const estadoBadge = (e) => h('span', { class: `sem-badge ${(SEM[e] || {}).c || ''}` }, e || '—');
+const bandaColor = (b) => (/alto/i.test(b || '') ? SEM['No cumple'].col : /medio/i.test(b || '') ? SEM.Parcial.col : SEM.Cumple.col);
+
+// An SVG (the agent's radar) shown as an image: drawn by the browser, never executed.
+const svgImagen = (svg, alt) => h('img', { class: 'radar-img', alt, src: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) });
+
+function huella(r) {
+  const s = r.resumen || {};
+  return h('div', {},
+    h('div', { class: 'huella' }, (r.controles || []).map((c) => h('div', {
+      class: `casilla ${(SEM[c.estado] || {}).c || ''}${c.ambito === 'Propio Agente 7' ? ' propio' : ''}`,
+      title: `${c.control} · ${c.titulo || ''}\n${c.estado} · severidad ${c.severidad || '—'}\n${c.observacion || ''}`,
+    }, String(c.control || '').replace(/^A\./, '')))),
+    h('div', { class: 'leyenda' },
+      h('span', {}, h('i', { style: `background:${SEM.Cumple.col}` }), `Cumple ${s.cumple ?? 0}`),
+      h('span', {}, h('i', { style: `background:${SEM.Parcial.col}` }), `Parcial ${s.parcial ?? 0}`),
+      h('span', {}, h('i', { style: `background:${SEM['No cumple'].col}` }), `No cumple ${s.no_cumple ?? 0}`),
+      h('span', {}, h('i', { style: 'border:1.5px dashed #8a94a6' }), `Sin evidencia ${s.sin_evidencia ?? 0}`),
+      h('span', {}, h('i', { style: 'background:#8a94a6;opacity:.45' }), `No aplica ${s.no_aplica ?? 0}`),
+      h('span', {}, '● ámbito propio del Agente 7')));
+}
+
+/* Radar of the base score per Annex A section. Same drawing as radarSVG in the agent (n8n/lib/prompts.js and
+   web/index.html); only the colors change so it reads on the light and dark themes of the platform. */
+function radarSVG(porDimension, controles) {
+  const ejes = Object.entries(porDimension || {}); const n = ejes.length;
+  if (n < 3) return '';
+  const col = { tinta: '#8f99ab', suave: '#8f99ab', red: '#8f99ab55', area: '#6c8cff', ref: '#2e9d62' };
+  const W = 560, H = 400, cx = W / 2, cy = 205, R = 120;
+  const ang = (i) => (-90 + (360 / n) * i) * Math.PI / 180;
+  const pt = (i, v) => [cx + R * (v / 100) * Math.cos(ang(i)), cy + R * (v / 100) * Math.sin(ang(i))];
+  const f = (x) => x.toFixed(1);
+  const anillo = (v) => ejes.map((_, i) => pt(i, v).map(f).join(',')).join(' ');
+  const escX = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const partir = (t, max) => { const ls = []; let a = ''; for (const w of t.split(' ')) { if (a && (a + ' ' + w).length > max) { ls.push(a); a = w; } else a = a ? a + ' ' + w : w; } if (a) ls.push(a); return ls; };
+  const nCtl = (k) => { const sec = SECCION_DE[k]; return sec && Array.isArray(controles) ? controles.filter((c) => String(c.control).startsWith(sec + '.') && c.estado !== 'No aplica').length : null; };
+  const o = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="system-ui,-apple-system,Segoe UI,sans-serif">`];
+  for (const v of [20, 40, 60, 100]) o.push(`<polygon points="${anillo(v)}" fill="none" stroke="${col.red}" stroke-width="1"/>`);
+  o.push(`<polygon points="${anillo(80)}" fill="none" stroke="${col.ref}" stroke-width="1.5" stroke-dasharray="5 4"/>`);
+  ejes.forEach((_, i) => { const [x, y] = pt(i, 100); o.push(`<line x1="${cx}" y1="${cy}" x2="${f(x)}" y2="${f(y)}" stroke="${col.red}" stroke-width="1"/>`); });
+  for (const v of [20, 40, 60, 80, 100]) o.push(`<text x="${cx + 4}" y="${f(cy - R * v / 100 - 2)}" font-size="9" fill="${v === 80 ? col.ref : col.suave}">${v}</text>`);
+  o.push(`<polygon points="${ejes.map(([, v], i) => pt(i, v ?? 0).map(f).join(',')).join(' ')}" fill="${col.area}" fill-opacity="0.22" stroke="${col.area}" stroke-width="2" stroke-linejoin="round"/>`);
+  ejes.forEach(([, v], i) => { const [x, y] = pt(i, v ?? 0); o.push(`<circle cx="${f(x)}" cy="${f(y)}" r="3.5" fill="${v === null ? '#fff' : col.area}" stroke="${col.area}" stroke-width="1.5"/>`); });
+  ejes.forEach(([k, v], i) => {
+    const a = ang(i), c = Math.cos(a), sn = Math.sin(a), x = cx + (R + 18) * c, y = cy + (R + 18) * sn;
+    const anc = Math.abs(c) < 0.2 ? 'middle' : c > 0 ? 'start' : 'end', nc = nCtl(k);
+    const ls = [`${SECCION_DE[k] ? SECCION_DE[k] + ' · ' : ''}${v === null ? '—' : v}${nc === null ? '' : ` (${nc} ctrl.)`}`, ...partir(k, 24)];
+    const y0 = sn < -0.5 ? y - ls.length * 13 + 9 : sn > 0.5 ? y + 9 : y - (ls.length * 13) / 2 + 9;
+    o.push(`<text x="${f(x)}" y="${f(y0)}" font-size="11" fill="${col.tinta}" text-anchor="${anc}">${ls.map((l, j) => `<tspan x="${f(x)}" dy="${j ? 13 : 0}"${j ? '' : ' font-weight="700"'}>${escX(l)}</tspan>`).join('')}</text>`);
+  });
+  o.push(`<text x="12" y="${H - 10}" font-size="10" fill="${col.suave}">Puntaje base por sección, 0-100, sin penalización por alertas. Línea discontinua: 80 (riesgo bajo).</text></svg>`);
+  return o.join('');
+}
+
+function desglose(r) {
+  const p = r.puntaje_proveedor || {}, dims = Object.entries(p.por_dimension || {});
+  if (!dims.length) return null;
+  return h('div', { class: 'desglose' },
+    h('div', { class: 'dims' }, dims.map(([k, v]) => h('div', { class: 'dim' },
+      h('span', {}, SECCION_DE[k] ? h('strong', {}, SECCION_DE[k] + ' ') : null, k),
+      h('div', { class: 'barra' }, h('span', { style: `width:${v ?? 0}%;background:${v === null ? '#8a94a6' : v >= 80 ? SEM.Cumple.col : v >= 50 ? SEM.Parcial.col : SEM['No cumple'].col}` })),
+      h('span', { class: 'num' }, v ?? '—'))),
+      h('p', { class: 'small mute' }, 'Puntaje base por sección del Anexo A de ISO/IEC 27701:2025, sin la penalización por alertas.')),
+    svgImagen(radarSVG(p.por_dimension, r.controles), 'Radar de cumplimiento por sección del Anexo A'));
+}
+
 function expedienteView(det, onDeleted) {
   const r = det.resultado || {}, reg = r._registro || {}, p = r.puntaje_proveedor || {}, c = reg.contexto || {};
   const res = r.resumen || {};
@@ -120,7 +201,8 @@ function expedienteView(det, onDeleted) {
       h('span', { class: 'row' }, downloadButtons(reg.id_registro || 'expediente', det),
         reg.id_registro ? deleteButton('expediente', reg.id_registro, onDeleted) : null)),
     h('div', { class: 'kpis', style: 'margin:10px 0' },
-      h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Puntaje'), h('div', { class: 'kpi' }, p.valor ?? '—'), h('div', { class: 'small' }, p.banda || '')),
+      h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Puntaje'), h('div', { class: 'kpi', style: `color:${bandaColor(p.banda)}` }, p.valor ?? '—', h('span', { style: 'font-size:14px;font-weight:500' }, '/100')),
+        h('div', { class: 'small' }, `${p.banda || ''}${p.base !== undefined ? ` · base ${p.base} − ${p.penalizacion}` : ''}`)),
       h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Dictamen'), h('div', { style: 'font-weight:700' }, r.dictamen || '—')),
       h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Aprobación'), h('div', { style: 'font-weight:700' }, (r.aprobacion || {}).estado || '—')),
       h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Controles'),
@@ -128,9 +210,16 @@ function expedienteView(det, onDeleted) {
     h('p', { class: 'small mute' }, `Modelo ${reg.modelo || '—'} · correcciones del JSON: ${reg.reintentos ?? 0} · contexto: ${fuente}` +
       (c.bd ? ` (esquema ${c.bd.esquema}, ${Object.values(c.bd.filas || {}).reduce((a, b) => a + b, 0)} filas)` : '')),
     c.aviso ? alertBox('warn', c.aviso) : null,
+    h('h3', { style: 'margin:14px 0 8px;font-size:15px' }, 'Huella del contrato'), huella(r), desglose(r),
+    (r.alertas || []).length ? h('details', { open: true }, h('summary', {}, `Alertas (${r.alertas.length})`),
+      h('div', {}, r.alertas.map((a) => h('div', { class: `alerta-g5 ${a.prioridad === 'Alta' ? 'alta' : 'media'}` },
+        h('strong', {}, `${a.prioridad} · ${a.tipo}`), ` — ${a.descripcion}`,
+        a.controles_relacionados ? h('span', { class: 'small mute' }, ` (${a.controles_relacionados.join(', ')})`) : null)))) : null,
     h('details', { open: true }, h('summary', {}, 'Informe'), det.informe ? markdown(det.informe) : h('p', { class: 'mute' }, '(sin informe)')),
     h('details', {}, h('summary', {}, 'Matriz de los 26 controles'),
-      table(['Control', 'Estado', 'Severidad', 'Evidencia'], (r.controles || []).map((x) => [x.id, x.estado, x.severidad || '', String(x.evidencia || x.hallazgo || '').slice(0, 220)]))),
+      table(['Control', 'Estado', 'Severidad', 'Evidencia / observación'], (r.controles || []).map((x) => [
+        h('span', {}, h('strong', {}, x.control), h('br'), h('span', { class: 'small mute' }, x.titulo || '')), estadoBadge(x.estado), x.severidad || '',
+        h('span', { class: 'small' }, String(x.evidencia || '').slice(0, 220), x.observacion ? h('div', { class: 'mute' }, x.observacion) : null)]))),
     h('details', {}, h('summary', {}, 'Expediente completo (JSON)'), h('pre', {}, JSON.stringify(r, null, 2))));
 }
 
@@ -356,7 +445,25 @@ async function tabHistorial(box, agentId) {
 // ---------------------------------------------------------------- page
 const ESTILO = `.mdr{margin:8px 0;line-height:1.55}.mdr h2,.mdr h3{font-size:16px;margin:18px 0 6px}.mdr h4,.mdr h5{font-size:14px;margin:14px 0 4px}
 .mdr p{margin:6px 0}.mdr ul,.mdr ol{margin:6px 0 6px 20px;padding:0}.mdr table{margin:8px 0;font-size:13px}
-.mdr blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--brand);color:var(--mute)}.mdr code{font:12px ui-monospace,Consolas,monospace}`;
+.mdr blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--brand);color:var(--mute)}.mdr code{font:12px ui-monospace,Consolas,monospace}
+.huella{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:3px}
+.casilla{border-radius:4px;padding:6px 4px 5px;font:12px ui-monospace,Consolas,monospace;text-align:center;color:#fff;border:2px solid transparent;position:relative;cursor:default}
+.casilla.cumple{background:#2e9d62}.casilla.parcial{background:#d49a1f}.casilla.nocumple{background:#d0453a}
+.casilla.sinevidencia{background:transparent;color:var(--mute);border:2px dashed #8a94a6}.casilla.noaplica{background:#8a94a640;color:var(--mute)}
+.casilla.propio::after{content:"";position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.85}
+.leyenda{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--mute);margin:8px 0 4px}
+.leyenda i{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+.desglose{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:18px;align-items:center;margin:14px 0}
+.dims{display:grid;gap:8px;align-content:start}.dim{display:grid;grid-template-columns:1fr 120px 44px;gap:10px;align-items:center;font-size:13px}
+.barra{height:8px;background:#8a94a633;border-radius:4px;overflow:hidden}.barra span{display:block;height:100%}.num{text-align:right;font-variant-numeric:tabular-nums}
+.radar-img{display:block;width:100%;max-width:560px;height:auto;margin:6px auto}
+.mdr .radar-img{background:#fff;border-radius:8px;padding:8px}
+.sem-badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap;color:#fff}
+.sem-badge.cumple{background:#2e9d62}.sem-badge.parcial{background:#d49a1f}.sem-badge.nocumple{background:#d0453a}
+.sem-badge.sinevidencia{background:transparent;color:var(--mute);border:1.5px dashed #8a94a6}.sem-badge.noaplica{background:#8a94a640;color:var(--mute)}
+.alerta-g5{padding:8px 12px;border-radius:8px;margin:6px 0;font-size:14px;border-left:4px solid}
+.alerta-g5.alta{background:var(--bad-bg);border-color:#d0453a}.alerta-g5.media{background:var(--warn-bg);border-color:#d49a1f}
+@media (max-width:900px){.desglose{grid-template-columns:1fr}}`;
 
 export async function tercerosPage(root) {
   if (!document.getElementById('estilo-g5')) document.head.append(h('style', { id: 'estilo-g5' }, ESTILO));
