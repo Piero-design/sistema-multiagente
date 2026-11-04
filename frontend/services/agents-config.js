@@ -23,7 +23,7 @@ export const AGENTS = {
   },
   dsar: {
     route: '/agentes/dsar', title: 'Derechos de titulares (DSAR)', group: 3,
-    about: 'Calcula plazos legales (Ley 29733), consulta la norma con citas y gestiona expedientes. La verificación de identidad y la aprobación son decisiones humanas y no se ofrecen aquí.',
+    about: 'Calcula plazos legales (Ley 29733), consulta la norma con citas, gestiona expedientes y muestra los controles y cláusulas ISO/IEC 27701 de cada caso. La verificación de identidad y la aprobación son decisiones humanas y no se ofrecen aquí.',
     actions: [
       { id: 'dsar_calcular_plazos', label: 'Calcular plazos', fields: [
         { name: 'request_types', label: 'Derechos solicitados', type: 'multi', options: ['information', 'access', 'portability', 'rectification', 'erasure', 'objection'], demo: ['access', 'erasure'] },
@@ -34,6 +34,26 @@ export const AGENTS = {
         build: (v) => ({ pregunta: v.pregunta, top_k: 4 }) },
       { id: 'dsar_listar', label: 'Listar expedientes', fields: [], build: () => ({}) },
       { id: 'dsar_handoffs', label: 'Ver handoffs', fields: [], build: () => ({}) },
+      // The identity always starts as pending: only the DPO verifies it in /revision.
+      { id: 'dsar_crear_caso', label: 'Crear caso', fields: [
+        { name: 'principal_id', label: 'Identificador del titular', type: 'text', demo: 'person-001' },
+        { name: 'request_types', label: 'Derechos solicitados', type: 'multi', options: ['information', 'access', 'portability', 'rectification', 'erasure', 'objection'], demo: ['erasure'] },
+        { name: 'received_at', label: 'Fecha de recepción', type: 'date', demo: new Date().toISOString().slice(0, 10) }],
+        build: (v) => ({ principal_id: v.principal_id, request_types: v.request_types, received_at: v.received_at, policy_id: 'PE-LEY29733', identity_status: 'pending' }) },
+      { id: 'dsar_estado', label: 'Ver estado de un caso', fields: [
+        { name: 'case_id', label: 'Identificador del caso', type: 'text', demo: '' }],
+        build: (v) => ({ case_id: v.case_id.trim() }) },
+      { id: 'dsar_controles', label: 'Controles y cláusulas ISO de un caso', fields: [
+        { name: 'case_id', label: 'Identificador del caso', type: 'text', demo: '' }],
+        build: (v) => ({ case_id: v.case_id.trim() }) },
+      { id: 'dsar_asistente', label: 'Preguntar al asistente', long: true, fields: [
+        { name: 'pregunta', label: 'Pregunta', type: 'textarea', demo: '¿Qué plazo hay para atender un derecho de supresión?' },
+        { name: 'case_id', label: 'Identificador del caso (opcional)', type: 'text', demo: '' },
+        { name: 'modo', label: 'Modo', type: 'select', options: ['guided', 'gateway'], demo: 'guided' }],
+        build: (v) => ({ pregunta: v.pregunta, case_id: v.case_id.trim() || null, modo: v.modo }) },
+      { id: 'dsar_borrador', label: 'Ver borrador (caso aprobado)', fields: [
+        { name: 'case_id', label: 'Identificador del caso', type: 'text', demo: '' }],
+        build: (v) => ({ case_id: v.case_id.trim() }) },
     ],
   },
   auditoria: {

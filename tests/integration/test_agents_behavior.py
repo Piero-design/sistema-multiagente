@@ -50,6 +50,17 @@ def test_g3_norm_query_returns_citable_fragments():
     assert o["fragments"] and all(f["source"] and f["excerpt"] for f in o["fragments"])
 
 
+def test_g3_controls_list_iso_controls_and_clauses_read_only():
+    case = out(run("dsar", "dsar_crear_caso", {
+        "principal_id": "TIT-TEST", "request_types": ["erasure"], "policy_id": "PE-LEY29733",
+        "received_at": "2026-11-03", "identity_status": "pending", "identity_reference": ""}))
+    o = out(run("dsar", "dsar_controles", {"case_id": case["case_id"]}))
+    found = [c["control"] for c in o["controls"]]
+    assert o["status"] == "IDENTITY_PENDING" and "A.1.3.7" in found
+    assert "Cláusula 8.3" in found and "Cláusula 5.3" in found     # pending identity = risk treatment
+    assert out(run("dsar", "dsar_estado", {"case_id": case["case_id"]}))["status"] == "IDENTITY_PENDING"
+
+
 def test_g3_human_decision_tools_not_callable():
     for tool in ("dsar_decidir", "verify_identity", "decide", "dsar_aprobar"):
         r = httpx.post(f"{BASE}/api/agents/dsar/execute", json={"action": tool, "input": {}}, timeout=30)

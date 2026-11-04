@@ -17,7 +17,7 @@ from dsar.services.context import ServiceContext, build_context, load_env_file
 
 INSTRUCTIONS = (
     "Agente de Derechos DSAR del PIMS (ISO/IEC 27701:2025, Ley 29733). "
-    "Puedes crear expedientes, consultar estado y plazos, consultar la norma y leer handoffs. "
+    "Puedes crear expedientes, consultar estado, plazos y controles ISO, consultar la norma y leer handoffs. "
     "No puedes aprobar, rechazar ni ejecutar: la decisión humana se registra solo en el panel del agente."
 )
 HTTP_HOST = "127.0.0.1"
@@ -46,6 +46,18 @@ def create_server(ctx: ServiceContext | None = None) -> MCPServer:
     def dsar_plazos(case_id: str) -> dict[str, Any]:
         """Plazos por derecho de un expediente guardado."""
         return tools.plazos(context, case_id)
+
+    @server.tool()
+    def dsar_controles(case_id: str) -> dict[str, Any]:
+        """Controles del Anexo A y cláusulas de ISO/IEC 27701:2025 que evidencia un expediente.
+        Tabla fija según el estado del caso; solo lectura."""
+        return tools.controles(context, case_id)
+
+    @server.tool()
+    def dsar_asistente(pregunta: str, case_id: str | None = None, modo: str = "guided") -> dict[str, Any]:
+        """Asistente DSAR: explica un caso o la norma. modo «guided» (sin modelo) o un proveedor configurado
+        («gateway» en la plataforma). Solo hechos minimizados; no decide ni redacta borradores con datos."""
+        return tools.asistente(context, pregunta, case_id, modo)
 
     @server.tool()
     def dsar_calcular_plazos(request_types: list[str], received_at: str,

@@ -39,6 +39,8 @@ El puerto 8001 se puede cambiar con `--port`. El modo HTTP no tiene autenticaci�
 | `dsar_borrador` | `case_id` | Borrador al titular (solo expedientes `APPROVED`) |
 | `dsar_consultar_norma` | `pregunta`, `top_k` | Fragmentos citables de ISO/IEC 27701, Ley 29733 y política interna |
 | `dsar_handoffs` | `case_id` (opcional) | Entregas para otros agentes |
+| `dsar_controles` | `case_id` | Controles del Anexo A y cláusulas de ISO/IEC 27701:2025 que evidencia el expediente, cada uno con título y motivo. Solo lectura; tabla fija según el estado del caso |
+| `dsar_asistente` | `pregunta`, `case_id` (opcional), `modo` (`guided` o un proveedor configurado, p. ej. `gateway`) | Respuesta del asistente con fuentes. Control de alcance y filtro de evasión antes del modelo; solo hechos minimizados; **nunca devuelve el borrador de un caso** |
 
 Valores de `request_types`: `information`, `access`, `portability`, `rectification`, `erasure`, `objection`.
 
@@ -79,16 +81,27 @@ Las skills mencionan también al Agente de Incidentes (Grupo 8) y al DPO, pero *
 5. `APPROVED` y `REJECTED` solo por decisión de una persona. Ningún modelo ni cliente MCP puede registrarlos.
 6. Un modelo en la nube solo recibe hechos minimizados, nunca registros ni el texto del solicitante.
 
-## 6. Limitación actual: falta la interfaz de decisión humana
+## 6. Decisión humana en la plataforma
 
-Esta entrega no incluye la API ni el frontend del proyecto original. Por eso **no hay una pantalla para que una persona verifique la identidad o apruebe un expediente**. Sin esa decisión los casos se quedan en `IDENTITY_PENDING`, `APPROVAL_REQUIRED` o `REVIEW`, y no se generan borradores ni handoffs.
-
-Hoy esas acciones existen solo como funciones Python, para que las use una interfaz humana del sistema común:
+El agente no trae interfaz de decisión: verificar la identidad y aprobar o rechazar existen solo como funciones Python.
 
 - `dsar.services.cases.verify_identity(ctx, case_id, verified_by, method, ...)`
 - `dsar.services.decisions.decide(ctx, case_id, reviewer, decision, note)`
 
-Opciones: exponerlas en el panel común del sistema multiagente o reincorporar la interfaz del proyecto original del Grupo 3. **No deben exponerse como herramientas MCP**, porque un modelo podría aprobar casos.
+La plataforma las expone **solo a una persona con sesión y rol DPO** en `/revision`, mediante un puente interno (`docker/agents/g3_human.py`) que únicamente llama el backend. **No deben exponerse como herramientas MCP**, porque un modelo podría aprobar casos. Por eso «Crear caso» en `/agentes/dsar` siempre registra la identidad como pendiente.
+
+El resto del panel del agente está en la pestaña **Gestión (DPO)** de `/agentes/dsar` (solo DPO; también verifica la identidad y decide), por el mismo puente (rutas `/gestion/*`) y el proxy `/api/human/dsar/gestion/*` del backend, que fija como revisor a la persona con sesión:
+
+| Función | Servicio del agente |
+|---|---|
+| Expediente completo con controles y cláusulas | `cases.get`, `controls.for_case` |
+| Borrador con el asistente (`guided` o `gateway`) y exportación | `drafting.draft`, `export.export_case` |
+| Prórroga (art. 71) y reanudación | `decisions.extension_options`, `decisions.extend`, `decisions.resume` |
+| Correos entrantes y triaje humano | `intake.synchronize`, `intake.confirm`, `intake.discard`, `intake.load_demo` |
+| Bandeja de salida (el envío solo con `DSAR_MAIL_SEND_ENABLED=true`) | `outbox.prepare`, `outbox.edit`, `outbox.send`, `outbox.discard` |
+| Indicadores, política de la organización y auditoría del modelo | `metrics.indicators`, `org_policy.get/save`, `system.llm_log` |
+
+La lectura de correos solo usa un modelo local (Ollama en 127.0.0.1). En el contenedor no hay, así que cada correo queda en triaje para una persona. El worker de correo (`python -m dsar.worker`) corre dentro del contenedor.
 
 ## 7. Configuración (variables de entorno, opcionales)
 
@@ -99,5 +112,7 @@ Opciones: exponerlas en el panel común del sistema multiagente o reincorporar l
 | `DSAR_EXPORT_DIR` | `exports/` | Exportaciones |
 | `DSAR_UTC_OFFSET_HOURS` | `-5` | Zona horaria (Perú) |
 | `DSAR_MAIL_*` | — | Entrada por correo (`python -m dsar.worker`); opcional |
+| `DSAR_GATEWAY_URL` | — | Gateway LLM de la plataforma (API compatible con OpenAI). Activa el modo `gateway`, tratado como nube |
+| `DSAR_GATEWAY_MODEL` | `plataforma` | Modelo pedido al gateway (el gateway puede imponer el suyo) |
 
 Las rutas son relativas a esta carpeta. No guardes claves ni datos reales en el repositorio.

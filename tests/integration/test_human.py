@@ -88,3 +88,48 @@ def test_g5_two_gate_approval_order_is_enforced_by_the_agent():
                 f"and detail->>'target'='{target}' and detail->>'outcome' like '%HTTP 200%'") == "2"
     assert psql("select count(*) from demo.core_securitylog where action='human_decision' and module='terceros' "
                 f"and detail->>'target'='{target}' and detail->>'outcome' like '%HTTP 409%'") == "1"
+
+
+# ---------------- G3 · Gestión DSAR (rest of the agent's panel, DPO only) ----------------
+G = "/api/human/dsar/gestion/"
+
+
+def test_g3_gestion_requires_a_dpo_and_known_paths():
+    assert httpx.get(f"{BASE}{G}casos", timeout=30).status_code == 401
+    assert httpx.get(f"{BASE}{G}casos", headers=login("legal"), timeout=30).status_code == 403
+    assert httpx.get(f"{BASE}{G}../verify", headers=login("dpo"), timeout=30).status_code == 404
+
+
+def test_g3_gestion_case_work_is_attributed_and_never_decides():
+    dpo = login("dpo")
+    case_id = run("dsar", "dsar_crear_caso", {"principal_id": "person-001", "request_types": ["access"],
+                  "policy_id": "PE-LEY29733", "received_at": "2026-11-03", "identity_status": "pending",
+                  "identity_reference": ""})["result"]["output"]["case_id"]
+    full = httpx.get(f"{BASE}{G}casos/{case_id}", headers=dpo, timeout=60).json()
+    assert full["status"] == "IDENTITY_PENDING" and full["discovered_records"] == []
+    assert "Cláusula 8.3" in {c["control"] for c in full["controls"]}
+    draft = post(f"{G}casos/{case_id}/borrador", {"mode": "guided"}, dpo)
+    assert draft.status_code == 200 and draft.json()["draft"].startswith("# Borrador")
+    # a client cannot pretend to be someone else: the backend sets the reviewer to the signed-in person
+    post("/api/human/dsar/verificar", {"case_id": case_id, "method": "DNI presencial"}, dpo)
+    ext = post(f"{G}casos/{case_id}/prorroga", {"right": "access", "reason": "Volumen", "reviewer": "otra-persona"}, dpo)
+    assert ext.status_code == 200, ext.text
+    assert ext.json()["deadlines"]["access"]["extension"]["decided_by"] == "dpo"
+    assert httpx.get(f"{BASE}{G}casos/{case_id}", headers=dpo, timeout=60).json()["status"] not in ("APPROVED", "REJECTED")
+    assert psql(f"select count(*) from demo.core_securitylog where username='dpo' and module='dsar' "
+                f"and detail->>'target'='casos/{case_id}/prorroga'") != "0"
+
+
+def test_g3_gestion_mail_goes_to_human_triage_and_outbox_does_not_send_by_default():
+    dpo = login("dpo")
+    assert post(f"{G}correos/demo", {"count": 2}, dpo).status_code == 200
+    assert post(f"{G}correos/sincronizar", {"limit": 10}, dpo).status_code == 200
+    mails = httpx.get(f"{BASE}{G}correos", headers=dpo, timeout=60).json()
+    triage = [m for m in mails if m["status"] == "triaje"]
+    assert triage, "sin modelo local, los correos quedan para revisión humana"
+    ok = post(f"{G}correos/{triage[0]['id']}/confirmar", {"request_types": ["access"], "subject_email": "persona@example.test"}, dpo)
+    assert ok.status_code == 200 and ok.json()["case_id"].startswith("DSAR-EMAIL-")
+    out = post(f"{G}salida", {"case_id": ok.json()["case_id"], "kind": "identidad"}, dpo)
+    assert out.status_code == 200, out.text
+    sent = post(f"{G}salida/{out.json()['id']}/enviar", {}, dpo)
+    assert sent.status_code in (409, 422)                       # DSAR_MAIL_SEND_ENABLED is false by default
