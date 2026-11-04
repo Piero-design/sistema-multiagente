@@ -193,6 +193,44 @@ function desglose(r) {
     svgImagen(radarSVG(p.por_dimension, r.controles), 'Radar de cumplimiento por sección del Anexo A'));
 }
 
+// ---- chat about an expediente or an organization (pims/chat): same component in the expediente and in «Chat» ----
+function chatBox({ ambito, id, organizacion, nombre }) {
+  const log = h('div', { class: 'chat-log' });
+  const q = h('textarea', { placeholder: ambito === 'expediente'
+    ? `Pregunta sobre ${nombre || 'este expediente'}: p. ej. ¿qué cláusulas habría que pedirle para subir el puntaje?`
+    : `Pregunta sobre ${nombre || 'la organización'}: p. ej. ¿qué terceros sin DPA tratan datos sensibles?`, style: 'min-height:80px' });
+  const vacio = () => h('p', { class: 'mute small' }, 'Todavía no hay preguntas. El chat solo consulta: no modifica el expediente, el puntaje ni el perfil.');
+  const burbuja = (m) => h('div', { class: `chat-msg ${m.rol === 'usuario' ? 'yo' : 'ia'}` },
+    h('div', { class: 'small mute' }, `${m.rol === 'usuario' ? `Pregunta${m.usuario ? ' · ' + m.usuario : ''}` : 'Respuesta'} · ${fmtTime(m.fecha)}${m.modelo ? ' · ' + m.modelo : ''}`),
+    m.rol === 'usuario' ? h('div', {}, m.texto) : markdown(m.texto));
+  async function cargar() {
+    try {
+      const { out: c } = await run('conversacion', { ambito, id });
+      const ms = c.mensajes || [];
+      log.replaceChildren(...(ms.length ? ms.map(burbuja) : [vacio()]));
+      log.scrollTop = log.scrollHeight;
+    } catch (err) { fail(log, err); }
+  }
+  const send = h('button', { onclick: async () => {
+    const pregunta = q.value.trim();
+    if (!pregunta) return;
+    send.disabled = true;
+    if (log.querySelector('p.mute')) log.replaceChildren();
+    log.append(burbuja({ rol: 'usuario', texto: pregunta, fecha: new Date().toISOString() }));
+    const wait = h('div', { class: 'chat-msg ia' }, spinner('El modelo está respondiendo…'));
+    log.append(wait); log.scrollTop = log.scrollHeight;
+    try {
+      const { out: st } = await run('chat', { ambito, id, organizacion, pregunta, usuario: 'plataforma' });
+      if (st.estado !== 'terminado') throw new Error(st.mensaje || 'sin respuesta');
+      q.value = ''; await cargar();
+    } catch (err) { wait.replaceChildren(alertBox('bad', err.message)); }
+    send.disabled = false;
+  } }, 'Preguntar');
+  q.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) send.click(); });
+  cargar();
+  return h('div', {}, log, q, h('div', { class: 'row', style: 'margin-top:10px' }, send, h('span', { class: 'small mute' }, 'Ctrl+Enter para enviar')));
+}
+
 function expedienteView(det, onDeleted) {
   const r = det.resultado || {}, reg = r._registro || {}, p = r.puntaje_proveedor || {}, c = reg.contexto || {};
   const res = r.resumen || {};
@@ -213,16 +251,40 @@ function expedienteView(det, onDeleted) {
       (c.bd ? ` (esquema ${c.bd.esquema}, ${Object.values(c.bd.filas || {}).reduce((a, b) => a + b, 0)} filas)` : '')),
     c.aviso ? alertBox('warn', c.aviso) : null,
     h('h3', { style: 'margin:14px 0 8px;font-size:15px' }, 'Huella del contrato'), huella(r), desglose(r),
-    (r.alertas || []).length ? h('details', { open: true }, h('summary', {}, `Alertas (${r.alertas.length})`),
-      h('div', {}, r.alertas.map((a) => h('div', { class: `alerta-g5 ${a.prioridad === 'Alta' ? 'alta' : 'media'}` },
-        h('strong', {}, `${a.prioridad} · ${a.tipo}`), ` — ${a.descripcion}`,
-        a.controles_relacionados ? h('span', { class: 'small mute' }, ` (${a.controles_relacionados.join(', ')})`) : null)))) : null,
-    h('details', { open: true }, h('summary', {}, 'Informe'), det.informe ? markdown(det.informe) : h('p', { class: 'mute' }, '(sin informe)')),
-    h('details', {}, h('summary', {}, 'Matriz de los 26 controles'),
-      table(['Control', 'Estado', 'Severidad', 'Evidencia / observación'], (r.controles || []).map((x) => [
-        h('span', {}, h('strong', {}, x.control), h('br'), h('span', { class: 'small mute' }, x.titulo || '')), estadoBadge(x.estado), x.severidad || '',
-        h('span', { class: 'small' }, String(x.evidencia || '').slice(0, 220), x.observacion ? h('div', { class: 'mute' }, x.observacion) : null)]))),
-    h('details', {}, h('summary', {}, 'Expediente completo (JSON)'), h('pre', {}, JSON.stringify(r, null, 2))));
+    pestanasExpediente(det));
+}
+
+// Inner tabs of an expediente, as in the agent's original page: Informe · Alertas · Historial · Preguntar · Matriz · JSON.
+function pestanasExpediente(det) {
+  const r = det.resultado || {}, reg = r._registro || {}, alertas = r.alertas || [];
+  const hist = (r.aprobacion || {}).historial || [];
+  const org = (r.organizacion || {}).id || reg.organizacion || '';
+  let chat = null;                                   // built once: keeps the conversation while switching tabs
+  const P = [
+    ['informe', 'Informe', () => (det.informe ? markdown(det.informe) : h('p', { class: 'mute' }, '(sin informe)'))],
+    ['alertas', `Alertas (${alertas.length})`, () => (alertas.length ? h('div', {}, alertas.map((a) => h('div', { class: `alerta-g5 ${a.prioridad === 'Alta' ? 'alta' : 'media'}` },
+      h('strong', {}, `${a.prioridad} · ${a.tipo}`), ` — ${a.descripcion}`,
+      a.controles_relacionados ? h('span', { class: 'small mute' }, ` (${a.controles_relacionados.join(', ')})`) : null)))
+      : h('p', { class: 'mute' }, 'Sin alertas.'))],
+    ['historial', `Historial (${hist.length})`, () => (hist.length ? table(['Fecha', 'Quién', 'Decisión', 'Comentario'], hist.map((x) => [
+      fmtTime(x.fecha), h('span', {}, x.cargo || x.rol || '', h('div', { class: 'small mute' }, x.usuario || '')),
+      h('span', {}, x.decision === 'aprobar' ? 'Aprobó' : 'Rechazó', h('div', { class: 'small mute' }, `${x.estado_anterior || ''} → ${x.estado_nuevo || ''}`)),
+      x.comentario || '—']))
+      : h('p', { class: 'mute' }, 'Nadie ha decidido todavía. El primer paso es del DPO (en «Revisión humana»).'))],
+    ['preguntar', 'Preguntar', () => (chat ||= chatBox({ ambito: 'expediente', id: reg.id_registro, organizacion: org, nombre: (r.tercero || {}).nombre }))],
+    ['matriz', `Matriz (${(r.controles || []).length})`, () => table(['Control', 'Estado', 'Severidad', 'Evidencia / observación'], (r.controles || []).map((x) => [
+      h('span', {}, h('strong', {}, x.control), h('br'), h('span', { class: 'small mute' }, x.titulo || '')), estadoBadge(x.estado), x.severidad || '',
+      h('span', { class: 'small' }, String(x.evidencia || '').slice(0, 220), x.observacion ? h('div', { class: 'mute' }, x.observacion) : null)]))],
+    ['json', 'Registro JSON', () => h('pre', {}, JSON.stringify(r, null, 2))],
+  ];
+  let actual = 'informe';
+  const barra = h('div', { class: 'tabs exp-tabs' }), cuerpo = h('div', { class: 'exp-cuerpo' });
+  const dibujar = () => {
+    barra.replaceChildren(...P.map(([k, t]) => h('button', { class: k === actual ? 'on' : '', 'data-p': k, onclick: () => { actual = k; dibujar(); } }, t)));
+    cuerpo.replaceChildren(P.find(([k]) => k === actual)[2]());
+  };
+  dibujar();
+  return h('div', { style: 'margin-top:16px' }, barra, cuerpo);
 }
 
 // ---------------------------------------------------------------- tabs
@@ -402,40 +464,25 @@ async function tabRenovaciones(box) {
 async function tabChat(box, orgs) {
   const { out } = await run('registro', {}).catch(() => ({ out: { registros: [] } }));
   const regs = out.registros || [];
-  const ambito = h('select', {}, h('option', { value: 'expediente' }, 'Un expediente'), h('option', { value: 'organizacion' }, 'Una organización'));
+  const ambito = h('select', {}, h('option', { value: 'organizacion' }, 'Una organización'), h('option', { value: 'expediente' }, 'Un expediente'));
   const objetivo = h('select');
+  const zona = h('div');
   const fill = () => objetivo.replaceChildren(...(ambito.value === 'expediente'
-    ? regs.map((r) => h('option', { value: r.id_registro, 'data-org': r.organizacion }, `${r.proveedor || r.id_registro} · ${r.id_registro}`))
-    : orgs.map((o) => h('option', { value: o.id, 'data-org': o.id }, o.nombre))));
-  const log = h('div'), q = h('textarea', { placeholder: '¿Qué controles críticos incumple este proveedor y qué cláusulas habría que pedirle?', style: 'min-height:80px' });
-  async function history() {
-    if (!objetivo.value) return log.replaceChildren();
-    try {
-      const { out: c } = await run('conversacion', { ambito: ambito.value, id: objetivo.value });
-      log.replaceChildren(...(c.mensajes || []).map((m) => h('div', { class: 'card', style: `margin:8px 0;${m.rol === 'usuario' ? '' : 'border-left:3px solid var(--brand)'}` },
-        h('div', { class: 'small mute' }, `${m.rol === 'usuario' ? 'Pregunta' : 'Respuesta'} · ${fmtTime(m.fecha)}${m.modelo ? ' · ' + m.modelo : ''}`), markdown(m.texto))));
-    } catch (err) { fail(log, err); }
-  }
-  ambito.addEventListener('change', () => { fill(); history(); });
-  objetivo.addEventListener('change', history);
-  const send = h('button', { onclick: async () => {
-    if (!q.value.trim() || !objetivo.value) return;
-    send.disabled = true;
-    const org = objetivo.selectedOptions[0]?.dataset.org || '';
-    const wait = h('div', { class: 'card' }, spinner('El modelo está respondiendo…')); log.append(wait);
-    try {
-      const { out: st } = await run('chat', { ambito: ambito.value, id: objetivo.value, organizacion: org, pregunta: q.value.trim(), usuario: 'plataforma' });
-      if (st.estado !== 'terminado') throw new Error(st.mensaje || 'sin respuesta');
-      q.value = ''; await history();
-    } catch (err) { wait.replaceChildren(alertBox('bad', err.message)); }
-    send.disabled = false;
-  } }, 'Preguntar');
+    ? regs.map((r) => h('option', { value: r.id_registro, 'data-org': r.organizacion, 'data-nombre': r.proveedor || r.id_registro }, `${r.proveedor || r.id_registro} · ${r.id_registro}`))
+    : orgs.map((o) => h('option', { value: o.id, 'data-org': o.id, 'data-nombre': o.nombre }, o.nombre))));
+  const montar = () => {
+    const o = objetivo.selectedOptions[0];
+    zona.replaceChildren(o ? chatBox({ ambito: ambito.value, id: o.value, organizacion: o.dataset.org, nombre: o.dataset.nombre })
+      : h('p', { class: 'mute' }, 'No hay nada que elegir todavía.'));
+  };
+  ambito.addEventListener('change', () => { fill(); montar(); });
+  objetivo.addEventListener('change', montar);
   fill();
-  box.replaceChildren(card(h('h2', {}, 'Chat sobre un expediente o una organización'),
-    h('p', { class: 'small mute' }, 'El chat solo consulta: no modifica expedientes, puntajes ni perfiles.'),
-    h('div', { class: 'grid g2' }, field('Ámbito', ambito), field('Expediente u organización', objetivo)), field('Pregunta', q),
-    h('div', { style: 'margin-top:12px' }, send)), card(h('h2', {}, 'Conversación'), log));
-  history();
+  box.replaceChildren(card(h('h2', {}, 'Chat sobre una organización o un expediente'),
+    h('p', { class: 'small mute' }, 'Para un expediente también puedes abrirlo en «Expedientes» y usar su pestaña «Preguntar».'),
+    h('div', { class: 'grid g2' }, field('Ámbito', ambito), field('Organización o expediente', objetivo)),
+    h('div', { style: 'margin-top:12px' }, zona)));
+  montar();
 }
 
 async function tabHistorial(box, agentId) {
@@ -465,6 +512,10 @@ const ESTILO = `.mdr{margin:8px 0;line-height:1.55}.mdr h2,.mdr h3{font-size:16p
 .sem-badge.sinevidencia{background:transparent;color:var(--mute);border:1.5px dashed #8a94a6}.sem-badge.noaplica{background:#8a94a640;color:var(--mute)}
 .alerta-g5{padding:8px 12px;border-radius:8px;margin:6px 0;font-size:14px;border-left:4px solid}
 .alerta-g5.alta{background:var(--bad-bg);border-color:#d0453a}.alerta-g5.media{background:var(--warn-bg);border-color:#d49a1f}
+.exp-tabs{margin:6px 0 10px;border-bottom:1px solid var(--line);padding-bottom:8px}.exp-tabs button{padding:6px 12px;font-size:14px}
+.chat-log{max-height:460px;overflow:auto;margin-bottom:10px;display:grid;gap:8px}
+.chat-msg{padding:8px 12px;border-radius:10px;border:1px solid var(--line)}.chat-msg.yo{background:var(--bg);margin-left:15%}
+.chat-msg.ia{border-left:3px solid var(--brand);margin-right:5%}.chat-msg .mdr{margin:4px 0}
 @media (max-width:900px){.desglose{grid-template-columns:1fr}}`;
 
 export async function tercerosPage(root) {
