@@ -4,6 +4,7 @@ import { ORDER } from './services/agents-config.js';
 import { dashboard } from './pages/dashboard.js';
 import { agentPage, inventarioPage } from './pages/agent.js';
 import { actividad, configuracion } from './pages/system.js';
+import { revision } from './pages/revision.js';
 
 const app = document.getElementById('app');
 
@@ -13,7 +14,7 @@ async function shell(path) {
   const nav = h('nav', { class: 'nav' });
   ORDER.forEach(([to, label], i) => {
     if (i === 1) nav.append(h('h6', {}, 'Agentes'));
-    if (to === '/actividad') nav.append(h('h6', {}, 'Sistema'));
+    if (to === '/revision') nav.append(h('h6', {}, 'Sistema'));
     nav.append(h('a', { href: to, class: to === path ? 'on' : '', 'data-link': '' }, label, status[to] ? h('span', { class: `dot ${status[to]}` }) : null));
   });
   const main = h('main');
@@ -29,6 +30,7 @@ async function route() {
     if (path === '/') await dashboard(main);
     else if (m && m[1] === 'inventario') inventarioPage(main);
     else if (m) await agentPage(main, m[1]);
+    else if (path === '/revision') await revision(main, route);
     else if (path === '/actividad') await actividad(main);
     else if (path === '/configuracion') await configuracion(main);
     else main.append(h('h1', {}, 'Página no encontrada'));

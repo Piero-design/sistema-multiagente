@@ -37,6 +37,12 @@ Cada control del catálogo nombra un agente responsable (por ejemplo A.1.2.2 →
 - Su tiempo límite por defecto (20 s) es corto para la nube → se pasa `OLLAMA_TIMEOUT` por entorno.
 - Flask arranca en modo `debug`: aceptable en demo, no en producción.
 
+## Base normativa
+- **ISO/IEC 27701:2025, Anexo A:** controles A.1 (responsables), A.2 (encargados) y A.3 (seguridad). Su catálogo trae 10 controles: A.1.2.2 (identificar propósito), A.1.2.6 (DPIA), A.1.2.7 (contratos con encargados), A.1.2.9 (registros de tratamiento), A.1.3.7 (acceso, corrección o supresión), A.1.3.9 (copia de PII), A.2.5.7 (divulgación de subcontratistas), A.3.11 y A.3.12 (incidentes) y A.3.17 (concienciación y formación).
+- Conocimiento en `knowledge/normativa/` (resumen de la 27701 y normativa institucional de la UNSA) y la política de privacidad de la UNSA.
+- Cada control del catálogo nombra un agente responsable; ese vínculo es el que usa el flujo G5 → G7.
+- *Cuidado:* es un subconjunto de 10 controles, no el Anexo A completo.
+
 ## 14. Guion
 "Nuestro agente decide qué controles aplican con reglas explícitas y deja al modelo la redacción del análisis. Para una universidad como responsable del tratamiento aplican nueve controles; sin evidencias, la madurez es inicial."
 

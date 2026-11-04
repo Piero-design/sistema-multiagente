@@ -35,6 +35,11 @@ Recibe el handoff `archivar_expediente` de G3 (control A.3.14) y evidencia de G8
 ## 13. Problemas y soluciones
 - La severidad se obtiene por búsqueda de frases, no por un esquema validado: se documenta como limitación.
 
+## Base normativa
+- **ISO/IEC 27701:2025**, **ISO 19011:2018** (auditoría) y **Ley 29733 / D.S. 016-2024-JUS**, según el encabezado de su CLI y sus `references/` (`controles_iso27701.md`, `criterios_evaluacion.md`, `ley29733_resumen.md`).
+- Seis criterios de evaluación de la evidencia: pertinencia, suficiencia, vigencia, aprobación, trazabilidad y completitud, con una tabla de decisión que clasifica en **No conformidad mayor**, **menor**, etc.
+- **Cuidado:** su catálogo usa identificadores propios (CL-, RT-, EN-, SG-) que **no son números de control de la norma**; el propio archivo dice que la numeración es referencial y debe verificarse con el texto oficial.
+
 ## 14. Guion
 "Nuestro agente no certifica: propone. Evalúa una evidencia con la skill de auditoría y entrega un dictamen para el auditor. Aquí cargamos una política incompleta y el agente la marca como no conformidad mayor, calculando además el hash para trazabilidad."
 

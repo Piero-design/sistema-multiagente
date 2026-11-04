@@ -1,6 +1,5 @@
 """Interconnected flows between agents, against the RUNNING stack (cloud mode, real model calls).
 Each flow step is a real execution; these tests check the chain, not the wording of the model."""
-import subprocess
 import time
 
 import httpx
@@ -53,13 +52,13 @@ def test_g8_incident_lessons_reach_g1():
 
 
 def _human_decides(case_id):
-    """Stands in for the authorised person: G3's decision functions are NOT model tools."""
-    code = ("from dsar.services.context import build_context; from dsar.services import cases, decisions; "
-            f"c=build_context(); I='{case_id}'; cases.verify_identity(c,I,'oficial.dpo','DNI presencial','REF-1'); "
-            "r=decisions.decide(c,I,'oficial.dpo','APPROVED','Aprobado en prueba'); print(len(r['handoffs']))")
-    p = subprocess.run(["docker", "compose", "exec", "-T", "agent-g3", "python", "-c", code],
-                       capture_output=True, text=True, timeout=120)
-    assert p.returncode == 0, p.stderr[-500:]
+    """A signed-in DPO verifies identity and decides, through the platform's human endpoints (no model involved)."""
+    r = httpx.post(f"{BASE}/api/auth/login", json={"user": "dpo", "password": "demo-dpo"}, timeout=30)
+    h = {"Authorization": "Bearer " + r.json()["token"]}
+    v = httpx.post(f"{BASE}/api/human/dsar/verificar", json={"case_id": case_id, "method": "DNI presencial", "reference": "REF-1"}, headers=h, timeout=60)
+    assert v.status_code == 200, v.text
+    d = httpx.post(f"{BASE}/api/human/dsar/decidir", json={"case_id": case_id, "decision": "APPROVED", "note": "Aprobado en prueba"}, headers=h, timeout=60)
+    assert d.status_code == 200, d.text
 
 
 def test_g3_handoffs_are_transported_after_human_decision():

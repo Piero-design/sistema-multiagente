@@ -21,7 +21,7 @@ Servidor MCP interno con `BuscarConocimiento`, `ListarSistemas`, `ConsultarSiste
 Entrada: `{reporte: "…", contexto?}` (mínimo 20 caracteres). Salida: estado del job (`running` → `done`), eventos de avance y `resultado` en Markdown.
 
 ## 9. Original frente a integrada
-La interfaz original (React, aprobación de acciones propuestas, buzón, modo autónomo) sigue en `web/`. La integrada lanza análisis y muestra el expediente; **las acciones propuestas se aprueban solo en la original**.
+La interfaz original (React, aprobación de acciones propuestas, buzón, modo autónomo) sigue en `web/`. La integrada lanza análisis y muestra el expediente; las acciones propuestas se aprueban o rechazan en `/revision` (sesión de DPO); el agente solo registra la decisión y no ejecuta nada.
 
 ## 10. Gateway LLM
 El código usa los SDK de Gemini y Groq sin URL configurable en su código. Se resolvió por entorno: sin clave de Gemini ni Anthropic, `GROQ_API_KEY=gateway-managed` y `GROQ_BASE_URL` = gateway (el SDK de Groq lo lee). Se usó su propio `Dockerfile`. La interfaz del agente muestra «Groq (modelo)», aunque en realidad sale por el gateway.
@@ -35,6 +35,12 @@ Su guía describe entregas a G3 (titulares notificados), G4 (cadena de custodia)
 ## 13. Problemas y soluciones
 - Sin URL base configurable para Gemini → se eligió el proveedor Groq, cuyo SDK sí la lee por variable.
 - El agente pide una credencial al arrancar → se inyecta una marca de posición.
+
+## Base normativa
+- **Reglamento de la Ley 29733 (D.S. 016-2024-JUS)**, vigente desde el 30/03/2025: definición de incidente (art. III, num. 16), **art. 34.1** (notificar a la ANPD en máximo **48 horas** si se cumple alguno de sus supuestos; también comunicar a los titulares) y art. 34.7.
+- **Metodología ENISA (2013)** de severidad: **SE = DPC × EI + CB** (contexto de los datos, facilidad de identificación y circunstancias de la brecha), medida sobre los titulares.
+- Estándares sobre incidentes y taxonomía en `knowledge/` (`estandares-incidentes.md`, `taxonomia-incidentes.md`) y controles ISO/IEC 27002 propuestos en el cierre.
+- *Cuidado:* el propio marco marca puntos como `[VERIFICAR]` (por ejemplo, si la ANPD ya publicó lineamientos sobre «grandes volúmenes»). Sus resultados son borradores de apoyo, no asesoría legal.
 
 ## 14. Guion
 "Cuando ocurre una brecha el tiempo corre: 48 horas. Nuestro agente clasifica, evalúa severidad y deja los borradores listos, pero no envía nada. Aquí vemos un correo enviado por error: lo clasifica como brecha y propone el plan; la decisión final es de la persona responsable."

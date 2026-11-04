@@ -85,6 +85,6 @@ export const ORDER = [
   ['/', 'Panel general'], ['/agentes/formacion', 'G1 · Formación'], ['/agentes/riesgos', 'G2 · Riesgos'],
   ['/agentes/dsar', 'G3 · DSAR'], ['/agentes/auditoria', 'G4 · Auditoría'], ['/agentes/terceros', 'G5 · Terceros'],
   ['/agentes/inventario', 'G6 · Inventario'], ['/agentes/controles', 'G7 · Controles'], ['/agentes/incidentes', 'G8 · Incidentes'],
-  ['/actividad', 'Actividad'], ['/configuracion', 'Configuración'],
+  ['/revision', 'Revisión humana'], ['/actividad', 'Actividad'], ['/configuracion', 'Configuración'],
 ];
 export const ID_BY_ROUTE = { formacion: 'formacion', riesgos: 'riesgos', dsar: 'dsar', auditoria: 'auditoria', terceros: 'terceros', inventario: 'inventario', controles: 'controles', incidentes: 'incidentes' };

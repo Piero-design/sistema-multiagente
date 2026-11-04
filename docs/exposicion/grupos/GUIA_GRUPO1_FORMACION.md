@@ -37,6 +37,12 @@ Recibiría lecciones aprendidas de G8 (por ejemplo phishing). **Hoy no hay conex
 - La base queda vacía al arrancar → se ejecuta su `init_db.py` una vez si no hay usuarios.
 - Dependencias pesadas (ChromaDB, fastmcp): la imagen tarda en construirse.
 
+## Base normativa (según el conocimiento del agente)
+- **ISO/IEC 27701:2025** y su skill `formacion-conciencia-iso27701`, que se apoya en el control **A.3.17 (Concienciación y formación)** y menciona A.3.11. Su `knowledge_base/normativas/iso/` incluye transcripciones de ISO/IEC 27001, 27002, 27701 y 29100.
+- **Ley N.° 29733** y **D.S. 016-2024-JUS** (Reglamento), más material «GDPR-ready», en `normativas/peru/`.
+- Reglamentos de la UNSA (ROF, MOF, directiva 001-2025, reglamento de protección de datos de estudiantes, CSIRT) en `normativas/reglamentos_unsa/`.
+- *Qué decir:* «las capacitaciones que propone salen de esos documentos». *Cuidado:* son las fuentes que cargó el grupo; no se validó que las transcripciones coincidan con las ediciones oficiales.
+
 ## 14. Guion natural
 "Nuestro agente acompaña a las personas: responde dudas de formación con base en la norma y en las capacitaciones de la organización. Aquí lo vemos desde la plataforma común: preguntamos qué debe estudiar el personal administrativo y el agente contesta con su propio conocimiento. Cuando una acción necesita confirmación, el agente la pide y no se ejecuta sola."
 

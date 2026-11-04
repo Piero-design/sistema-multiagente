@@ -12,3 +12,4 @@ navegador → frontend (nginx :8080) → backend (API + orquestador) → adaptad
 - Instalación: `docs/installation/INSTALACION.md` · Ollama en otra PC: `docs/installation/OLLAMA_OTRA_PC.md`
 - Cambios a los agentes: `docs/integration/MODIFICACIONES_A_AGENTES.md` · Pruebas: `docs/integration/RESULTADOS_PRUEBAS.md`
 - Arranque: `docker compose up --build -d` y abrir <http://localhost:8080>
+- Revisión humana (aprobar/decidir, con login): `/revision` · Flujos entre agentes: Panel general · Casos de prueba: `docs/integration/CASOS_DE_PRUEBA.md`

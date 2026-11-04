@@ -21,7 +21,7 @@ Auditar contrato, perfilar organización, aprobaciones con doble puerta (DPO →
 Entrada: `{organizacion, contrato_texto}`. Salida: `id_registro`, `puntaje`, `banda`, `dictamen`, `advertencias`. Estados reales del trabajo: `en_cola → evaluando → terminado`.
 
 ## 9. Original frente a integrada
-La página web de n8n (`/webhook/pims/app`) conserva todo, incluidas las aprobaciones. La integrada audita y consulta; **no ofrece aprobar**: `pims/aprobar` es una decisión humana (DPO primero, luego Legal) y no se expone a modelos.
+La página web de n8n (`/webhook/pims/app`) conserva todo, incluidas las aprobaciones. La integrada audita y consulta; la aprobación (`pims/aprobar`) es una decisión humana que **no se expone a modelos**: se hace en `/revision` con sesión de DPO y luego de Legal. El agente exige ese orden: Legal antes que el DPO recibe 409 (comprobado).
 
 ## 10. Gateway LLM
 Por configuración del propio agente: `datos/config_modelo.json` con proveedor `openai` y `url_openai` = gateway (se parchea al iniciar el contenedor). Sin editar flujos ni skills.
@@ -36,6 +36,12 @@ G3 le enviaría `notificar_destinatarios`, pero **este agente aún no recibe han
 - Rutas absolutas dentro de los flujos → se regeneran con su `instalar_flujos.py --importar` dentro del contenedor.
 - Execute Command habilitado (lo requiere el agente) → está aislado en su contenedor.
 - Pendiente del grupo: el caso del laboratorio clínico da 44 o 46 según el documento.
+
+## Base normativa
+- **ISO/IEC 27701:2025, Anexo A:** audita **26 controles**: los de encargados A.2.2 (condiciones), A.2.3 (titulares), A.2.4 (privacidad desde el diseño) y A.2.5 (compartición y transferencia), más controles de seguridad A.3 (por ejemplo A.3.10 y A.3.12).
+- **Ley 29733 y D.S. 016-2024-JUS** como marco legal; **política interna** de la organización (por ejemplo, aviso de incidentes en 24 h).
+- Puntaje determinista: Cumple 1, Parcial 0,5, Sin evidencia 0,25, No cumple 0; controles críticos con peso ×3; penalización de 5 puntos por alerta Alta (máximo 20). Se explica con `criterios_semaforo.md`.
+- *Qué decir:* «el modelo califica cada control; el puntaje lo calcula el código con esa fórmula». El informe aclara que las cláusulas 4 a 10 de la norma obligan a la organización y un contrato no puede demostrarlas.
 
 ## 14. Guion
 "Nuestro agente audita contratos con proveedores. Un detalle de diseño: el modelo solo califica los controles; el puntaje lo calcula el código, así que el resultado es reproducible. Además, nada se aprueba solo: todo expediente espera la decisión del DPO y luego de Legal."

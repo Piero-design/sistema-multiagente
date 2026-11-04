@@ -8,10 +8,12 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from backend.adapters.agents import ADAPTERS
+from backend.api.human import router as human_router
 from backend.orchestrator import flows, orchestrator as orch
 from backend.services import db
 
 app = FastAPI(title="Plataforma multiagente PIMS")
+app.include_router(human_router)
 GATEWAY = os.getenv("GATEWAY_URL", "http://llm-gateway:8080")
 
 

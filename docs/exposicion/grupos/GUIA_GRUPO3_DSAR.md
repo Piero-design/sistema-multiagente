@@ -21,7 +21,7 @@ Se crea un expediente con tipo de derecho y fecha → el código calcula plazos 
 Entrada: `request_types=[access, erasure]`, `received_at=2026-11-03`. Salida: plazos por derecho con base legal (D.S. 016-2024-JUS, arts. 69 y 82-85) y fechas límite. Es determinista, idéntico antes y después de integrar.
 
 ## 9. Original frente a integrado
-El agente entregado no trae interfaz de decisión humana. La plataforma tampoco ofrece aprobar ni verificar identidad: `verify_identity` y `decide` existen solo como funciones Python y **no deben ser herramientas de un modelo**. Está pendiente exponerlas como acciones humanas autenticadas.
+El agente entregado no trae interfaz de decisión humana. La plataforma ofrece la decisión **solo a una persona con sesión y rol DPO**, en `/revision`: `verify_identity` y `decide` existen solo como funciones Python y **no son herramientas de un modelo**. Se exponen mediante un puente interno que únicamente el backend puede llamar, y la decisión queda atribuida a quien la tomó. Demostración: crear caso → `/revision` → verificar identidad → aprobar → ver los handoffs.
 
 ## 10. Gateway LLM
 **Hallazgo:** su servidor MCP es determinista y no llama a ningún LLM. La capa `assistant/llm` (Ollama solo en 127.0.0.1, Gemini y Claude Code) existe en el paquete pero este servidor no la usa. Por eso G3 no cambia entre modos `cloud`/`ollama`. La restricción de loopback no se tocó.
@@ -35,6 +35,11 @@ El código genera tres: `evidencia` (siempre que hay decisión humana; control A
 ## 13. Problemas y soluciones
 - El servidor MCP escucha solo en 127.0.0.1 → wrapper de despliegue que fija el host sin editar el módulo.
 - Formato de fecha: acepta `AAAA-MM-DD`, no ISO con hora (se detectó al probar).
+
+## Base normativa
+- **Ley N.° 29733 y D.S. 016-2024-JUS:** plazos del art. 69 (información 8 días hábiles; acceso 20; rectificación, cancelación y oposición 10), ampliación del art. 71, portabilidad (art. 76.1) y cancelación (arts. 82–85). Verificados en la prueba: acceso 20 legal / 15 por política interna.
+- **ISO/IEC 27701:2025**, mapa en `knowledge/references/iso-control-map.md`: A.1.3.2, A.1.3.5, A.1.3.6, A.1.3.7 (acceso, corrección o supresión), A.1.3.8, A.1.3.9, A.1.3.10, A.1.3.11, y de seguridad A.3.9, A.3.14, A.3.25, A.3.31. Los handoffs citan A.3.14, A.1.3.8 y A.1.2.9.
+- *Qué decir:* «el plazo no lo calcula un modelo: sale del perfil legal, y la política de la organización solo puede acortarlo». El propio mapa advierte que es un resumen y no reproduce la norma.
 
 ## 14. Guion
 "Nuestro agente nunca decide por una persona. Calcula plazos con reglas, no con un modelo, y mantiene a un humano en cada decisión que afecta a un titular. Fíjense: sin verificar identidad no busca ningún dato."

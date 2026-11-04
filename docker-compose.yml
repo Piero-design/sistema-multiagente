@@ -75,6 +75,10 @@ services:
       DB_PASSWORD: ${ORCHESTRATOR_DB_PASSWORD:-orch_dev_pw}
       GATEWAY_URL: http://llm-gateway:8080
       QDRANT_API_KEY: ${QDRANT_API_KEY:-qdrant_dev_key}
+      HUMAN_BRIDGE_TOKEN: ${HUMAN_BRIDGE_TOKEN:-bridge_dev_token}
+      # Demo accounts for the human-review page: user:password:role;... (change them in .env)
+      HUMAN_USERS: ${HUMAN_USERS:-dpo:demo-dpo:DPO;legal:demo-legal:Legal}
+      HUMAN_SECRET: ${HUMAN_SECRET:-}
       # Agent base URLs (services added in Step 7); an unreachable agent is reported as "caido".
       AGENT_G1_URL: http://agent-g1:8000
       AGENT_G2_URL: http://agent-g2:4318
@@ -131,6 +135,7 @@ services:
       DSAR_DB_PATH: /data/dsar.sqlite3
       DSAR_HANDOFF_DIR: /data/handoffs
       DSAR_EXPORT_DIR: /data/exports
+      HUMAN_BRIDGE_TOKEN: ${HUMAN_BRIDGE_TOKEN:-bridge_dev_token}
     volumes: [g3data:/data]
     networks: [internal]
 

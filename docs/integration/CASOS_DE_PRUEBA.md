@@ -40,21 +40,25 @@ Solo 3 controles coinciden entre ambos catálogos: **A.2.5.7** (divulgación de 
 1. `POST /api/flows/incidente_a_formacion` con `{"params": {"reporte": "Un funcionario envió por error una hoja de cálculo con DNI y notas de 300 estudiantes a una lista externa de correo."}}`.
 2. **Esperado:** G8 analiza el incidente (1–3 min), sus lecciones aprendidas se envían a G1 y este propone capacitaciones. Dos ejecuciones encadenadas (`incidentes.analizar` → `formacion.chat`).
 
-### B3. `dsar_handoffs` — G3 → G4 (y G5/G6 sin receptor)
-G3 solo genera handoffs **después de una decisión humana**. Esa decisión no está en la web; para la prueba se simula la persona con las funciones Python del propio G3, dentro de su contenedor:
+### B3. `dsar_handoffs` — G3 → G4 (y G5/G6 sin receptor), con decisión humana real
+G3 solo genera handoffs **después de una decisión humana**. Ahora esa decisión se toma en la web:
 
-```powershell
-# 1) Crear el caso (por el orquestador)
-curl -s -X POST localhost:8080/api/agents/dsar/execute -H "content-type: application/json" -d '{"action":"dsar_crear_caso","input":{"principal_id":"person-001","request_types":["erasure"],"policy_id":"PE-LEY29733","received_at":"2026-11-03","identity_status":"pending","identity_reference":"","request_text":"quiero que borren mis datos"}}'
-# anota el case_id (ver /actividad o GET /api/executions/<id>): DSAR-MCP-XXXXXXXXXXXX
+1. En `/agentes/dsar` crea un caso con **Crear caso** o por API:
+   `POST /api/agents/dsar/execute` con `{"action":"dsar_crear_caso","input":{"principal_id":"person-001","request_types":["erasure"],"policy_id":"PE-LEY29733","received_at":"2026-11-03","identity_status":"pending","identity_reference":"","request_text":"quiero que borren mis datos"}}`. Estado: `IDENTITY_PENDING`.
+2. Entra a **`/revision`** con `dpo` / `demo-dpo`. En «G3 · Solicitudes de derechos» aparece el caso: pulsa **Verificar identidad** y luego **Aprobar**. Si intentas aprobar antes de verificar, el agente lo rechaza.
+3. En el Panel general, «Flujos entre agentes» → G3 con el identificador del caso, o por API `POST /api/flows/dsar_handoffs` con `{"params":{"case_id":"DSAR-MCP-…"}}`.
+4. **Esperado:** el sobre `evidencia` se entrega a G4 (severidad propuesta); el de `terceros` queda `pendiente_humano`; el de `inventario` queda `sin_receptor`. Todo se guarda en `orchestrator.handoff`, y la decisión queda atribuida a `dpo` en `demo.core_securitylog`.
 
-# 2) Una persona verifica la identidad y decide (función Python de G3, NO es una herramienta del modelo)
-docker compose exec agent-g3 python -c "from dsar.services.context import build_context; from dsar.services import cases, decisions; c=build_context(); I='DSAR-MCP-XXXXXXXXXXXX'; cases.verify_identity(c,I,'oficial.dpo','DNI presencial','REF-1'); print(decisions.decide(c,I,'oficial.dpo','APPROVED','Aprobado en prueba')['handoffs'] and 'decidido')"
+## B4. Aprobaciones humanas (`/revision`)
 
-# 3) Transportar los handoffs
-curl -s -X POST localhost:8080/api/flows/dsar_handoffs -H "content-type: application/json" -d '{"params":{"case_id":"DSAR-MCP-XXXXXXXXXXXX"}}'
-```
-**Esperado:** el sobre `evidencia` se entrega a G4 (dictamen propuesto); el de `terceros` queda `pendiente_humano` (G5 no recibe handoffs, y el sobre exige revisión humana); si hay sobre a `inventario`, queda `sin_receptor`. Todo se guarda en `orchestrator.handoff` y se ve en `GET /api/flows`.
+| # | Prueba | Esperado |
+|---|---|---|
+| B4.1 | Sin sesión, `POST /api/human/dsar/decidir` | 401 |
+| B4.2 | Entrar como `legal` e intentar decidir un caso DSAR | 403 (solo el DPO) |
+| B4.3 | G5: con `legal`, aprobar un expediente «Pendiente DPO» | 409: el agente exige primero al DPO |
+| B4.4 | G5: aprobar con `dpo` y luego con `legal` | Pasa por ambas puertas; cada decisión queda atribuida a su autor |
+| B4.5 | G8: analizar un incidente y, en `/revision`, aprobar o rechazar una acción propuesta | Se registra la decisión; el agente no ejecuta nada |
+Cuentas de demostración (cámbialas con `HUMAN_USERS` en `.env`): `dpo`/`demo-dpo` y `legal`/`demo-legal`.
 
 ## C. Reglas que no deben romperse
 

@@ -42,6 +42,12 @@ G8 le entregaría causa raíz y lecciones aprendidas; G7 usa niveles de riesgo. 
 - Gemini 3 exige la «thought signature» en las llamadas a herramientas y n8n la descarta (HTTP 400 en el segundo turno) → el gateway la conserva y la reinyecta.
 - El chat intentaba una búsqueda web automática → el adaptador la desactiva (`webMode: off`).
 
+## Base normativa
+- Alcance autorizado en `scope-policy.json`: **solo ISO/IEC 27701:2025**, tema «Gestión de Riesgos» con seis subtemas (GR-01 a GR-06). Apoyo académico: extracto del manual CISA (2024).
+- Cláusulas que el agente recupera de la norma indexada: **6.1.2 Privacy risk assessment** (probada: páginas 13–14), 6.1.3 y 8.2.
+- La norma completa (72 páginas) es un escaneo; se indexó por OCR (confianza media 93,5 %). Es **texto derivado**: no se contrastaron las cláusulas contra las imágenes.
+- *Qué decir:* «el agente solo responde dentro de su alcance normativo; una pregunta fuera de tema, como una receta, se rechaza». *Cuidado:* la política de alcance habla de un extracto de 20 páginas y aquí se indexó el documento completo.
+
 ## 14. Guion
 "Nuestro agente evalúa riesgos de privacidad apoyándose en la norma. En la plataforma común lo ejecutamos detrás del mismo gateway que los demás. Un detalle que mostramos con transparencia: nuestro diseño exige una revisión humana antes de habilitar el agente, y la plataforma respeta ese bloqueo en lugar de saltárselo."
 

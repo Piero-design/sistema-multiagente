@@ -33,6 +33,18 @@ navegador ─► frontend (nginx, :8080, único puerto publicado)
               cloud (Gemini) │ ollama (otra PC) │ mock (simulado)
 ```
 
+## Marco normativo común
+Todos los agentes trabajan sobre el mismo marco; cada guía de grupo detalla los artículos o controles que usa.
+
+| Norma | Qué aporta | Agentes que la usan |
+|---|---|---|
+| **ISO/IEC 27701:2025** (sistema de gestión de privacidad; Anexo A: A.1 responsables, A.2 encargados, A.3 seguridad) | Controles y requisitos del PIMS | G1, G2, G3, G4, G5, G7 |
+| **Ley N.° 29733** y **D.S. 016-2024-JUS** (Reglamento, vigente desde 30/03/2025) | Obligaciones legales: plazos de derechos (art. 69), notificación de incidentes en 48 h (art. 34) | G1, G3, G4, G5, G8 |
+| **ISO 19011:2018** | Auditoría de sistemas de gestión | G4 |
+| **ENISA (2013)** | Severidad de brechas sobre los titulares | G8 |
+| **ISO/IEC 27002** | Controles de seguridad propuestos tras un incidente | G8 (y transcripción en G1) |
+Aclaración honesta: el respaldo normativo es el que cada grupo cargó en su agente. La plataforma no lo valida contra las ediciones oficiales; la norma 27701 que usa G2 es un escaneo con OCR, y varios catálogos (G4, G3) indican que son resúmenes o numeración referencial.
+
 ## 5. Orquestador y flujo de comunicación
 1. La interfaz envía `POST /api/agents/{id}/execute` con una acción **que el agente realmente tiene**.
 2. El orquestador registra la ejecución en PostgreSQL (`queued → running → succeeded|failed`) y llama al adaptador.
@@ -69,12 +81,12 @@ Panel (estado real y motivo de cada agente) → página de un agente → ejecuci
 | 8 | G8 Incidentes | Cierre: lecciones aprendidas vuelven a la formación (G1) |
 
 ## 11. Escenario global de demostración (todo con la organización simulada UNSA)
-Reporte de correo enviado por error → G8 clasifica y propone borradores (nada se envía) → sus controles sugeridos → G7 muestra la SoA → G4 evalúa una evidencia de la política → G1 propone formación. Nota: hoy **no hay transporte automático de handoffs** entre agentes; la historia se cuenta pasando de página en página.
+Reporte de correo enviado por error → G8 clasifica y propone borradores (nada se envía) → sus controles sugeridos → G7 muestra la SoA → G4 evalúa una evidencia de la política → G1 propone formación. Las decisiones humanas se toman en `/revision` y los handoffs de G3 se transportan con el flujo del Panel general.
 
 ## 12. Conclusiones generales
 - Se integraron 7 de 8 agentes sin modificar ningún archivo fuente (ver `docs/integration/MODIFICACIONES_A_AGENTES.md`).
 - La plataforma funciona con un solo `.env`; el cambio nube ↔ Ollama no toca el código.
-- Límites honestos: G6 fuera de alcance; G2 bloqueado por su propio control de revisión; modo Ollama sin ejecutar; acciones humanas (aprobar/decidir) aún solo en las interfaces originales.
+- Límites honestos: G6 fuera de alcance; G2 bloqueado por su propio control de revisión; modo Ollama sin ejecutar; las cuentas de la revisión humana son de demostración.
 
 ## 13. Preguntas probables del profesor
 - **¿Por qué no reescribieron los agentes?** Regla de integración: conservar skills y lógica; adaptar solo en el borde.

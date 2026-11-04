@@ -68,7 +68,16 @@ Cada paso es una ejecución real de un agente; los flujos corren en el orquestad
 
 Defecto encontrado y corregido: la herramienta `dsar_handoffs` devuelve un bloque de contenido por sobre y el adaptador los concatenaba; ahora los conserva separados.
 
-Límites: la decisión humana de G3 en la prueba se simula con las funciones Python del propio agente dentro de su contenedor (no hay pantalla de decisión). G5 y G6 no tienen receptor de handoffs.
+Límites: G5 y G6 no tienen receptor de handoffs.
+
+## Acciones humanas con login (`tests/integration/test_human.py`: 5 pasan)
+
+- Las decisiones que los agentes dejan a una persona están en `/revision`, con sesión firmada y roles (DPO, Legal). No son acciones de los agentes: son endpoints propios que llaman al mecanismo nativo de cada uno y registran quién decidió (evento y `demo.core_securitylog`).
+- Verificado: sin sesión 401; rol equivocado 403; contraseña incorrecta 401; los modelos siguen sin poder decidir (422).
+- **G3:** ciclo completo con decisión humana real: decidir antes de verificar identidad es rechazado por el agente; tras verificar y aprobar se generan los handoffs y viajan a G4/G5 (flujo `dsar_handoffs`).
+- **G5:** un contrato «Pendiente DPO» no se puede aprobar con `legal` primero (409, lo exige el agente); DPO y luego Legal sí, y las dos decisiones y el intento fuera de turno quedan registrados.
+- **G8:** aprobar o rechazar una acción propuesta está en la web; su prueba automática queda pendiente.
+- Para G3 se añadió un puente interno dentro de su contenedor (`g3_human.py`), porque sus funciones de decisión existen solo en Python y no son herramientas de modelo. Solo lo llama el backend con un token compartido.
 
 ## Pendiente o no verificado
 
@@ -77,4 +86,4 @@ Límites: la decisión humana de G3 en la prueba se simula con las funciones Pyt
 - Las reglas de aprobación humana de G3, G5 y G8 se verifican a nivel de **capacidades expuestas** (ninguna acción de aprobar/decidir/enviar); no se probó contra los endpoints nativos de decisión.
 - No hay test de la regla de G3 "la nube solo recibe hechos minimizados": su servidor MCP no usa LLM.
 - Handoffs de G3 a otros agentes: no se transportan todavía; la tabla `orchestrator.handoff` existe pero está sin uso.
-- Las acciones humanas (verificar identidad y decidir en G3; DPO/Legal en G5; aprobar acciones en G8) no están en la interfaz unificada.
+- Las cuentas de la página de revisión son de demostración (`HUMAN_USERS`); no es un sistema de identidad completo.

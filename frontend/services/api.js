@@ -24,3 +24,30 @@ export const api = {
     }
   },
 };
+
+// ---- signed-in human (decisions that agents leave to a person) ----
+const KEY = 'pims_token';
+export const session = {
+  get token() { try { return sessionStorage.getItem(KEY); } catch { return null; } },
+  set token(v) { try { v ? sessionStorage.setItem(KEY, v) : sessionStorage.removeItem(KEY); } catch { /* ignore */ } },
+  user: null,
+};
+export async function authed(url, body) {
+  const r = await fetch(url, { method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', Authorization: 'Bearer ' + session.token }, body: body ? JSON.stringify(body) : undefined });
+  const text = await r.text();
+  let data; try { data = JSON.parse(text); } catch { data = { detail: text }; }
+  if (r.status === 401) { session.token = null; session.user = null; }
+  if (!r.ok) throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail || data));
+  return data;
+}
+export async function login(user, password) {
+  const r = await fetch('/api/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user, password }) });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || 'No se pudo iniciar sesión');
+  session.token = d.token; session.user = { user: d.user, role: d.role };
+  return session.user;
+}
+export async function whoami() {
+  if (!session.token) return null;
+  try { session.user = await authed('/api/auth/me'); return session.user; } catch { return null; }
+}

@@ -38,6 +38,10 @@ docker compose exec agent-g2 python3 /opt/g2_ingest.py /tmp/norma.pdf
 
 El agente permanece bloqueado hasta que alguien revise n8n y el RAG. Cuando lo haya hecho, poner `G2_SCOPE_N8N_REVIEWED=true` en `.env` y `docker compose up -d agent-g2`.
 
+## 4b. Revisión humana
+
+`/revision` pide iniciar sesión. Cuentas de demostración por defecto: `dpo` / `demo-dpo` y `legal` / `demo-legal`. Cámbialas en `.env` con `HUMAN_USERS` (formato `usuario:contraseña:ROL;...`, roles `DPO` y `Legal`) antes de mostrar la plataforma fuera de tu máquina.
+
 ## 5. Operación
 
 - Estado: `/` y `/configuracion`. Pruebas: `pytest tests/integration -q` (con la plataforma arriba).
