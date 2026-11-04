@@ -76,3 +76,18 @@ Cuentas de demostración (cámbialas con `HUMAN_USERS` en `.env`): `dpo`/`demo-d
 cd tests\integration
 pytest test_platform.py test_agents_behavior.py test_flows.py -q
 ```
+
+
+## E. Agente 8 completo
+
+Datos de ejemplo para G6 (que G8 consulta): `python scripts/seed_demo_data.py`. Interfaz original de G8: `docker compose --profile standalone up -d standalone-g8` y abrir <http://127.0.0.1:3100> (10 reportes de ejemplo y 3 archivos de contexto en «Ejemplos»).
+
+| # | Dónde | Qué hacer | Esperado |
+|---|---|---|---|
+| E1 | `/agentes/incidentes` → Analizar | El reporte precargado (correo masivo con DNI y notas) | Brecha de datos personales, severidad Alta, hora límite de 48 h y 3 borradores (ANPD, titulares, CNSD) |
+| E2 | `/agentes/incidentes` → Analizar | «El portal de matrícula estuvo caído 3 horas por un ataque de denegación de servicio. No hay evidencia de acceso ni de exfiltración de datos.» | Incidente **sin brecha de datos personales** y **sin notificaciones** |
+| E3 | `/agentes/incidentes` → Ver expediente | El identificador `INC-…` del análisis | Los documentos del expediente (informe, ficha, severidad, notificaciones, plan y cierre) |
+| E4 | `/agentes/incidentes` → Depositar queja, luego Leer el buzón, luego Analizar queja | La queja precargada; usa el `Q…` que aparece al leer el buzón | Queja clasificada como «seguridad»; análisis con expediente y, a veces, acciones propuestas |
+| E5 | `/revision` (entra como `dpo`) | Sección G8: aprobar o rechazar una acción propuesta | Se registra la decisión con tu nombre; el agente no ejecuta nada |
+| E6 | G8 usando a otros agentes | Tras E4, abre la interfaz original de G8 y revisa los eventos del análisis | Verás consultas a sistemas como `inventario-g6` (G6); G8 no puede usar rutas que cambien estado |
+| E7 | Webhook | `POST /api/buzon/webhook/quejas-web` con cabecera `X-Webhook-Token` (valor `G8_BUZON_TOKEN`) | 202 con token; 401 sin token o con token malo |

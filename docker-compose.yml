@@ -215,7 +215,9 @@ services:
       GROQ_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       HOST: 0.0.0.0
       PORT: "3100"
+      BUZON_WEBHOOK_TOKEN: ${G8_BUZON_TOKEN:-}    # empty = the complaints webhook stays disabled (the agent's own default)
     volumes:
+      - ./docker/agents/g8_conectores.json:/app/config/conectores.json:ro   # systems G8 may read, incl. the other agents (GET only)
       - g8salidas:/app/salidas
       - g8buzon:/app/buzon
       - g8contextos:/app/contextos

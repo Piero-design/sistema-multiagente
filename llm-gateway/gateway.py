@@ -13,6 +13,7 @@ import hmac
 import json
 import logging
 import os
+import re
 import time
 
 import httpx
@@ -120,26 +121,51 @@ def _oa_base() -> str:
     return f"{BASE}/v1" if MODE == "ollama" else BASE
 
 
-async def _post(path: str, payload: dict, key: str, retry_429: bool = False) -> dict:
-    last = None
+RETRIES_429 = int(os.getenv("LLM_MAX_RETRIES_429", "6"))
+TEAM_CONCURRENCY = int(os.getenv("LLM_TEAM_CONCURRENCY", "2"))
+_team_sems: dict = {}
+
+
+def team_sem(agent: str) -> asyncio.Semaphore:
+    """A team's calls share ONE quota (its key): cap how many run at once so parallel jobs do not burst past the limit."""
+    return _team_sems.setdefault(agent, asyncio.Semaphore(TEAM_CONCURRENCY))
+
+
+def _retry_after(r) -> float:
+    """Seconds the provider asks us to wait (Retry-After header or Gemini's retryDelay), else 0."""
+    try:
+        if r.headers.get("retry-after"):
+            return float(r.headers["retry-after"])
+    except ValueError:
+        pass
+    m = re.search(r'"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"', r.text or "")
+    return float(m.group(1)) if m else 0.0
+
+
+async def _post(path: str, payload: dict, key: str, retry_429: bool = True) -> dict:
+    """POST to the provider. Rate limits (429) are waited out (the quota is per team key); transient 5xx get a few retries."""
     headers = {"Authorization": f"Bearer {key}"} if key and MODE == "cloud" else {}
-    for attempt in range(RETRIES + 1 + (4 if retry_429 else 0)):
+    limited = transient = 0
+    while True:
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT) as c:
                 r = await c.post(f"{_oa_base()}{path}", json=payload, headers=headers)
-            if r.status_code == 429 and retry_429 and attempt < RETRIES + 4:
-                await asyncio.sleep(15)          # quota window of THIS team's key: wait it out
+        except Exception:  # noqa: BLE001   connection problems
+            if transient < RETRIES:
+                transient += 1
+                await asyncio.sleep(1.5 * transient)
                 continue
-            if r.status_code in (429, 500, 502, 503) and attempt < RETRIES:
-                await asyncio.sleep(1.5 * (attempt + 1))
-                continue
-            r.raise_for_status()
-            return r.json()
-        except Exception as e:  # noqa: BLE001
-            last = e
-            if attempt < RETRIES:
-                await asyncio.sleep(1.5 * (attempt + 1))
-    raise last
+            raise
+        if r.status_code == 429 and retry_429 and limited < RETRIES_429:
+            limited += 1
+            await asyncio.sleep(min(max(_retry_after(r), 5.0 * limited), 60.0))   # honour the provider, back off, cap at 60 s
+            continue
+        if r.status_code in (500, 502, 503) and transient < RETRIES:
+            transient += 1
+            await asyncio.sleep(1.5 * transient)
+            continue
+        r.raise_for_status()
+        return r.json()
 
 
 def _track(agent, t0, usage=None, err=None):
@@ -232,7 +258,7 @@ async def _chat(agent: str, payload: dict) -> dict:
     """Core call, returns an OpenAI chat.completion dict."""
     t0 = time.time()
     try:
-        async with sem:
+        async with team_sem(agent), sem:
             if MODE == "mock":
                 text = _mock_text(payload.get("messages"))
                 out = {"id": "mock", "object": "chat.completion", "model": "mock",

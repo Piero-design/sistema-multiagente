@@ -332,34 +332,54 @@ class G8(_HttpAdapter):
                  "input": {"reporte": "str (>=20 chars)", "contexto": "str?"}},
                 {"action": "expediente", "description": "GET /api/expediente/{id}: ficha, severidad, borradores (ANPD, titulares, CNSD), plan y cierre",
                  "input": {"id": "str"}},
+                {"action": "expedientes", "description": "GET /api/config: expedientes existentes (severidad, hora límite, acciones pendientes) y contextos", "input": {}},
+                {"action": "depositar_queja", "description": "POST /api/buzon/depositar: deja una queja en el buzón del agente (otro sistema o agente puede usarlo)",
+                 "input": {"buzon": "quejas-web", "asunto": "str", "remitente": "str", "texto": "str"}},
+                {"action": "sondear_buzon", "description": "POST /api/autonomia/sondear: lee el buzón y clasifica las quejas nuevas (no activa el modo autónomo)", "input": {}},
+                {"action": "analizar_queja", "description": "POST /api/buzon/{Q…}/analizar → job → expediente", "input": {"id": "Q + 12 hex"}},
                 {"action": "ejemplos", "description": "GET /api/archivos-demo: reportes y contextos de ejemplo del agente", "input": {}},
                 {"action": "autonomia", "description": "GET /api/autonomia: estado del modo autónomo y del buzón (solo lectura)", "input": {}}]
     # Approving/rejecting proposed actions (POST /api/acciones/...) is a human decision (page /revision), not a model tool.
     # Credentials/connection (/api/auth) are managed by the gateway; activating the autonomous mode is left to the original UI.
 
-    async def execute(self, req: ExecutionRequest):
-        a, i = req["action"], req.get("input") or {}
-        if a == "expediente":
-            r = await _get(f"{self.base}/api/expediente/{i['id']}", timeout=30)
-            if r.status_code >= 400:
-                raise RuntimeError(f"G8 HTTP {r.status_code}: {r.text[:200]}")
-            return {"output": r.json(), "native_status": r.status_code}
-        if a == "ejemplos":
-            r = await _get(f"{self.base}/api/archivos-demo", timeout=30)
-            return {"output": r.json(), "native_status": r.status_code}
-        if a == "autonomia":
-            r = await _get(f"{self.base}/api/autonomia", timeout=30)
-            return {"output": r.json(), "native_status": r.status_code}
-        r = await _post(f"{self.base}/api/analizar", json=req["input"], timeout=30)
-        if r.status_code >= 400:
-            raise RuntimeError(f"G8 HTTP {r.status_code}: {r.text[:300]}")
-        job = r.json()["job"]
+    async def _wait_job(self, job: str):
         for _ in range(int(TIMEOUT // 3)):
             st = (await _get(f"{self.base}/api/job/{job}", timeout=15)).json()
             if st.get("status") not in ("running", "queued", None):   # native job fields: status/eventos/resultado/error
                 return {"output": st, "native_status": 200}
             await asyncio.sleep(3)
         raise TimeoutError("G8: el análisis no terminó a tiempo")
+
+    async def execute(self, req: ExecutionRequest):
+        a, i = req["action"], req.get("input") or {}
+        simple = {"expediente": lambda: _get(f"{self.base}/api/expediente/{i.get('id', '')}", timeout=30),
+                  "expedientes": lambda: _get(f"{self.base}/api/config", timeout=30),
+                  "ejemplos": lambda: _get(f"{self.base}/api/archivos-demo", timeout=30),
+                  "autonomia": lambda: _get(f"{self.base}/api/autonomia", timeout=30)}
+        if a in simple:
+            r = await simple[a]()
+            if r.status_code >= 400:
+                raise RuntimeError(f"G8 HTTP {r.status_code}: {r.text[:200]}")
+            return {"output": r.json(), "native_status": r.status_code}
+        if a == "depositar_queja":
+            r = await _post(f"{self.base}/api/buzon/depositar", json=i, timeout=30)
+            if r.status_code >= 400:
+                raise RuntimeError(f"G8 HTTP {r.status_code}: {r.text[:200]}")
+            return {"output": r.json(), "native_status": r.status_code}
+        if a == "sondear_buzon":
+            r = await _post(f"{self.base}/api/autonomia/sondear", json={}, timeout=60)
+            if r.status_code >= 400:
+                raise RuntimeError(f"G8 HTTP {r.status_code}: {r.text[:200]}")
+            return {"output": r.json(), "native_status": r.status_code}
+        if a == "analizar_queja":
+            r = await _post(f"{self.base}/api/buzon/{i['id']}/analizar", json={}, timeout=30)
+            if r.status_code >= 400:
+                raise RuntimeError(f"G8 HTTP {r.status_code}: {r.text[:300]}")
+            return await self._wait_job(r.json()["job"])
+        r = await _post(f"{self.base}/api/analizar", json=req["input"], timeout=30)
+        if r.status_code >= 400:
+            raise RuntimeError(f"G8 HTTP {r.status_code}: {r.text[:300]}")
+        return await self._wait_job(r.json()["job"])
 
 
 ADAPTERS: dict[str, AgentAdapter] = {a.id: a for a in (G1(), G2(), G3(), G4(), G5(), G6(), G7(), G8())}

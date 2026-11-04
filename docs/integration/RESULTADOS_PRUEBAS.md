@@ -79,6 +79,27 @@ Límites: G5 y G6 no tienen receptor de handoffs.
 - **G8:** aprobar o rechazar una acción propuesta está en la web; su prueba automática queda pendiente.
 - Para G3 se añadió un puente interno dentro de su contenedor (`g3_human.py`), porque sus funciones de decisión existen solo en Python y no son herramientas de modelo. Solo lo llama el backend con un token compartido.
 
+## Agente 8 completo: solo y usado por los otros agentes (modo `cloud`, `tests/integration/test_g8_full.py`)
+
+**Comparación con el repo propio del agente (`tif`):** el código de la carpeta del agente 8 es idéntico a esa copia de trabajo; la integración no modificó ningún archivo suyo.
+
+**Solo (su aplicación original, con datos de ejemplo; accesible con `docker compose --profile standalone up -d standalone-g8` en `127.0.0.1:3100`):**
+- Superficie intacta: 4 skills, 10 reportes y 3 archivos de contexto de ejemplo, modo autónomo leyendo su configuración de conectores.
+- **Distingue los casos:** correo masivo con DNI y notas → brecha de datos personales, severidad Alta (SE = 3,75), hora límite de 48 h y los **3 borradores** (ANPD, titulares, CNSD) más plan y cierre; ataque DoS sin datos → incidente **sin brecha de datos personales**, severidad N/A y **sin notificaciones**.
+- Contexto subido por el usuario: el agente lo abre, consulta los sistemas declarados y cita el contenido.
+- Buzón por webhook: sin token o con token malo → 401; con token → 202. La queja se clasifica sola («seguridad», con señales como DNI y SISACAD) y su análisis produce el expediente completo.
+- **Acciones propuestas:** el agente propuso acciones pendientes; una persona (DPO) aprobó una en la página de revisión, el agente solo registró la decisión (nada se ejecuta), otra quedó pendiente y la bitácora de Gestitel guardó quién decidió.
+
+**Usado por los otros agentes:**
+- **G8 lee a G6, G7 y G5** por conectores HTTP de solo lectura (`docker/agents/g8_conectores.json`): inventario de activos (G6), catálogo de 10 controles (G7) y expedientes de contratos (G5). Rutas que cambian estado (`/webhook/pims/aprobar`, `/api/ejecutar`) están bloqueadas: G8 no puede aprobar nada de otros agentes. Probado dentro de su contenedor con datos de ejemplo cargados por `scripts/seed_demo_data.py`.
+- En el análisis del buzón G8 **consultó por sí mismo a G6** (inventario de la UNSA). En análisis manuales con texto simple no llama a otros agentes por iniciativa propia: es decisión de su prompt, que no se modificó.
+- **La plataforma usa G8** con 9 acciones: analizar (con contexto opcional), ver expediente, expedientes existentes, depositar queja, leer el buzón, analizar queja, ejemplos y estado del modo autónomo; y el flujo G8 → G1.
+- **Otros sistemas o agentes pueden depositar quejas** en su buzón por webhook con token (`G8_BUZON_TOKEN`).
+
+**Defecto encontrado y corregido:** con 4 análisis en paralelo, 39 de 57 llamadas a Gemini devolvieron 429 y el gateway respondía 502. Ahora espera el límite de la clave del equipo (respeta `Retry-After`, hasta 6 reintentos con tope de 60 s) y limita a 2 llamadas simultáneas por equipo. Con eso dos análisis en paralelo terminaron en 85–95 s sin errores.
+
+**Sigue solo en la interfaz original de G8:** activar el modo autónomo, subir contextos desde pantalla y cancelar un análisis.
+
 ## Pendiente o no verificado
 
 - **Modo `ollama`**: solo `docker compose --profile ollama config`. Ver `docs/installation/OLLAMA_OTRA_PC.md`.

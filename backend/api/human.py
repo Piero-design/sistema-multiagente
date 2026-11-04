@@ -71,15 +71,14 @@ async def pendientes(who: dict = Depends(auth.current)):
                        if isinstance(c, dict) and c.get("status") not in ("APPROVED", "REJECTED", "CANCELLED")]
     except Exception as e:  # noqa: BLE001
         out["dsar_error"] = type(e).__name__
-    try:  # G8: expedientes created through the platform, with their proposed actions
-        rows = db.query("SELECT result->'output'->>'incidente' AS inc FROM orchestrator.execution "
-                        "WHERE agent_id='incidentes' AND status='succeeded' AND result->'output'->>'incidente' IS NOT NULL "
-                        "ORDER BY created_at DESC LIMIT 10")
-        for row in rows:
-            acc = (await _call("GET", f"{G8}/api/acciones/{row['inc']}")).json().get("acciones", [])
-            pend = [a for a in acc if a.get("estado") == "pendiente"]
-            if pend:
-                out["incidentes"].append({"expediente": row["inc"], "acciones": pend})
+    try:  # G8: every expediente with pending proposed actions (created here, by the autonomous mode, or from the mailbox)
+        cfg = (await _call("GET", f"{G8}/api/config")).json()
+        for exp in cfg.get("expedientes", []):
+            if exp.get("accionesPendientes"):
+                acc = (await _call("GET", f"{G8}/api/acciones/{exp['id']}")).json().get("acciones", [])
+                pend = [a for a in acc if a.get("estado") == "pendiente"]
+                if pend:
+                    out["incidentes"].append({"expediente": exp["id"], "acciones": pend})
     except Exception as e:  # noqa: BLE001
         out["incidentes_error"] = type(e).__name__
     return out

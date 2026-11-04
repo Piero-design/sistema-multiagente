@@ -104,3 +104,42 @@ def test_team_keys_set_from_the_web_are_stored_privately_and_override_env(monkey
     assert c.delete("/teams/g2/key", headers={"x-admin-token": "ADMIN"}).status_code == 200
     assert gateway.team_key("g2") == "ENV-KEY-G2-0000000000000"
     assert c.put("/teams/g99/key", json={"key": good}, headers={"x-admin-token": "ADMIN"}).status_code == 404
+
+
+def test_rate_limit_is_waited_out_not_surfaced(monkeypatch):
+    """429 from the provider (the team's quota) is retried honouring the provider's delay; the caller only sees success."""
+    import asyncio
+    monkeypatch.setenv("LLM_MODE", "cloud")
+    monkeypatch.setenv("LLM_BASE_URL", "http://upstream.invalid/v1")
+    import gateway
+    importlib.reload(gateway)
+    calls = {"n": 0}
+
+    class R:
+        def __init__(self, code, body="", headers=None):
+            self.status_code, self.text, self.headers = code, body, headers or {}
+
+        def json(self):
+            return {"ok": True}
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise RuntimeError("http error")
+
+    class FakeClient:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def post(self, *a, **k):
+            calls["n"] += 1
+            return R(429, '{"retryDelay": "1s"}') if calls["n"] < 3 else R(200)
+
+    async def fast_sleep(_):  # do not really wait in the test
+        return None
+
+    monkeypatch.setattr(gateway.httpx, "AsyncClient", FakeClient)
+    monkeypatch.setattr(gateway.asyncio, "sleep", fast_sleep)
+    out = asyncio.run(gateway._post("/chat/completions", {}, "KEY"))
+    assert out == {"ok": True} and calls["n"] == 3
+    assert gateway._retry_after(R(429, '{"details":[{"retryDelay":"37s"}]}')) == 37.0
+    assert gateway._retry_after(R(429, "", {"retry-after": "12"})) == 12.0

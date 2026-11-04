@@ -169,7 +169,7 @@ async def terceros_a_controles(rid: str, p: dict, steps: list) -> dict:
 
 # ---------------------------------------------------------------- G8 -> G1
 async def incidente_a_formacion(rid: str, p: dict, steps: list) -> dict:
-    inc = await _step("incidentes", "analizar", {"reporte": p["reporte"]}, steps, wait=900)
+    inc = await _step("incidentes", "analizar", {"reporte": p["reporte"], "contexto": p.get("contexto", "demo/unsa-base")}, steps, wait=900)
     text = str(inc.get("resultado") or "")
     m = re.search(r"(?is)(lecciones aprendidas.*?)(?=\n#{1,3} |\Z)", text)
     lessons = (m.group(1) if m else text)[:1800]

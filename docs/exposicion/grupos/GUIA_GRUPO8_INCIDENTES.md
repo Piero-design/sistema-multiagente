@@ -26,6 +26,13 @@ La interfaz original (React, aprobación de acciones propuestas, buzón, modo au
 ## 10. Gateway LLM
 El código usa los SDK de Gemini y Groq sin URL configurable en su código. Se resolvió por entorno: sin clave de Gemini ni Anthropic, `GROQ_API_KEY=gateway-managed` y `GROQ_BASE_URL` = gateway (el SDK de Groq lo lee). Se usó su propio `Dockerfile`. La interfaz del agente muestra «Groq (modelo)», aunque en realidad sale por el gateway.
 
+## 10b. G8 con los demás agentes (verificado)
+- **G8 consulta a otros agentes** con sus conectores de solo lectura: inventario de activos (G6), catálogo de controles (G7) y contratos evaluados (G5). Está bloqueado cualquier acceso que cambie estado (por ejemplo, no puede aprobar un contrato de G5). En el análisis del buzón se vio a G8 consultar el inventario de G6 por iniciativa propia.
+- **Otros sistemas pueden depositar quejas** en su buzón por webhook con token; la queja se clasifica sola y se analiza.
+- **Distingue casos:** una brecha con datos personales genera los tres borradores (ANPD, titulares, CNSD) y el reloj de 48 h; un ataque de denegación de servicio sin datos personales se clasifica sin brecha y no genera notificaciones.
+- **Decisión humana:** las acciones que G8 propone se aprueban o rechazan en `/revision`; el agente solo registra la decisión.
+- Para ver todo su funcionamiento original: `docker compose --profile standalone up -d standalone-g8` y abrir `http://127.0.0.1:3100`.
+
 ## 11. PostgreSQL
 Guarda expedientes como archivos en `salidas/` (volumen). No usa Gestitel; `core_incident*` sería el destino opcional.
 

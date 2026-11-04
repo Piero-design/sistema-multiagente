@@ -1,0 +1,36 @@
+{
+  "autonomia": {
+    "intervalo_seg": 60,
+    "max_por_hora": 6,
+    "desde_dias": 7,
+    "contexto_defecto": "demo/unsa-base"
+  },
+  "conocimiento": [
+    { "id": "normativa", "tipo": "carpeta", "ruta": "knowledge", "descripcion": "Ley 29733, reglamento, ISO 27035/27001/27701, metodología ENISA y taxonomía de incidentes" },
+    { "id": "unsa-politicas", "tipo": "carpeta", "ruta": "demo/unsa-base", "descripcion": "Inventario de activos, contactos, documento de seguridad y plan de respuesta de la UNSA (escenario simulado)" },
+    { "id": "casos-previos", "tipo": "carpeta", "ruta": "salidas", "descripcion": "Expedientes de incidentes ya analizados" }
+  ],
+  "sistemas": [
+    { "id": "sisacad-auditoria", "tipo": "archivos", "ruta": "demo/unsa-notas/logs", "descripcion": "Registro de auditoría del Sistema Académico (SISACAD): cambios de notas y accesos de docentes" },
+    { "id": "portal-admision", "tipo": "archivos", "ruta": "demo/unsa-admision/logs", "descripcion": "Accesos y errores del portal web de admisión" },
+    { "id": "seguridad-perimetral", "tipo": "archivos", "ruta": "demo/unsa-ransomware/logs", "descripcion": "VPN, firewall, antivirus, autenticación y respaldos del Registro Académico" },
+    {
+      "id": "inventario-g6", "tipo": "http", "base_url": "http://agent-g6:8006",
+      "rutas_permitidas": ["/api/inventario", "/api/tratamientos", "/api/status"],
+      "descripcion": "Agente de Inventario (G6): activos de datos personales, categorías y tratamientos por sistema. Consultar con ruta /api/inventario y consulta organizacion=UNSA-DEMO (opcional sistema=<nombre>) para saber qué datos y titulares afecta un incidente."
+    },
+    {
+      "id": "controles-g7", "tipo": "http", "base_url": "http://agent-g7:5007",
+      "rutas_permitidas": ["/api/controles/catalogo"],
+      "descripcion": "Agente de Controles y SoA (G7): catálogo de controles ISO/IEC 27701 y el agente responsable de cada uno, para proponer controles tras un incidente."
+    },
+    {
+      "id": "terceros-g5", "tipo": "http", "base_url": "http://agent-g5:5678",
+      "rutas_permitidas": ["/webhook/pims/registro", "/webhook/pims/registro/detalle", "/webhook/pims/organizaciones"],
+      "descripcion": "Agente de Terceros/DPA (G5): contratos de encargo evaluados. Sirve para saber si un proveedor tiene DPA, qué dice sobre notificación de brechas (control A.3.12) y su puntaje. Rutas: /webhook/pims/registro (consulta organizacion=unsa) y /webhook/pims/registro/detalle (consulta id=<id_registro>)."
+    }
+  ],
+  "buzones": [
+    { "id": "quejas-web", "tipo": "webhook", "ruta": "buzon/quejas-web", "descripcion": "Formulario web de quejas y reclamos (cualquier sistema o agente puede depositar aquí con el token del webhook)" }
+  ]
+}
