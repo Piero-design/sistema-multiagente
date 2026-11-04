@@ -6,7 +6,7 @@ import os
 import asyncio
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
 
 from backend.adapters.agents import ADAPTERS
@@ -51,6 +51,30 @@ async def execute(agent_id: str, body: ExecuteBody):
         raise HTTPException(404, "Agente desconocido")
     except ValueError as e:
         raise HTTPException(422, str(e))
+
+
+@app.post("/api/agents/controles/exportar-docx")
+@app.get("/api/agents/controles/exportar-docx")
+async def exportar_docx_controles(body: dict | None = None):
+    try:
+        a = orch.get_adapter("controles")
+    except KeyError:
+        raise HTTPException(404, "Agente controles desconocido")
+    async with httpx.AsyncClient(timeout=120) as client:
+        try:
+            r = await client.post(f"{a.base}/api/controles/exportar-docx", json=body or {})
+        except Exception as exc:
+            raise HTTPException(502, f"No se pudo conectar con el agente G7: {exc}")
+        if r.status_code >= 400:
+            raise HTTPException(r.status_code, f"G7 error {r.status_code}: {r.text[:300]}")
+        return Response(
+            content=r.content,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": 'attachment; filename="Declaracion_de_Aplicabilidad_ISO_27701_UNSA.docx"',
+                "Access-Control-Expose-Headers": "Content-Disposition",
+            },
+        )
 
 
 @app.get("/api/executions")
