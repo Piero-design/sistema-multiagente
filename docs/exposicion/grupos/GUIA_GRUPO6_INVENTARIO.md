@@ -1,25 +1,30 @@
-# Guía Grupo 6 — Agente de Inventario de Datos (fuera de alcance en esta ronda)
+# Guía Grupo 6 — Agente de Inventario de Datos
 
-Tiempo sugerido: **1–2 min** (solo mencionarlo con claridad).
+Tiempo sugerido: **2–3 min**. **Estado en la plataforma: no integrado en esta ronda**, aunque el grupo ya entregó una implementación propia. Hay que decirlo con claridad y no presentar a G6 como parte del flujo en vivo.
 
-## Estado
-**No se integró** en esta entrega, por decisión del alcance. Su ruta `/agentes/inventario` y su tarjeta en el panel existen y muestran el estado "fuera de alcance" con su responsabilidad. No se inventa ningún dato de inventario.
+## Qué entregó el grupo (según su README y su contrato de integración)
+- Un agente Python ejecutable con **API FastAPI** (puerto 8006 de ejemplo), **CLI** y **herramientas MCP** (servidor `inventario-agent`, seis herramientas: ejecutar, registrar activos, consultar, clasificar datos, mapear tratamientos y confirmar cobertura).
+- **Motor de reglas locales, sin LLM**: calcula los resultados a partir de la entrada; no usa respuestas prefabricadas.
+- **SQLite propia** (`inv6_assets`, `inv6_revisions`) con identificación estable de activos, registro idempotente e historial de revisiones.
+- Skills de dominio: registrar activos, clasificar datos y mapear tratamientos. Panel de demostración (`agente.html`) y la herramienta original en `index.html`, que se conservan.
+- **Receptor real del handoff de G3** (`confirmar_cobertura`): verifica el SHA-256 del sobre y dice qué sistemas están inventariados o pendientes. El grupo lo probó contra el generador real de handoffs de G3.
+- Pruebas propias (16 según el grupo). **No las ejecuté yo**; no puedo afirmar su resultado.
+- Reglas del agente: no conserva los valores originales de los datos, todo queda «pendiente de validación» y no emite aprobaciones.
 
-## Qué entregó el grupo (real)
-- Un archivo único `index.html` («PII Privacy Assistant») que corre en el navegador, **basado en reglas de coincidencia por alias; no es un modelo de IA**.
-- Permite pegar o subir TXT, MD, CSV, JSON o SQL; genera un inventario de datos personales con evidencia y SHA-256, campos editables y exportación CSV/JSON; usa `localStorage` opcional.
-- `originales/` conserva el prototipo HTML y el informe PDF recibidos (intactos).
-- Su README indica que **no está conectado** al orquestador ni a la base compartida.
-- No tiene servidor, `SKILL.md` ni LLM; la skill «PII Inventory Analyzer» existe solo como prosa en el PDF.
+## Por qué no está en la demo en vivo
+En esta ronda se decidió no integrarlo. Su ruta `/agentes/inventario` en la plataforma sigue mostrando «fuera de alcance» y el handoff de G3 hacia inventario queda registrado como «sin receptor». **Ese texto de la plataforma está desactualizado respecto a lo que el grupo entregó.**
 
 ## Qué falta para integrarlo
-1. Un adaptador que ejecute su analizador original sin LLM (por ejemplo en un contenedor con un navegador sin cabeza o extrayendo su lógica sin modificarla).
-2. Opcionalmente, escritura en `core_asset`, `core_process` y `core_personaldataoperation` de Gestitel mediante un rol propio.
-3. Su relación con otros agentes: G3 le enviaría `confirmar_cobertura`, G5 le serviría el listado de terceros, G8 consultaría activos y categorías de datos afectados.
+1. Un adaptador y un contenedor, igual que los demás agentes (su API y su MCP ya están listos; no necesita LLM).
+2. Conectar el handoff de G3 → G6 en el flujo existente de handoffs.
+3. Opcional: escribir en Gestitel (`core_asset`, `core_process`, `core_personaldataoperation`) con un rol propio; hoy usa solo su SQLite.
+4. Revisión humana autenticada de los activos: el propio grupo lo deja pendiente.
 
 ## Guion breve
-"Nuestro agente es una herramienta del lado del cliente, basada en reglas. En esta ronda no se integró a la plataforma; su responsabilidad es el inventario de datos y su integración es el siguiente paso."
+"Nuestro agente inventaría los activos de datos personales y prepara el mapa de tratamientos con reglas, sin modelo, y puede confirmar la cobertura cuando el agente de derechos se lo pide. Está implementado con API, herramientas MCP y base propia; su conexión a la plataforma común es el siguiente paso."
 
 ## Preguntas probables
-- *¿Por qué no está?* Alcance acordado para esta entrega; su entrega no tiene backend ni modelo.
-- *¿Sigue funcionando por su cuenta?* Sí, abriendo `index.html`; no se modificó.
+- *¿Por qué no está en la plataforma?* Alcance de esta ronda; la integración es corta porque ya expone API y MCP.
+- *¿Usa un modelo?* No: son reglas locales.
+- *¿Qué hace con los datos personales?* Guarda nombres de campos, ubicaciones y hashes, no los valores.
+- *¿Y las pruebas?* Las reportó el grupo; no se ejecutaron en la integración.
