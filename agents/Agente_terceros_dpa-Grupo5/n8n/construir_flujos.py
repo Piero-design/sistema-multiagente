@@ -27,7 +27,7 @@ IDS = {
     "claude": "PimsClaudeCode00", "carpetas": "PimsCrearCarpeta", "auditar": "PimsAuditar00000",
     "perfilar": "PimsPerfilar0000", "aprobar": "PimsAprobaciones", "renovar": "PimsRenovaciones",
     "consultas": "PimsConsultas000", "admin": "PimsAdministrar0", "pagina": "PimsPaginaWeb000",
-    "chat": "PimsChat00000000", "bd": "PimsBaseDatos000",
+    "chat": "PimsChat00000000", "bd": "PimsBaseDatos000", "eliminar": "PimsEliminar0000",
 }
 # Credencial Postgres de n8n (rol agente7). La crea n8n/configurar_bd.py con este id fijo.
 CREDENCIAL_BD = {"id": "PimsPostgresBD01", "name": "PIMS Postgres"}
@@ -307,11 +307,55 @@ return [{ json: r }];
     return f
 
 
+def sql_contexto(esq):
+    """Consulta de SOLO LECTURA sobre las tablas del script del docente (Gestitel): el contexto de la organización.
+    No usa ninguna tabla de la extensión del Agente 7. Cada lista va acotada y los textos recortados."""
+    return f"""SELECT json_build_object(
+  'esquema', '{esq}',
+  'configuracion', (SELECT row_to_json(s) FROM (SELECT compliance_standard, risk_asset_scope, fonafe_enabled
+      FROM {esq}.core_systemsettings ORDER BY id LIMIT 1) s),
+  'procesos', (SELECT coalesce(json_agg(p), '[]'::json) FROM (
+      SELECT code, name, type, area, responsible, left(objective, 300) AS objective, status
+      FROM {esq}.core_process WHERE NOT is_deleted ORDER BY code LIMIT 150) p),
+  'activos_datos', (SELECT coalesce(json_agg(a), '[]'::json) FROM (
+      SELECT a.code, a.name, left(a.description, 200) AS description, a.owner, a.location, a.classification, a.role,
+             a.data_categories, a.pii_controls, a.legal_basis, left(a.purpose_detail, 200) AS purpose_detail,
+             a.retention_period, a.disposal_method, a.third_party_transfer, a.national_transfers,
+             a.cross_border_flow, a.international_flows, pr.name AS proceso
+      FROM {esq}.core_asset a LEFT JOIN {esq}.core_process pr ON pr.id = a.process_id
+      WHERE NOT a.is_deleted AND a.is_data_asset ORDER BY a.code LIMIT 200) a),
+  'operaciones_datos', (SELECT coalesce(json_agg(o), '[]'::json) FROM (
+      SELECT operation_type, occurred_at::date AS fecha, left(description, 200) AS description, recipient, purpose,
+             legal_basis, is_cross_border, destination_country, data_categories_involved
+      FROM {esq}.core_personaldataoperation ORDER BY occurred_at DESC LIMIT 100) o),
+  'evaluaciones_impacto', (SELECT coalesce(json_agg(e), '[]'::json) FROM (
+      SELECT i.assessment_date, x.code AS activo, left(i.data_subject_risks, 300) AS riesgos_titulares,
+             left(i.mitigation_measures, 300) AS medidas, i.residual_risk_acceptable, left(i.conclusion, 300) AS conclusion
+      FROM {esq}.core_personaldataimpactassessment i LEFT JOIN {esq}.core_asset x ON x.id = i.asset_id
+      WHERE NOT i.is_deleted ORDER BY i.assessment_date DESC LIMIT 50) e),
+  'riesgos', (SELECT coalesce(json_agg(r), '[]'::json) FROM (
+      SELECT risk_code, left(threat, 200) AS threat, left(vulnerability, 200) AS vulnerability, residual_severity,
+             response_strategy, status
+      FROM {esq}.core_riskevaluation WHERE NOT is_deleted ORDER BY residual_score DESC NULLS LAST LIMIT 60) r),
+  'aplicabilidad_controles', (SELECT coalesce(json_agg(g), '[]'::json) FROM (
+      SELECT c.code, c.name, g.is_applicable, left(g.applicability_justification, 200) AS justificacion,
+             g.compliance, g.current_level, g.target_level, g.status
+      FROM {esq}.core_gapannexaassessment g JOIN {esq}.core_annexacontrol c ON c.id = g.annex_a_control_id
+      WHERE NOT g.is_deleted AND (g.applicability_justification IS NOT NULL OR g.is_applicable = false
+            OR g.compliance IS NOT NULL OR g.current_level IS NOT NULL)
+      ORDER BY c.sort_order LIMIT 150) g),
+  'documentos', (SELECT coalesce(json_agg(d), '[]'::json) FROM (
+      SELECT code, name, category, status, current_version FROM {esq}.core_document
+      WHERE NOT is_deleted ORDER BY code LIMIT 100) d)
+) AS contexto"""
+
+
 def flujo_bd():
     f = Flujo("bd", "PIMS · Base de datos (Postgres del PIMS Gestitel)",
-              "Escribe en la base del PIMS con las funciones de bd/agente7_terceros_dpa.sql. Entrada: "
-              "{operacion: guardar_auditoria, registro, informe} o {operacion: registrar_decision, id, rol, decision, "
-              "usuario, cargo, comentario, fecha}. Lee datos/config_bd.json: si 'activo' es false no hace nada. "
+              "Escritura (opcional) con las funciones de bd/agente7_terceros_dpa.sql: {operacion: guardar_auditoria, "
+              "registro, informe} o {operacion: registrar_decision, id, rol, decision, usuario, cargo, comentario, fecha}; "
+              "solo si 'activo' es true en datos/config_bd.json. Lectura: {operacion: contexto_organizacion} consulta "
+              "las tablas del script del docente (solo SELECT) si 'contexto_bd.activo' es true. "
               "Salida: {ok, omitido?, error?, resultado?}. Nunca detiene al flujo que lo llama.")
     f.entrada()
     f.code("Pedir configuración", (220, 0), r"""
@@ -322,6 +366,14 @@ return [{ json: { clave: 'cfg', ruta: R('datos', 'config_bd.json') } }];
 const p = $('Entrada').first().json;
 let cfg;
 try { cfg = jsonDe($input.all().map((x) => x.json), 'cfg'); } catch (e) { return [{ json: { ok: false, activo: false, error: e.message } }]; }
+// Lectura del contexto: independiente de la escritura ('activo'). Solo SELECT sobre las tablas del docente.
+if (p.operacion === 'contexto_organizacion') {
+  const c = (cfg && cfg.contexto_bd) || {};
+  if (!c.activo) return [{ json: { ok: false, activo: false, error: 'El contexto desde la base de datos está desactivado (contexto_bd.activo en datos/config_bd.json).' } }];
+  const e = String(c.esquema || cfg.esquema || 'demo');
+  if (!/^[a-z_][a-z0-9_]{0,62}$/.test(e)) return [{ json: { ok: false, activo: false, error: `Esquema no válido en config_bd.json: ${e}` } }];
+  return [{ json: { activo: true, consulta: __SQL_CONTEXTO__.split('__ESQ__').join(e), parametros: [] } }];
+}
 if (!cfg || !cfg.activo) return [{ json: { ok: true, activo: false, omitido: true } }];
 const esq = String(cfg.esquema || 'demo');
 if (!/^[a-z_][a-z0-9_]{0,62}$/.test(esq)) return [{ json: { ok: false, activo: false, error: `Esquema no válido en config_bd.json: ${esq}` } }];
@@ -335,7 +387,7 @@ if (p.operacion === 'registrar_decision')
   return [{ json: { activo: true, consulta: `SELECT ${esq}.agente7_registrar_decision($1, $2, $3, $4, $5, $6, $7::timestamptz) AS estado`,
     parametros: [p.id, p.rol, p.decision, p.usuario, p.cargo ?? null, p.comentario ?? '', p.fecha ?? null] } }];
 return [{ json: { ok: true, activo: false, omitido: true } }];
-""")
+""".replace("__SQL_CONTEXTO__", json.dumps(sql_contexto("__ESQ__"))))
     f.si("¿Base activa?", (880, 0), "={{ $json.activo }}")
     f.nodo("Postgres", "n8n-nodes-base.postgres", 2.6, {
         "operation": "executeQuery", "query": "={{ $json.consulta }}",
@@ -360,6 +412,46 @@ return [{ json: { ok: j.ok !== false, omitido: true, error: j.error || null } }]
     f.unir("¿Base activa?", "Postgres", 0)
     f.unir("¿Base activa?", "Sin base", 1)
     f.unir("Postgres", "Resultado")
+    return f
+
+
+def flujo_eliminar():
+    f = Flujo("eliminar", "PIMS · Eliminar archivos (requiere Execute Command)",
+              "POST /webhook/pims/eliminar {tipo: expediente, id}, {tipo: perfil, organizacion} o {tipo: documento, organizacion, "
+              "nombre}. Borra los archivos del "
+              "expediente (.json, .md, .contrato.txt y su chat) o del perfil de la organización (perfil y archivos del "
+              "perfilador; la configuración y los documentos se conservan) o un documento institucional, con "
+              "n8n/scripts/eliminar.js. Es una acción "
+              "humana: en la plataforma solo la invoca el backend con una sesión de DPO.")
+    f.webhook("Webhook eliminar", (0, 0), "POST", "pims/eliminar")
+    f.code("Preparar eliminación", (220, 0), r"""
+const b = $input.first().json.body || {};
+const tipo = String(b.tipo || '');
+const id = String(tipo === 'expediente' ? (b.id || '') : (b.organizacion || b.id || ''));
+let error = null;
+if (tipo === 'expediente') { if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,139}$/.test(id) || id.includes('..')) error = "Falta 'id' del expediente o no es válido."; }
+else if (tipo === 'perfil' || tipo === 'documento') { if (!idValido(id) || id.startsWith('_')) error = "Falta 'organizacion' o no es un id válido."; }
+else error = "'tipo' debe ser expediente, perfil o documento.";
+const nombre = String(b.nombre || '');
+if (!error && tipo === 'documento' && (!/^[A-Za-z0-9][A-Za-z0-9 ._()-]{0,150}\.(pdf|md|txt)$/i.test(nombre) || nombre.includes('..')))
+  error = "Falta 'nombre' del documento o no es válido (.pdf, .md o .txt, sin rutas).";
+if (error) return [{ json: { ok: false, codigo: 400, respuesta: { ok: false, error } } }];
+return [{ json: { ok: true, comando: `node "${R('n8n', 'scripts', 'eliminar.js')}" "${RAIZ}" ${tipo} "${id}"` + (tipo === 'documento' ? ` "${nombre}"` : '') } }];
+""")
+    f.si("¿Petición válida?", (440, 0), "={{ $json.ok }}")
+    f.nodo("Ejecutar", "n8n-nodes-base.executeCommand", 1, {"executeOnce": True, "command": "={{ $json.comando }}"},
+           (660, -100), onError="continueRegularOutput")
+    f.code("Resultado", (880, -100), r"""
+const j = $input.first().json;
+let r = { ok: false, error: j.error ? `Execute Command no disponible: ${String(j.error.message || j.error)}` : (j.stderr || 'sin salida') };
+try { if (j.stdout) r = JSON.parse(j.stdout); } catch (e) { /* se queda el error */ }
+return [{ json: { codigo: r.ok ? 200 : (r.codigo || 400), respuesta: r } }];
+""")
+    f.responder("Responder", (1100, 0))
+    f.cadena("Webhook eliminar", "Preparar eliminación", "¿Petición válida?")
+    f.unir("¿Petición válida?", "Ejecutar", 0)
+    f.unir("¿Petición válida?", "Responder", 1)
+    f.cadena("Ejecutar", "Resultado", "Responder")
     return f
 
 
@@ -415,6 +507,10 @@ return $('Entrada').all().map((it) => {
     if (cfg.api_key) r.cabeceras = { Authorization: `Bearer ${cfg.api_key}` };
     r.cuerpo = { model: cfg.modelo, temperature: temp, max_tokens: Number(cfg.max_tokens) || 20000,
       messages: [{ role: 'system', content: system }, { role: 'user', content: mensaje }] };
+    // Corrección del JSON: modo JSON de la API (OpenAI, Gemini, OpenRouter…). La respuesta es un objeto JSON
+    // válido, sin texto alrededor; extraerJSON lo toma igual. 'ninguno' lo desactiva.
+    if (formato && typeof formato === 'object' && (cfg.formato_correccion || 'json') !== 'ninguno')
+      r.cuerpo.response_format = { type: 'json_object' };
   } else if (cfg.proveedor === 'claude_code') {
     Object.assign(r, { system, mensaje, claude_bin: cfg.claude_bin });
   }
@@ -488,7 +584,10 @@ const org = String(b.organizacion || '').trim();
 const texto = typeof b.contrato_texto === 'string' ? b.contrato_texto : '';
 const arch = b.archivo && typeof b.archivo === 'object' ? b.archivo : null;
 const fecha = b.fecha_ref ? String(b.fecha_ref) : hoy();
-if (!idValido(org)) r.error = "Falta 'organizacion' o no es un id válido (minúsculas, números y _).";
+// Fuente del contexto de la organización: el perfil (por defecto, como en la v2.0), la base del PIMS o ambos.
+const fuente = String(b.contexto || 'perfil').toLowerCase();
+if (!['perfil', 'bd', 'ambos'].includes(fuente)) r.error = "'contexto' debe ser perfil, bd o ambos.";
+else if (!idValido(org)) r.error = "Falta 'organizacion' o no es un id válido (minúsculas, números y _).";
 else if (!texto.trim() && !arch) r.error = "Envía 'contrato_texto' o 'archivo' {nombre, base64}.";
 else if (texto.length > 400000) r.error = 'El contrato supera 400 000 caracteres.';
 else if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) r.error = "'fecha_ref' debe tener formato AAAA-MM-DD.";
@@ -497,7 +596,7 @@ else if (arch && (typeof arch.base64 !== 'string' || arch.base64.length > 200000
 if (r.error) return [{ json: Object.assign(r, { respuesta: { ok: false, error: r.error } }) }];
 const t = nuevoTrabajo();
 return [{ json: { ok: true, codigo: 202, trabajo: t, inicio: ahora(), organizacion: org, proveedor: String(b.proveedor || '').slice(0, 200),
-  contrato_texto: texto, archivo: arch ? { nombre: `${t}_${nombreSeguro(arch.nombre)}`, b64: arch.base64 } : null,
+  fuente, contrato_texto: texto, archivo: arch ? { nombre: `${t}_${nombreSeguro(arch.nombre)}`, b64: arch.base64 } : null,
   fechaRef: fecha, respuesta: { ok: true, trabajo: t, consultar: `/webhook/pims/trabajo?id=${t}` } } }];
 """)
     f.si("¿Petición válida?", (440, 0), "={{ $json.ok }}")
@@ -535,10 +634,25 @@ if (v.archivo) items.push(p('contrato', 'datos', 'tmp', v.archivo.nombre));
 return items;
 """)
     f.llamar("Leer archivos", (1760, -100), "leer")
-    f.code("Construir prompt", (1980, -100), r"""
+    f.code("Pedir contexto BD", (1870, 100), r"""
 const v = $('Validar petición').first().json;
-const L = $input.all().map((x) => x.json);
+return [{ json: { operacion: v.fuente === 'perfil' ? 'nada' : 'contexto_organizacion' } }];
+""")
+    f.llamar("Contexto BD", (1980, 100), "bd", onError="continueRegularOutput")
+    f.code("Construir prompt", (2090, -100), r"""
+const v = $('Validar petición').first().json;
+const L = $('Leer archivos').all().map((x) => x.json);
 const fallo = (msg) => [{ json: { ok: false, error: msg } }];
+// Contexto desde la base del PIMS (solo lectura). Si no se pudo leer, la auditoría sigue con el perfil (si lo hay).
+const bd = $input.first().json || {};
+const usaPerfil = v.fuente !== 'bd';
+let contextoBD = null, avisoBD = null;
+if (v.fuente !== 'perfil') {
+  const c = bd.resultado && bd.resultado.contexto;
+  if (bd.ok && c && typeof c === 'object') contextoBD = c;
+  else avisoBD = `No se pudo leer el contexto de la base de datos: ${bd.error || 'sin respuesta'}.` +
+    (usaPerfil ? ' Se usó solo el perfil de la organización.' : ' Se auditó sin contexto de la organización.');
+}
 try {
   const config = jsonDe(L, 'config');
   if (!config) return fallo(`La organización '${v.organizacion}' no existe (falta organizaciones/${v.organizacion}/config_organizacion.json).`);
@@ -550,7 +664,7 @@ try {
   try { PIMS_CALC.cargarJurisdiccion(config, params, []); } catch (e) { return fallo(e.message); }
   if (!mArch) return fallo(`Falta marco_legal.md en la jurisdicción '${jid}'.`);
   const esquema = jsonDe(L, 'esquema');
-  const perfilA = archivoDe(L, 'perfil');
+  const perfilA = usaPerfil ? archivoDe(L, 'perfil') : null;
   const contratoA = archivoDe(L, 'contrato');
   let contrato = v.contrato_texto, hash = null;
   if (contratoA) {
@@ -566,11 +680,14 @@ try {
       { ruta: 'assets/plantilla_dpa_baseline.md', contenido: textoDe(L, 'baseline') },
       { ruta: 'assets/esquema_salida.json', contenido: JSON.stringify(esquema, null, 2) },
     ],
-    organizacion: { id: v.organizacion, config, perfilTexto: perfilA ? perfilA.texto : null },
+    organizacion: { id: v.organizacion, config, perfilTexto: perfilA ? perfilA.texto : null, contextoBD },
     jurisdiccion: { id: jid, marcoMd: mArch.texto, params },
   });
   const mensaje = PIMS_PROMPTS.mensajeAuditoria({ contrato, proveedor: v.proveedor, fechaRef: v.fechaRef });
-  return [{ json: { ok: true, system, mensaje, ctx: { config, jur: params, esquema, hash, contrato,
+  const contexto = { fuente: v.fuente, perfil: !!perfilA, aviso: avisoBD,
+    bd: contextoBD ? { esquema: contextoBD.esquema, consultado: ahora(), sha256: PIMS_CALC.sha256Hex(JSON.stringify(contextoBD)),
+      filas: PIMS_PROMPTS.conteosContextoBD(contextoBD) } : null };
+  return [{ json: { ok: true, system, mensaje, ctx: { config, jur: params, esquema, hash, contrato, contexto,
     perfil: perfilA ? { texto: perfilA.texto, ruta: `organizaciones/${v.organizacion}/perfil_organizacion.md`, sha256: perfilA.sha256 } : null } } }];
 } catch (e) { return fallo(`Error al preparar la auditoría: ${e.message}`); }
 """, "calcular", "prompts")
@@ -605,7 +722,8 @@ return [{ json: { ok: true, necesita_correccion: errores.length > 0, errores, in
     f.code("Pedir corrección", (3740, -300), r"""
 const p = $('Procesar respuesta').first().json;
 const c = $('Construir prompt').first().json;
-// 'formato' solo lo usa Ollama (salida estructurada); los demás proveedores lo ignoran.
+// 'formato' activa la salida JSON obligatoria: esquema/JSON en Ollama y response_format json_object en la API
+// tipo OpenAI (Gemini por el gateway). Anthropic y Claude Code lo ignoran.
 return [{ json: { system: c.system, etiqueta: 'correccion_json', formato: PIMS_PROMPTS.esquemaParaModelo(c.ctx.esquema),
   mensaje: c.mensaje + '\n\n' + PIMS_PROMPTS.mensajeCorreccionJSON(p.crudo || '(no entregaste un bloque JSON: genéralo completo)', p.errores,
     PIMS_PROMPTS.seccion(p.informe, 4)) } }];
@@ -660,7 +778,8 @@ const base = nombreSeguro(String(res.id_evaluacion || '').replace(/\s+/g, '')) |
 const id = `${base}_${$now.toFormat('HHmmss')}`;
 res._registro = { id_registro: id, trabajo: v.trabajo, organizacion: v.organizacion, creado: ahora(),
   modelo: x.modelo, proveedor: x.proveedor, reintentos: x.reintentos, errores_esquema_salida: r.errores, truncado: !!x.truncado,
-  ajustes_automaticos: x.ajustes || [] };
+  ajustes_automaticos: x.ajustes || [], contexto: ctx.contexto || { fuente: 'perfil', perfil: !!ctx.perfil } };
+if (ctx.contexto && ctx.contexto.aviso) r.advertencias.push(ctx.contexto.aviso);
 let md = PIMS_PROMPTS.componerInforme(x.informe, res, ctx.config, { modelo: x.modelo, proveedor: x.proveedor, reintentos: x.reintentos });
 if (!/\|\s*A\.2\.2\.2\s*\|/.test(md)) md = PIMS_PROMPTS.insertarEnSeccion(md, 4, PIMS_PROMPTS.matrizControles(res));
 items.push({ json: { ruta: R('datos', 'registro', `${id}.json`), texto: JSON.stringify(res, null, 2) } });
@@ -707,7 +826,7 @@ return items;
     f.unir("¿Petición válida?", "Registrar trabajo", 0)
     f.unir("¿Petición válida?", "Responder error", 1)
     f.cadena("Registrar trabajo", "Guardar trabajo", "Respuesta 202", "Responder aceptado", "Pedir archivos",
-             "Leer archivos", "Construir prompt", "¿Contexto completo?")
+             "Leer archivos", "Pedir contexto BD", "Contexto BD", "Construir prompt", "¿Contexto completo?")
     f.unir("¿Contexto completo?", "Estado: evaluando", 0)
     f.unir("¿Contexto completo?", "Error de contexto", 1)
     f.cadena("Estado: evaluando", "Guardar estado", "Petición al modelo", "Modelo", "Procesar respuesta", "¿Corregir JSON?")
@@ -1533,9 +1652,11 @@ return [{ json: { codigo: 200, respuesta: { ok: true, mensajes: conv ? conv.mens
 
 
 FLUJOS = [flujo_leer, flujo_guardar, flujo_claude, flujo_carpetas, flujo_modelo, flujo_bd, flujo_auditar,
-          flujo_perfilar, flujo_aprobar, flujo_renovar, flujo_consultas, flujo_admin, flujo_pagina, flujo_chat]
+          flujo_perfilar, flujo_aprobar, flujo_renovar, flujo_consultas, flujo_admin, flujo_pagina, flujo_chat,
+          flujo_eliminar]
 ORDEN_ARCHIVO = {"leer": "01", "guardar": "02", "claude": "03", "carpetas": "04", "modelo": "05", "bd": "06", "auditar": "10",
-                 "perfilar": "11", "aprobar": "12", "renovar": "13", "consultas": "20", "admin": "21", "pagina": "30", "chat": "14"}
+                 "perfilar": "11", "aprobar": "12", "renovar": "13", "consultas": "20", "admin": "21", "pagina": "30", "chat": "14",
+                 "eliminar": "22"}
 
 
 def main():

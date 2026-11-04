@@ -133,3 +133,14 @@ def test_g3_gestion_mail_goes_to_human_triage_and_outbox_does_not_send_by_defaul
     assert out.status_code == 200, out.text
     sent = post(f"{G}salida/{out.json()['id']}/enviar", {}, dpo)
     assert sent.status_code in (409, 422)                       # DSAR_MAIL_SEND_ENABLED is false by default
+
+def test_g5_deletion_is_a_dpo_only_human_action_and_rejects_paths():
+    body = {"tipo": "expediente", "id": "DPA-NO-EXISTE_000000"}
+    assert httpx.post(f"{BASE}/api/human/terceros/eliminar", json=body, timeout=30).status_code == 401
+    assert post("/api/human/terceros/eliminar", body, login("legal")).status_code == 403
+    dpo = login("dpo")
+    for bad in ({"tipo": "expediente", "id": "../../datos/config_modelo"}, {"tipo": "perfil", "id": "../unsa"},
+                {"tipo": "otro", "id": "x"}, {"tipo": "documento", "id": "unsa", "nombre": "../config_organizacion.json"},
+                {"tipo": "documento", "id": "unsa", "nombre": "ROF.exe"}):
+        assert post("/api/human/terceros/eliminar", bad, dpo).status_code == 400, bad
+    assert post("/api/human/terceros/eliminar", body, dpo).status_code == 404       # nothing to delete

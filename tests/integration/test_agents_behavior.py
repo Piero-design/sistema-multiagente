@@ -186,22 +186,25 @@ def _psql(sql):
     return r.stdout.strip()
 
 
-def test_g5_audit_is_persisted_in_gestitel_with_26_controls_and_pending_approval():
-    before = int(_psql("select count(*) from demo.core_dpaassessment"))
-    o = out(run("terceros", "auditar", {"organizacion": "unsa", "contrato_texto": DEMO_CONTRACT + " Proveedor: PruebaGestitel SAC."}, wait=420))
-    assert int(_psql("select count(*) from demo.core_dpaassessment")) == before + 1
-    last = _psql("select id from demo.core_dpaassessment order by id desc limit 1")
-    assert _psql(f"select count(*) from demo.core_dpacontrolresult where assessment_id={last}") == "26"
-    # the agent never approves on its own: no DPO/Legal decision row exists for this assessment
-    assert _psql(f"select count(*) from demo.core_dpaapproval where assessment_id={last}") == "0"
-    assert o["estado"] == "terminado"
+def test_g5_does_not_change_the_professors_database_and_keeps_audits_in_files():
+    # By default G5 creates no tables (its extension is opt-in: G5_BD_EXTENSION=true) and stores audits as files.
+    assert _psql("select count(*) from information_schema.tables where table_schema='demo' "
+                 "and (table_name like 'core_dpa%' or table_name='core_thirdparty')") == "0"
+    o = out(run("terceros", "auditar", {"organizacion": "unsa", "contrato_texto": DEMO_CONTRACT}, wait=420))
+    assert o["estado"] == "terminado" and o.get("bd") is None          # nothing written to the database
+    det = o["expediente"]                                              # the file-based expediente, ready to download
+    assert len(det["resultado"]["controles"]) == 26 and det["informe"]
+    assert det["resultado"]["aprobacion"]["estado"] == "Pendiente DPO"
 
 
-def test_agent_roles_cannot_write_outside_their_module():
-    # agente7 must not be able to touch the shared inventory table (privilege boundary from roles_agente7.sql)
-    r = subprocess.run(["docker", "compose", "exec", "-T", "-e", "PGPASSWORD=agente7_dev_pw", "postgres", "psql", "-h", "localhost",
-                        "-U", "agente7", "-d", "gestitel", "-tAc", "delete from demo.core_asset"], capture_output=True, text=True, timeout=60)
-    assert "permission denied" in (r.stderr + r.stdout).lower()
+def test_g5_can_use_the_professors_database_as_read_only_context():
+    o = out(run("terceros", "auditar", {"organizacion": "unsa", "contrato_texto": DEMO_CONTRACT, "contexto": "bd"}, wait=420))
+    c = o["expediente"]["resultado"]["_registro"]["contexto"]
+    assert c["fuente"] == "bd" and c["bd"]["esquema"] == "demo" and c["perfil"] is False
+    # the role used for the context can read the PIMS but cannot write anything
+    r = subprocess.run(["docker", "compose", "exec", "-T", "-e", "PGPASSWORD=agente_g5_ro_dev_pw", "postgres", "psql", "-h", "localhost",
+                        "-U", "agente_g5_lectura", "-d", "gestitel", "-tAc", "delete from demo.core_asset"], capture_output=True, text=True, timeout=60)
+    assert "read-only" in (r.stderr + r.stdout).lower() or "permission denied" in (r.stderr + r.stdout).lower()
 
 
 def test_every_execution_leaves_a_metadata_only_trail_in_gestitel():

@@ -13,7 +13,7 @@ Qué hace:
        NODES_EXCLUDE = []                   (habilita Execute Command: Claude Code y crear carpetas)
        GENERIC_TIMEZONE = America/Lima      (fechas de referencia y renovaciones)
        N8N_LISTEN_ADDRESS = 127.0.0.1       (n8n solo accesible desde este equipo)
-  3. Con --importar: ejecuta `n8n import:workflow` y `n8n publish:workflow` para los 13 flujos.
+  3. Con --importar: ejecuta `n8n import:workflow` y `n8n publish:workflow` para los 15 flujos.
 
 Opciones: --sin-execute-command (no habilita Execute Command: sin Claude Code ni creación de carpetas)
           --zona America/Lima   --puerto 5678
@@ -29,7 +29,7 @@ AQUI = Path(__file__).resolve().parent
 RAIZ = AQUI.parent
 IDS = ["PimsLeerArchivos", "PimsGuardarArchi", "PimsModeloIA0000", "PimsClaudeCode00", "PimsCrearCarpeta",
        "PimsBaseDatos000", "PimsAuditar00000", "PimsPerfilar0000", "PimsAprobaciones", "PimsRenovaciones", "PimsConsultas000",
-       "PimsAdministrar0", "PimsPaginaWeb000", "PimsChat00000000"]
+       "PimsAdministrar0", "PimsPaginaWeb000", "PimsChat00000000", "PimsEliminar0000"]
 
 
 def main():

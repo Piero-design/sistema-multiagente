@@ -31,7 +31,7 @@ Todas las rutas empiezan con `http://localhost:5678/webhook/`. La tabla completa
 
 | Ruta | Para qué |
 |---|---|
-| `POST pims/auditar` | `{organizacion, contrato_texto}` o `{organizacion, archivo:{nombre, base64}}`. Responde `202 {trabajo}` y sigue en segundo plano (2 a 5 min con un modelo real). |
+| `POST pims/auditar` | `{organizacion, contrato_texto}` o `{organizacion, archivo:{nombre, base64}}`, más `proveedor?`, `fecha_ref?` y `contexto?` (`perfil` por defecto, `bd` o `ambos`: ver §4). Responde `202 {trabajo}` y sigue en segundo plano (30 s a 5 min con un modelo real). |
 | `GET pims/trabajo?id=` | Estado del trabajo; al terminar trae `id_registro`, `puntaje` y `dictamen`. |
 | `GET pims/registro?organizacion=` | Lista de expedientes. |
 | `GET pims/registro/detalle?id=` | Expediente completo (JSON) e informe (Markdown). |
@@ -53,6 +53,14 @@ El agente puede guardar sus expedientes en la base **Gestitel** (PostgreSQL), qu
 **En este repositorio la base está apagada** (`"activo": false` en `datos/config_bd.json`): el agente guarda sus resultados solo en archivos (`datos/registro/`). Para activarla, después de instalar la base, ejecutar `python n8n\configurar_bd.py`.
 
 Si el sistema común usa Gestitel, los scripts de `bd/` pueden servir de modelo para los demás grupos: Gestitel ya tiene tablas para cada agente (`core_arcorequest` para DSAR, `core_incident` para incidentes, `core_asset` para inventario, `core_annexacontrol` para controles, `core_training` para formación, `core_audit` para evidencia, `core_riskevaluation` para riesgos).
+
+### 4.1 En el sistema multiagente (rama `grupo5-terceros-dpa`)
+
+- **No se crean tablas en la base del docente.** Las auditorías se guardan en archivos (`datos/registro/`), como en la v2.0, y se descargan desde la página de G5 (informe `.md`, expediente `.json`, listado `.csv`). La extensión de §4 se activa solo con `G5_BD_EXTENSION=true`.
+- **Contexto desde la base (solo lectura).** Al auditar se elige la fuente del contexto de la organización: `perfil` (el perfil de siempre), `bd` (tablas del script del docente: procesos, activos de datos, operaciones con datos personales, evaluaciones de impacto, riesgos, aplicabilidad del Anexo A y documentos) o `ambos`. La consulta usa el rol `agente_g5_lectura`, que no puede escribir. Se controla con `contexto_bd.activo` en `datos/config_bd.json` y queda registrada en `_registro.contexto` del expediente (fuente, esquema, filas por tabla y hash SHA-256 del contexto). Si la base no responde, la auditoría sigue con el perfil y lo advierte.
+- **Corrección del JSON forzada.** Con proveedores tipo OpenAI (Gemini por el gateway), la segunda llamada (corrección) pide `response_format: json_object`, así el modelo devuelve un objeto JSON válido. `formato_correccion: "ninguno"` lo desactiva.
+- **Eliminar sin entrar al servidor.** `POST pims/eliminar {tipo: expediente, id}` borra el expediente (`.json`, `.md`, copia del contrato y su chat); `{tipo: perfil, organizacion}` borra el perfil y los archivos del perfilador (la configuración y los documentos se conservan); `{tipo: documento, organizacion, nombre}` borra un documento institucional. Lo hace `n8n/scripts/eliminar.js`, que arma las rutas a partir del id y no acepta rutas. En la plataforma es una **acción humana**: botón «Eliminar» en la página de G5, que exige sesión de **DPO** (`POST /api/human/terceros/eliminar`) y queda registrada con quién la hizo. Si la escritura en la base está activa (`G5_BD_EXTENSION=true`), las filas de la base no se borran.
+- **Página en la plataforma:** `frontend/pages/terceros.js` (Auditar con archivo y contexto, Expedientes con descargas, Organización y perfil, Renovaciones, Chat). Las decisiones humanas (DPO → Legal y validar el perfil) están en «Revisión humana».
 
 ## 5. Relación con otros agentes
 

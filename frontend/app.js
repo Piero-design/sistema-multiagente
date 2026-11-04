@@ -3,6 +3,7 @@ import { api } from './services/api.js';
 import { ORDER } from './services/agents-config.js';
 import { dashboard } from './pages/dashboard.js';
 import { agentPage } from './pages/agent.js';
+import { tercerosPage } from './pages/terceros.js';
 import { actividad, configuracion } from './pages/system.js';
 import { revision } from './pages/revision.js';
 import { dsarPage } from './pages/dsar.js';
@@ -31,6 +32,7 @@ async function route() {
     if (path === '/agentes/dsar' || path === '/agentes/dsar/gestion') return await dsarPage(main, route);
     const m = path.match(/^\/agentes\/(\w+)$/);
     if (path === '/') await dashboard(main);
+    else if (m && m[1] === 'terceros') await tercerosPage(main);   // G5 has its own page (all of its functions)
     else if (m) await agentPage(main, m[1]);
     else if (path === '/revision') await revision(main, route);
     else if (path === '/actividad') await actividad(main);
