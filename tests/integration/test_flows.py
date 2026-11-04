@@ -74,6 +74,19 @@ def test_g3_handoffs_are_transported_after_human_decision():
     assert f["status"] == "succeeded", f["error"]
     by = {h["to"]: h for h in f["result"]["handoffs"]}
     assert by["evidencia"]["delivery"] == "entregado" and by["evidencia"]["severidad"]      # G4 evaluated it
+    if "inventario" in by:                                                                   # G6 verified the producer's SHA-256
+        assert by["inventario"]["delivery"] == "entregado" and by["inventario"]["cobertura"]["case_ref"] == case_id
     assert by["terceros"]["delivery"] == "pendiente_humano"                                  # requires_hitl respected
     stored = get("/api/flows").json()["handoffs"]
     assert any(h["case_ref"] == case_id for h in stored)
+
+
+def test_g6_inventory_exported_as_evidence_to_g4():
+    run("inventario", "registrar_activos", {"organizacion": "UNSA-DEMO", "fuentes": [{
+        "id": "matricula-fuente-1", "nombre": "Fuente de Matricula", "sistema": "Matricula", "formato": "csv",
+        "contenido": "nombre_completo,dni,correo_institucional,fecha_nacimiento\nPersona de prueba,00000000,ejemplo@example.invalid,2000-01-01",
+        "contexto": {"finalidad": "Gestionar la matricula (ficticia)", "titulares": ["Estudiantes"], "responsable": "Secretaria academica (ficticia)"}}]})
+    f = flow("inventario_a_auditoria", {"organizacion": "UNSA-DEMO"})
+    assert f["status"] == "succeeded", f["error"]
+    assert [s["agent"] for s in f["steps"]] == ["inventario", "auditoria"]
+    assert f["result"]["enviado_por_g6"] is False and f["result"]["severidad_propuesta_g4"]

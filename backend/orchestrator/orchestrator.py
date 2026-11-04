@@ -7,6 +7,8 @@ import hashlib
 import json
 import os
 import uuid
+
+import httpx
 from typing import Any
 
 from backend.adapters.agents import ADAPTERS
@@ -47,13 +49,28 @@ def get_adapter(agent_id: str):
     return ADAPTERS[agent_id]
 
 
+async def _teams() -> dict:
+    try:
+        async with httpx.AsyncClient(timeout=5) as c:
+            return (await c.get(f"{os.getenv('GATEWAY_URL', 'http://llm-gateway:8080')}/teams")).json()["teams"]
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 async def health_all() -> list[dict]:
+    teams = await _teams()
+
     async def one(a):
         try:
             h = await asyncio.wait_for(a.health_check(), 12)
         except Exception as e:  # noqa: BLE001   per-agent isolation
             h = {"status": "caido", "reason": type(e).__name__, "detail": {}}
-        return {**a.get_info(), **h, "capabilities": len(a.get_capabilities())}
+        t = teams.get(a.llm_team) if a.llm_team else None
+        if t is not None and not t["usable"] and h.get("status") == "operativo":
+            h = {**h, "status": "degradado", "reason": f"Falta la clave de Gemini del equipo {a.llm_team.upper()} "
+                                                       f"(LLM_API_KEY_{a.llm_team.upper()} en el .env)"}
+        return {**a.get_info(), **h, "capabilities": len(a.get_capabilities()),
+                "llm_team": a.llm_team or None, "team_key": None if t is None else t["own_key"]}
     return await asyncio.gather(*(one(a) for a in sorted(ADAPTERS.values(), key=lambda a: a.group)))
 
 

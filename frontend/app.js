@@ -2,7 +2,7 @@ import { h } from './components/ui.js';
 import { api } from './services/api.js';
 import { ORDER } from './services/agents-config.js';
 import { dashboard } from './pages/dashboard.js';
-import { agentPage, inventarioPage } from './pages/agent.js';
+import { agentPage } from './pages/agent.js';
 import { actividad, configuracion } from './pages/system.js';
 import { revision } from './pages/revision.js';
 
@@ -28,7 +28,6 @@ async function route() {
   try {
     const m = path.match(/^\/agentes\/(\w+)$/);
     if (path === '/') await dashboard(main);
-    else if (m && m[1] === 'inventario') inventarioPage(main);
     else if (m) await agentPage(main, m[1]);
     else if (path === '/revision') await revision(main, route);
     else if (path === '/actividad') await actividad(main);

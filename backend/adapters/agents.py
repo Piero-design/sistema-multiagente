@@ -51,6 +51,7 @@ class _HttpAdapter(AgentAdapter):
 
 # ---------------------------------------------------------------- Group 1
 class G1(_HttpAdapter):
+    llm_team = "g1"
     id, group, route = "formacion", 1, "/agentes/formacion"
     name = "Formación y concientización"
     responsibility = "Capacitación, evaluaciones e indicadores de concientización"
@@ -88,6 +89,7 @@ class G1(_HttpAdapter):
 
 # ---------------------------------------------------------------- Group 2
 class G2(_HttpAdapter):
+    llm_team = "g2"
     id, group, route = "riesgos", 2, "/agentes/riesgos"
     name = "Evaluación de riesgos"
     responsibility = "Identificación de riesgos, impacto y mitigación (ISO/IEC 27701)"
@@ -198,6 +200,7 @@ class G3(AgentAdapter):
 
 # ---------------------------------------------------------------- Group 4
 class G4(_HttpAdapter):
+    llm_team = "g4"
     id, group, route = "auditoria", 4, "/agentes/auditoria"
     name = "Evidencia y auditoría"
     responsibility = "Evaluación de evidencias, verificación de cumplimiento y dictamen propuesto"
@@ -217,7 +220,7 @@ class G4(_HttpAdapter):
         # The agent selects its provider per request: point its 'ollama' branch at the shared gateway.
         body = {"nombre_archivo": i.get("nombre_archivo", "evidencia.txt"), "contenido": i["contenido"],
                 "proveedor": "ollama", "modelo": os.getenv("LLM_MODEL", "gateway"),
-                "url_base": f"{GATEWAY}/v1"}
+                "url_base": f"{GATEWAY}/g4/v1"}
         r = await _post(f"{self.base}/api/auditar", json=body)
         if r.status_code >= 400:
             raise RuntimeError(f"G4 HTTP {r.status_code}: {r.text[:300]}")
@@ -230,6 +233,7 @@ class G4(_HttpAdapter):
 
 # ---------------------------------------------------------------- Group 5 (n8n)
 class G5(_HttpAdapter):
+    llm_team = "g5"
     id, group, route = "terceros", 5, "/agentes/terceros"
     name = "Terceros y DPA"
     responsibility = "Auditoría de contratos de encargo de tratamiento contra ISO/IEC 27701 y Ley 29733"
@@ -263,26 +267,38 @@ class G5(_HttpAdapter):
         raise PermissionError(f"Acción no soportada para G5: {a}")
 
 
-# ---------------------------------------------------------------- Group 6 (out of scope)
-class G6(AgentAdapter):
+# ---------------------------------------------------------------- Group 6
+class G6(_HttpAdapter):
     id, group, route = "inventario", 6, "/agentes/inventario"
     name = "Inventario de datos"
-    responsibility = "Activos de datos, clasificación y registro de tratamientos"
+    responsibility = "Activos de datos, clasificación y registro de tratamientos (motor de reglas, sin modelo)"
+    url_env, default_url, health_path = "AGENT_G6_URL", "http://agent-g6:8006", "/api/status"
+    ACTIONS = ("analizar", "registrar_activos", "clasificar_datos", "consultar_inventario", "mapear_tratamientos",
+               "confirmar_cobertura", "exportar_evidencia")
 
     def get_capabilities(self):
-        return []
+        caps = [{"action": a, "description": f"POST /api/ejecutar accion={a}", "input": "contrato del Grupo 6 (organizacion + campos de la accion)"}
+                for a in self.ACTIONS]
+        caps.append({"action": "recibir_handoff", "description": "POST /api/handoffs: sobre del Grupo 3 (confirmar_cobertura), hash verificado",
+                     "input": {"organizacion": "str", "handoff": "sobre JSON"}})
+        return caps
 
-    async def health_check(self):
-        return {"status": FUERA_DE_ALCANCE, "detail": {},
-                "reason": "Fuera del alcance de esta entrega: herramienta HTML del lado del cliente, "
-                          "basada en reglas, sin backend ni modelo."}
-
-    async def execute(self, req):
-        raise NotImplementedError("Grupo 6 fuera de alcance en esta entrega")
+    async def execute(self, req: ExecutionRequest):
+        a, i = req["action"], dict(req.get("input") or {})
+        if a == "recibir_handoff":
+            r = await _post(f"{self.base}/api/handoffs", params={"organizacion": i["organizacion"]}, json=i["handoff"], timeout=30)
+        else:
+            r = await _post(f"{self.base}/api/ejecutar", json={"accion": a, **i}, timeout=60)
+        out = r.json()
+        # The agent reports business errors inside its envelope (status: error): surface them as failures.
+        if r.status_code >= 400 or out.get("status") == "error":
+            raise RuntimeError(f"G6 {r.status_code}: {(out.get('error') or {}).get('code')}: {(out.get('error') or {}).get('message', '')}")
+        return {"output": out, "native_status": r.status_code}
 
 
 # ---------------------------------------------------------------- Group 7
 class G7(_HttpAdapter):
+    llm_team = "g7"
     id, group, route = "controles", 7, "/agentes/controles"
     name = "Controles y SoA"
     responsibility = "Controles de seguridad, aplicabilidad e implementación (SoA)"
@@ -305,6 +321,7 @@ class G7(_HttpAdapter):
 
 # ---------------------------------------------------------------- Group 8
 class G8(_HttpAdapter):
+    llm_team = "g8"
     id, group, route = "incidentes", 8, "/agentes/incidentes"
     name = "Incidentes y brechas"
     responsibility = "Clasificación, severidad, plazo de 48 h y borradores de notificación"

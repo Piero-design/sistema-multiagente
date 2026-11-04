@@ -77,12 +77,3 @@ export async function agentPage(root, key) {
   draw(); history();
   root.append(tabs, formBox, out, histBox);
 }
-
-export function inventarioPage(root) {
-  root.append(h('div', { class: 'row', style: 'justify-content:space-between' }, h('h1', {}, 'G6 · Inventario de datos'), badge('fuera_de_alcance')),
-    h('p', { class: 'sub' }, 'Responsabilidad: activos de datos, clasificación y registro de tratamientos.'),
-    alertBox('info', 'Fuera del alcance de esta entrega.'),
-    h('div', { class: 'card' }, h('h2', {}, 'Qué entregó el grupo'),
-      h('p', {}, 'Una herramienta en un solo archivo HTML ("PII Privacy Assistant") que se ejecuta en el navegador con reglas de coincidencia por alias. No es un modelo de IA, no tiene backend ni conexión a la base compartida.'),
-      h('p', { class: 'mute small' }, 'Por eso no hay formulario ni datos aquí: no se inventa un inventario. Su integración (adaptador sin LLM y, opcionalmente, escritura en core_asset, core_process y core_personaldataoperation) queda para una siguiente ronda.')));
-}

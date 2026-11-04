@@ -1,9 +1,11 @@
 """Multi-agent flows. Each step is a REAL execution of an agent through its adapter (persisted like any other).
 Only connections that the agents' code or catalogs really support are implemented:
 
-  dsar_handoffs        G3 -> G4 (evidence)  : G3 produces handoffs after a HUMAN decision; the orchestrator transports them.
-                                              G3 -> G5 / G6: the producer emits them but G5 has no receiver and G6 is out of scope
-                                              in this delivery, so they are stored with delivery_status = sin_receptor.
+  dsar_handoffs        G3 -> G4 / G6        : G3 produces handoffs after a HUMAN decision; the orchestrator transports them.
+                                              G4 evaluates the evidence envelope; G6 receives `confirmar_cobertura` (it verifies the
+                                              producer's SHA-256). G3 -> G5: G5 has no receiver, so it is stored as sin_receptor.
+  inventario_a_auditoria G6 -> G4           : G6's `exportar_evidencia` prepares a document for Group 4 (documented contract);
+                                              the orchestrator hands it to G4's audit.
   terceros_a_controles G5 -> G7             : G7's catalog names the Third-Parties agent as owner of A.1.2.7 etc.; G5's per-control
                                               results become G7's `evidencias` input (Cumple -> implementado, Parcial -> parcial).
   incidente_a_formacion G8 -> G1            : G8's lessons learned (references only, no personal data) become the question to G1.
@@ -97,9 +99,14 @@ def handoffs(limit: int = 50) -> list[dict]:
 async def dsar_handoffs(rid: str, p: dict, steps: list) -> dict:
     case_id = p["case_id"]
     out = await _step("dsar", "dsar_handoffs", {"case_id": case_id}, steps)
-    envs = out if isinstance(out, list) else ([out] if isinstance(out, dict) and out.get("to_agent") else [])
-    if not envs:
+    listed = out if isinstance(out, list) else ([out] if isinstance(out, dict) and out.get("to_agent") else [])
+    if not listed:
         raise ValueError("El expediente no tiene handoffs: una persona debe verificar la identidad y decidir primero.")
+    # The MCP tool returns a summary; receivers that verify the hash need the producer's original envelope.
+    async with httpx.AsyncClient(timeout=30) as c:
+        r = await c.get(f"{os.getenv('AGENT_G3_BRIDGE_URL', 'http://agent-g3:8002')}/handoffs/{case_id}",
+                        headers={"X-Bridge-Token": os.getenv("HUMAN_BRIDGE_TOKEN", "")})
+    envs = r.json() if r.status_code == 200 else listed
     report = []
     for env in envs:
         to = env.get("to_agent")
@@ -113,6 +120,13 @@ async def dsar_handoffs(rid: str, p: dict, steps: list) -> dict:
             status = "entregado"
             detail = {"severidad": res.get("severidad"), "sha256": res.get("sha256"),
                       "nota": "Dictamen propuesto por G4: requiere validación de un auditor humano"}
+        if to == "inventario":
+            org = p.get("organizacion", "UNSA-DEMO")
+            res = await _step("inventario", "recibir_handoff", {"organizacion": org, "handoff": env}, steps)
+            d = res.get("data") or {}
+            status = "entregado"
+            detail = {"hash_verificado": True, "cobertura": d,
+                      "nota": "G6 solo consulta su inventario; no busca personas ni modifica el expediente de G3"}
         db.execute("INSERT INTO orchestrator.handoff (from_agent, to_agent, envelope, delivery_status, delivery_detail, "
                    "flow_run_id) VALUES (%s,%s,%s::jsonb,%s,%s::jsonb,%s)",
                    ("dsar", to, json.dumps(env, ensure_ascii=False), status, json.dumps(detail, ensure_ascii=False), rid))
@@ -165,5 +179,19 @@ async def incidente_a_formacion(rid: str, p: dict, steps: list) -> dict:
     return {"incidente_resumen": text[:400], "lecciones_enviadas_a_g1": lessons[:400], "recomendacion_g1": chat.get("text")}
 
 
-FLOWS = {"dsar_handoffs": dsar_handoffs, "terceros_a_controles": terceros_a_controles,
+# ---------------------------------------------------------------- G6 -> G4
+async def inventario_a_auditoria(rid: str, p: dict, steps: list) -> dict:
+    org = p.get("organizacion", "UNSA-DEMO")
+    exp = await _step("inventario", "exportar_evidencia", {"organizacion": org}, steps)
+    doc = (exp.get("data") or {})
+    if not doc.get("contenido"):
+        raise ValueError("El inventario está vacío: registra activos en G6 primero.")
+    aud = await _step("auditoria", "auditar", {"nombre_archivo": doc.get("nombre_archivo", "inventario.json"),
+                                               "contenido": doc["contenido"]}, steps)
+    return {"documento": doc.get("nombre_archivo"), "sha256_g6": doc.get("sha256"), "enviado_por_g6": doc.get("enviado"),
+            "severidad_propuesta_g4": aud.get("severidad"), "sha256_g4": aud.get("sha256"),
+            "nota": "Dictamen propuesto por G4: requiere validación de un auditor humano"}
+
+
+FLOWS = {"inventario_a_auditoria": inventario_a_auditoria, "dsar_handoffs": dsar_handoffs, "terceros_a_controles": terceros_a_controles,
          "incidente_a_formacion": incidente_a_formacion}

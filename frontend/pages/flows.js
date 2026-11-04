@@ -17,8 +17,12 @@ const FLOWS = [
     fields: [{ name: 'reporte', label: 'Reporte del incidente (datos de demostración)', type: 'textarea',
       value: 'Un funcionario envió por error una hoja de cálculo con DNI y notas de 300 estudiantes a una lista externa de correo de la universidad.' }],
     params: (v) => ({ reporte: v.reporte }) },
-  { id: 'dsar_handoffs', title: 'G3 → G4 / G5 / G6 · Handoffs de un caso decidido',
-    about: 'Transporta los handoffs que G3 genera después de una decisión humana. El de evidencia se entrega a G4; el de terceros queda pendiente de una persona; el de inventario no tiene receptor en esta entrega. Una persona debe haber verificado la identidad y decidido el caso (ver CASOS_DE_PRUEBA.md, B3).',
+  { id: 'inventario_a_auditoria', title: 'G6 → G4 · Inventario como evidencia de auditoría',
+    about: 'G6 prepara su inventario como documento de evidencia (sin valores de datos personales) y G4 lo evalúa. Registra antes activos en la página de G6. La severidad es una propuesta para un auditor humano.',
+    fields: [{ name: 'organizacion', label: 'Organización (datos de demostración)', type: 'text', value: 'UNSA-DEMO' }],
+    params: (v) => ({ organizacion: v.organizacion }) },
+  { id: 'dsar_handoffs', title: 'G3 → G4 / G6 · Handoffs de un caso decidido',
+    about: 'Transporta los handoffs que G3 genera después de una decisión humana. El de evidencia se entrega a G4; el de terceros queda pendiente de una persona; el de inventario lo recibe G6, que verifica el hash y responde la cobertura. Una persona debe haber verificado la identidad y decidido el caso (ver CASOS_DE_PRUEBA.md, B3).',
     fields: [{ name: 'case_id', label: 'Identificador del caso (DSAR-MCP-…)', type: 'text', value: '' }],
     params: (v) => ({ case_id: v.case_id }) },
 ];
@@ -34,6 +38,9 @@ function render(f) {
         : h('p', { class: 'mute' }, 'Ningún control cambió: el último expediente de G5 no cumple (ni parcialmente) los controles que G7 conoce.'));
   } else if (f.flow === 'incidente_a_formacion') {
     box.append(h('h2', {}, 'Recomendación de G1'), h('div', { class: 'md' }, r.recomendacion_g1 || ''));
+  } else if (f.flow === 'inventario_a_auditoria') {
+    box.append(table(['Documento', 'Enviado por G6', 'Severidad propuesta por G4'], [[r.documento, String(r.enviado_por_g6), r.severidad_propuesta_g4]]),
+      h('p', { class: 'small mute' }, r.nota));
   } else {
     box.append(table(['Destino', 'Acción', 'Entrega', 'Detalle'], (r.handoffs || []).map((x) => [x.to, x.action, x.delivery, x.severidad ? `Severidad propuesta: ${x.severidad}` : x.motivo || ''])));
   }

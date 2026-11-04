@@ -19,6 +19,7 @@ class AgentAdapter(ABC):
     name: str = ""
     responsibility: str = ""
     route: str = ""
+    llm_team: str = ""        # gateway team prefix (g1..g8) when the agent uses a model; "" if it does not
 
     def get_info(self) -> dict[str, Any]:
         return {"id": self.id, "group": self.group, "name": self.name,

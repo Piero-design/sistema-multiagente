@@ -76,9 +76,11 @@ async def system():
         async with httpx.AsyncClient(timeout=60) as c:
             h = (await c.get(f"{GATEWAY}/health")).json()
             m = (await c.get(f"{GATEWAY}/metrics")).json()
+            teams = (await c.get(f"{GATEWAY}/teams")).json()
         llm = {"ok": True, **h, "last_latency_ms": m.get("last_latency_ms"), "requests": m["requests"],
                "errors": m["errors"], "avg_latency_ms": m["avg_latency_ms"],
-               "prompt_tokens": m["prompt_tokens"], "completion_tokens": m["completion_tokens"]}
+               "prompt_tokens": m["prompt_tokens"], "completion_tokens": m["completion_tokens"],
+               "shared_fallback": teams["shared_fallback"], "teams": teams["teams"]}
     except Exception as e:  # noqa: BLE001
         llm = {"ok": False, "error": type(e).__name__}
     return {"llm": llm, "database": db.ping()}

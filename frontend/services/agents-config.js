@@ -1,5 +1,16 @@
 // Real capabilities per agent (mirrors the adapters). `demo` values are labeled as demonstration data in the UI.
 // Human decisions (G3 verify/decide, G5 DPO/Legal approval, G8 action approval) are intentionally NOT offered here.
+const list = (t) => String(t || '').split(',').map((x) => x.trim()).filter(Boolean);
+const ORG = { name: 'organizacion', label: 'Organización (datos de demostración)', type: 'text', demo: 'UNSA-DEMO' };
+const SRC = [ORG,
+  { name: 'sistema', label: 'Sistema', type: 'text', demo: 'Matrícula' },
+  { name: 'contenido', label: 'Esquema de la fuente (CSV con cabecera; use datos ficticios)', type: 'textarea', demo: 'nombre_completo,dni,correo_institucional,fecha_nacimiento\nPersona de prueba,00000000,ejemplo@example.invalid,2000-01-01' },
+  { name: 'finalidad', label: 'Finalidad declarada', type: 'text', demo: 'Gestionar la matrícula (declaración ficticia)' },
+  { name: 'titulares', label: 'Categorías de titulares (coma)', type: 'text', demo: 'Estudiantes' },
+  { name: 'responsable', label: 'Responsable', type: 'text', demo: 'Secretaría académica (ficticia)' }];
+const slug = (t) => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const srcReq = (v) => ({ organizacion: v.organizacion, fuentes: [{ id: slug(v.sistema) + '-fuente-1', nombre: 'Fuente de ' + v.sistema, sistema: v.sistema, formato: 'csv', contenido: v.contenido,
+  contexto: { finalidad: v.finalidad, titulares: list(v.titulares), responsable: v.responsable } }] });
 const sid = () => 'plataforma-' + Math.random().toString(16).slice(2, 12);
 
 export const AGENTS = {
@@ -57,6 +68,25 @@ export const AGENTS = {
         build: (v) => v },
       { id: 'organizaciones', label: 'Organizaciones y terceros sin DPA', fields: [], build: () => ({}) },
       { id: 'registro', label: 'Expedientes de una organización', fields: [{ name: 'organizacion', label: 'Organización', type: 'text', demo: 'unsa' }], build: (v) => v },
+    ],
+  },
+  inventario: {
+    route: '/agentes/inventario', title: 'Inventario de datos', group: 6,
+    about: 'Registra activos de datos personales, clasifica campos y prepara el mapa de tratamientos. Motor de reglas locales, sin modelo: no guarda los valores de los datos, solo nombres de campos, ubicaciones y hashes. Todo queda pendiente de validación humana.',
+    actions: [
+      { id: 'analizar', label: 'Analizar sin guardar', fields: SRC, build: (v) => srcReq(v) },
+      { id: 'registrar_activos', label: 'Registrar activos', fields: SRC, build: (v) => srcReq(v) },
+      { id: 'consultar_inventario', label: 'Inventario guardado', fields: [ORG], build: (v) => ({ organizacion: v.organizacion }) },
+      { id: 'mapear_tratamientos', label: 'Mapa de tratamientos', fields: [ORG], build: (v) => ({ organizacion: v.organizacion }) },
+      { id: 'clasificar_datos', label: 'Clasificar campos', fields: [
+        { name: 'organizacion', label: 'Organización', type: 'text', demo: 'UNSA-DEMO' },
+        { name: 'campos', label: 'Nombres de campos (separados por coma)', type: 'text', demo: 'nombre_completo, dni, correo_institucional, fecha_nacimiento, promedio' }],
+        build: (v) => ({ organizacion: v.organizacion, campos: list(v.campos) }) },
+      { id: 'confirmar_cobertura', label: 'Cobertura de sistemas', fields: [
+        { name: 'organizacion', label: 'Organización', type: 'text', demo: 'UNSA-DEMO' },
+        { name: 'missing', label: 'Sistemas declarados por DSAR (coma)', type: 'text', demo: 'Matrícula, Biblioteca' }],
+        build: (v) => ({ organizacion: v.organizacion, missing_systems: list(v.missing), found_systems: [] }) },
+      { id: 'exportar_evidencia', label: 'Exportar evidencia (para G4)', fields: [ORG], build: (v) => ({ organizacion: v.organizacion }) },
     ],
   },
   controles: {

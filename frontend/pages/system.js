@@ -31,6 +31,13 @@ export async function configuracion(root) {
         try { const r = await api.probe(); out.textContent = `Respuesta real en ${r.latency_ms} ms (${r.model}).`; } catch (e) { out.textContent = 'Falló: ' + e.message; } ev.target.disabled = false; } }, 'Probar conexión con el modelo'), out),
     h('div', { class: 'card' }, h('h2', {}, 'Base de datos'), table(['Parámetro', 'Valor'], [
       ['PostgreSQL', sys.database.ok ? 'Conectado' : 'Sin conexión'], ['Base', sys.database.db || '—'], ['Tablas en esquema demo', sys.database.demo_tables ?? '—']]))),
+    h('h2', { style: 'margin-top:20px' }, 'Clave de Gemini por equipo'),
+    h('div', { class: 'card' },
+      h('p', { class: 'small mute' }, 'Cada equipo usa su propia clave a través del gateway, para no saturar la cuota de otro. Aquí solo se ve si existe y cuánto usó; las claves nunca se muestran.'),
+      l.shared_fallback ? alertBox('warn', 'Modo desarrollo: los equipos sin clave propia usan la clave compartida (LLM_ALLOW_SHARED_FALLBACK=true). Desactívalo cuando cada equipo tenga la suya.') : null,
+      l.teams ? table(['Equipo', 'Clave propia', 'Modelo', 'Llamadas', 'Errores', 'Tokens (ent./sal.)', 'Última'],
+        Object.entries(l.teams).map(([k, t]) => [k.toUpperCase(), t.own_key ? 'Sí' : (t.usable ? 'No (usa la compartida)' : 'No: falta'), t.model || '—',
+          t.requests, t.errors, `${t.prompt_tokens}/${t.completion_tokens}`, t.last_call_at || '—'])) : h('span', { class: 'mute' }, 'Sin datos.')),
     h('h2', { style: 'margin-top:20px' }, 'Agentes'),
     h('div', { class: 'card' }, table(['Grupo', 'Agente', 'Estado', 'Motivo'], agents.map((a) => [`G${a.group}`, a.name, badge(a.status), a.reason || '']))));
 }

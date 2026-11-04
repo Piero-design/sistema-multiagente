@@ -200,3 +200,44 @@ def test_every_execution_leaves_a_metadata_only_trail_in_gestitel():
     row = _psql(f"select detail::text from demo.core_securitylog where detail->>'execution_id'='{e['id']}'")
     assert '"status": "succeeded"' in row and "dsar_listar" in row
     assert "principal_id" not in row and "request_text" not in row          # no input data in the trail
+
+
+
+# ---------------- G6 (rule-based, deterministic: no model involved) ----------------
+G6_SRC = {"organizacion": "UNSA-TEST-G6", "fuentes": [{
+    "id": "matricula-fuente-1", "nombre": "Fuente de Matricula", "sistema": "Matricula", "formato": "csv",
+    "contenido": "nombre_completo,dni,correo_institucional,fecha_nacimiento\nPersona de prueba,00000000,ejemplo@example.invalid,2000-01-01",
+    "contexto": {"finalidad": "Gestionar la matricula (ficticia)", "titulares": ["Estudiantes"], "responsable": "Secretaria academica (ficticia)"}}]}
+
+
+def test_g6_classifies_fields_and_never_keeps_values():
+    o = out(run("inventario", "analizar", G6_SRC))
+    campos = {c["nombre"]: c for a in o["data"]["activos"] for c in a["campos"]}
+    assert campos["dni"]["es_pii"] is True and campos["correo_institucional"]["es_pii"] is True
+    assert "00000000" not in str(o) and "Persona de prueba" not in str(o)          # values are never published
+    assert all(a["estado"] == "pendiente_validacion" for a in o["data"]["activos"])  # nothing is auto-validated
+
+
+def test_g6_registration_is_idempotent_and_queryable():
+    first = out(run("inventario", "registrar_activos", G6_SRC))["data"]
+    again = out(run("inventario", "registrar_activos", G6_SRC))["data"]
+    assert again["registro"]["sin_cambios"] >= 1 and again["registro"]["creados"] == 0 and again["registro"]["actualizados"] == 0
+    inv = out(run("inventario", "consultar_inventario", {"organizacion": "UNSA-TEST-G6"}))["data"]
+    assert inv["total_activos"] >= 1
+    # another organization sees nothing (logical separation)
+    other = out(run("inventario", "consultar_inventario", {"organizacion": "OTRA-ORG-VACIA"}))["data"]
+    assert other["total_activos"] == 0
+
+
+def test_g6_coverage_does_not_search_people_and_asks_for_validation():
+    o = out(run("inventario", "confirmar_cobertura", {"organizacion": "UNSA-TEST-G6", "missing_systems": ["Matricula", "Biblioteca"],
+                                                      "found_systems": []}))["data"]
+    estados = {x["sistema"]: x["estado"] for x in o["sistemas"]}
+    assert estados["Biblioteca"] == "sin_activos_en_inventario" and estados["Matricula"] != "sin_activos_en_inventario"
+    assert o["requiere_validacion"] is True
+
+
+def test_g6_rejects_invalid_input_instead_of_ignoring_it():
+    e = run("inventario", "analizar", {"organizacion": "X", "fuentes": [{"id": "a", "nombre": "n", "sistema": "s", "formato": "csv",
+                                                                           "contenido": "a,b\n1"}]})
+    assert e["status"] == "failed" and "422" in e["error"]

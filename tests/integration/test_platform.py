@@ -42,18 +42,18 @@ def test_postgres_loaded_from_professor_script(system):
     assert system["database"]["ok"] and system["database"]["demo_tables"] >= 50
 
 
-def test_all_eight_agents_listed_and_g6_out_of_scope():
+def test_all_eight_agents_listed_with_real_status():
     agents = {a["group"]: a for a in get("/api/agents", timeout=60).json()}
     assert sorted(agents) == list(range(1, 9))
-    assert agents[6]["status"] == "fuera_de_alcance"
     for g, a in agents.items():
-        if g != 6:
-            assert a["status"] in ("operativo", "degradado", "caido", "parcial"), a
+        assert a["status"] in ("operativo", "degradado", "caido", "parcial"), a      # G6 is integrated now
+        if a["status"] != "operativo":
+            assert a["reason"]
 
 
-def test_g6_cannot_execute():
-    r = httpx.post(f"{BASE}/api/agents/inventario/execute", json={"action": "x", "input": {}}, timeout=30)
-    assert r.status_code == 422
+def test_g6_runs_a_real_action():
+    e = run("inventario", "consultar_inventario", {"organizacion": "UNSA-DEMO"})
+    assert e["status"] == "succeeded" and e["result"]["output"]["status"] == "ok"
 
 
 def test_unknown_action_rejected():

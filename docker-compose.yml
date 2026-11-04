@@ -4,7 +4,23 @@
 
 x-llm-env: &llm-env
   LLM_MODE: ${LLM_MODE:-cloud}
-  LLM_API_KEY: ${LLM_API_KEY:-}
+  LLM_API_KEY: ${LLM_API_KEY:-}                 # shared key: only used when LLM_ALLOW_SHARED_FALLBACK=true
+  LLM_ALLOW_SHARED_FALLBACK: ${LLM_ALLOW_SHARED_FALLBACK:-false}
+  # One Gemini key (and optional model) PER TEAM, so no team saturates another team's quota
+  LLM_API_KEY_G1: ${LLM_API_KEY_G1:-}
+  LLM_API_KEY_G2: ${LLM_API_KEY_G2:-}
+  LLM_API_KEY_G3: ${LLM_API_KEY_G3:-}
+  LLM_API_KEY_G4: ${LLM_API_KEY_G4:-}
+  LLM_API_KEY_G5: ${LLM_API_KEY_G5:-}
+  LLM_API_KEY_G6: ${LLM_API_KEY_G6:-}
+  LLM_API_KEY_G7: ${LLM_API_KEY_G7:-}
+  LLM_API_KEY_G8: ${LLM_API_KEY_G8:-}
+  LLM_MODEL_G1: ${LLM_MODEL_G1:-}
+  LLM_MODEL_G2: ${LLM_MODEL_G2:-}
+  LLM_MODEL_G4: ${LLM_MODEL_G4:-}
+  LLM_MODEL_G5: ${LLM_MODEL_G5:-}
+  LLM_MODEL_G7: ${LLM_MODEL_G7:-}
+  LLM_MODEL_G8: ${LLM_MODEL_G8:-}
   LLM_BASE_URL: ${LLM_BASE_URL-https://generativelanguage.googleapis.com/v1beta/openai}
   LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
   LLM_EMBED_MODEL: ${LLM_EMBED_MODEL:-gemini-embedding-001}
@@ -85,6 +101,7 @@ services:
       AGENT_G3_URL: http://agent-g3:8001/mcp
       AGENT_G4_URL: http://agent-g4:8004
       AGENT_G5_URL: http://agent-g5:5678
+      AGENT_G6_URL: http://agent-g6:8006
       AGENT_G7_URL: http://agent-g7:5007
       AGENT_G8_URL: http://agent-g8:3100
     networks: [internal]
@@ -113,7 +130,7 @@ services:
     restart: unless-stopped
     environment:
       LLM_PROVIDER: ollama                       # agent's own switch; its "ollama" branch speaks to the gateway
-      OLLAMA_HOST: http://llm-gateway:8080
+      OLLAMA_HOST: http://llm-gateway:8080/g1
       OLLAMA_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       OLLAMA_EMBED_MODEL: ${LLM_EMBED_MODEL:-gemini-embedding-001}
       DB_PATH: /data/agente.db
@@ -146,13 +163,23 @@ services:
     restart: unless-stopped
     networks: [internal]
 
+  agent-g6:
+    build:
+      context: ./agents/Agente_inventario_datos-Grupo6
+      dockerfile: ../../docker/agents/g6.Dockerfile
+    restart: unless-stopped
+    environment:
+      INVENTARIO_DB_PATH: /data/inventario.sqlite3     # its own SQLite, in a volume; rule-based engine, no model
+    volumes: [g6data:/data]
+    networks: [internal]
+
   agent-g7:
     build:
       context: ./agents/Agente_controles_soa-Grupo7
       dockerfile: ../../docker/agents/g7.Dockerfile
     restart: unless-stopped
     environment:
-      OLLAMA_URL: http://llm-gateway:8080
+      OLLAMA_URL: http://llm-gateway:8080/g7
       OLLAMA_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       OLLAMA_EMBED_MODEL: ${LLM_EMBED_MODEL:-gemini-embedding-001}
       OLLAMA_TIMEOUT: ${LLM_TIMEOUT_SECONDS:-120}
@@ -168,7 +195,7 @@ services:
       # Its Groq branch speaks OpenAI format; groq-sdk reads GROQ_BASE_URL. No GEMINI/ANTHROPIC key is set,
       # so the agent can only select this gateway-bound provider.
       GROQ_API_KEY: gateway-managed
-      GROQ_BASE_URL: http://llm-gateway:8080
+      GROQ_BASE_URL: http://llm-gateway:8080/g8
       GROQ_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       HOST: 0.0.0.0
       PORT: "3100"
@@ -186,7 +213,7 @@ services:
       additional_contexts: {wrap: ./docker/agents}
     restart: unless-stopped
     environment:
-      GATEWAY_V1_URL: http://llm-gateway:8080/v1
+      GATEWAY_V1_URL: http://llm-gateway:8080/g5/v1
       LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       N8N_USER_FOLDER: /n8n-home
       # Gestitel (the group's own supported mode: config_bd.json activo=true + n8n credential "PIMS Postgres")
@@ -216,7 +243,7 @@ services:
       additional_contexts: {wrap: ./docker/agents}
     restart: unless-stopped
     environment:
-      GATEWAY_V1_URL: http://llm-gateway:8080/v1
+      GATEWAY_V1_URL: http://llm-gateway:8080/g2/v1
       LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       LLM_EMBED_MODEL: ${LLM_EMBED_MODEL:-gemini-embedding-001}
       QDRANT_API_KEY: ${QDRANT_API_KEY:-qdrant_dev_key}
@@ -283,6 +310,7 @@ networks:
 volumes:
   pgdata:
   g1data:
+  g6data:
   g2n8n:
   qdrantdata:
   g5n8n:
