@@ -47,6 +47,12 @@ La salida de un LLM no es idéntica byte a byte. Se compararon estructura, campo
 1. **Gemini 3.x exige la `thought_signature` en las llamadas a herramientas** y los clientes tipo OpenAI de n8n la descartan: el segundo turno del agente de G2 recibía HTTP 400. El gateway ahora guarda la firma de cada respuesta y la reinyecta (con la firma de omisión documentada como respaldo). Cubierto por un test unitario.
 2. **Búsqueda web automática de G2:** el chat intentaba usar Tavily (falta la clave y además enviaría datos fuera). El adaptador ahora envía `webMode: off`.
 
+## Gestitel en uso por G5 (modo `cloud`)
+
+- Al auditar un contrato, G5 guarda en PostgreSQL: 1 evaluación (`core_dpaassessment`), 26 resultados de control, 1 contrato y 1 tercero; sin fila de aprobación (queda pendiente del DPO).
+- Un test comprueba que el rol `agente7` no puede borrar en `core_asset` (permission denied).
+- **Por qué no lo usan G1, G2, G3, G4, G7 ni G8:** las tablas de negocio de Gestitel guardan códigos de listas (tipo, estado, clasificación) definidos en los modelos Django, no en la base; mapearlos sería inventar valores. G3 además no debe guardar datos del solicitante (`core_arcorequest` exige nombre y documento). G2 y G7 no tienen almacén propio que migrar. Para hacerlo falta el código de los modelos Django del profesor.
+
 ## Pendiente o no verificado
 
 - **Modo `ollama`**: solo `docker compose --profile ollama config`. Ver `docs/installation/OLLAMA_OTRA_PC.md`.

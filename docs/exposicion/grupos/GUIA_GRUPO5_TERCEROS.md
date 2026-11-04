@@ -27,7 +27,7 @@ La página web de n8n (`/webhook/pims/app`) conserva todo, incluidas las aprobac
 Por configuración del propio agente: `datos/config_modelo.json` con proveedor `openai` y `url_openai` = gateway (se parchea al iniciar el contenedor). Sin editar flujos ni skills.
 
 ## 11. PostgreSQL
-Trae un patrón ejemplar: `agente7_terceros_dpa.sql` (6 tablas, 5 vistas, funciones) y `roles_agente7.sql` (rol que lee todo el PIMS y escribe solo en sus tablas). Sirvió de modelo para los roles de los demás agentes. En la plataforma la base del agente sigue **apagada** (guarda en archivos).
+Trae un patrón ejemplar: `agente7_terceros_dpa.sql` (6 tablas, 5 vistas, funciones) y `roles_agente7.sql` (rol que lee todo el PIMS y escribe solo en sus tablas). Sirvió de modelo para los roles de los demás agentes. **En la plataforma está activa:** al auditar, el expediente se guarda en Gestitel (evaluación, 26 controles, contrato y tercero) además de los archivos del agente; verificado con una auditoría real. Las consultas, renovaciones y el chat todavía leen de archivos, como indica el propio grupo.
 
 ## 12. Otros agentes
 G3 le enviaría `notificar_destinatarios`, pero **este agente aún no recibe handoffs**. `pims/organizaciones` entrega terceros sin DPA evaluado (útil para G6). Cada expediente guarda el hash del contrato (útil para G4).

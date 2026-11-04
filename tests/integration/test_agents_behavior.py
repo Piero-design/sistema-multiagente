@@ -166,3 +166,28 @@ def test_g2_out_of_scope_question_is_refused_by_the_agent():
         pytest.skip("G2 bloqueado")
     e = run("riesgos", "chat", {"message": "Dame una receta de pizza", "sessionId": "test-g2-0002"})
     assert e["status"] == "failed" and "OUT_OF_SCOPE" in e["error"]
+
+
+# ---------------- Gestitel (PostgreSQL) used by G5 through its own supported mode ----------------
+def _psql(sql):
+    r = subprocess.run(["docker", "compose", "exec", "-T", "postgres", "psql", "-U", "gestitel", "-d", "gestitel", "-tAc", sql],
+                       capture_output=True, text=True, timeout=60)
+    return r.stdout.strip()
+
+
+def test_g5_audit_is_persisted_in_gestitel_with_26_controls_and_pending_approval():
+    before = int(_psql("select count(*) from demo.core_dpaassessment"))
+    o = out(run("terceros", "auditar", {"organizacion": "unsa", "contrato_texto": DEMO_CONTRACT + " Proveedor: PruebaGestitel SAC."}, wait=420))
+    assert int(_psql("select count(*) from demo.core_dpaassessment")) == before + 1
+    last = _psql("select id from demo.core_dpaassessment order by id desc limit 1")
+    assert _psql(f"select count(*) from demo.core_dpacontrolresult where assessment_id={last}") == "26"
+    # the agent never approves on its own: no DPO/Legal decision row exists for this assessment
+    assert _psql(f"select count(*) from demo.core_dpaapproval where assessment_id={last}") == "0"
+    assert o["estado"] == "terminado"
+
+
+def test_agent_roles_cannot_write_outside_their_module():
+    # agente7 must not be able to touch the shared inventory table (privilege boundary from roles_agente7.sql)
+    r = subprocess.run(["docker", "compose", "exec", "-T", "-e", "PGPASSWORD=agente7_dev_pw", "postgres", "psql", "-h", "localhost",
+                        "-U", "agente7", "-d", "gestitel", "-tAc", "delete from demo.core_asset"], capture_output=True, text=True, timeout=60)
+    assert "permission denied" in (r.stderr + r.stdout).lower()

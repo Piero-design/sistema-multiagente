@@ -38,8 +38,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gestitel_dev_pw}
       POSTGRES_DB: ${POSTGRES_DB:-gestitel}
       ORCHESTRATOR_DB_PASSWORD: ${ORCHESTRATOR_DB_PASSWORD:-orch_dev_pw}
+      AGENTE7_DB_PASSWORD: ${AGENTE7_DB_PASSWORD:-agente7_dev_pw}
+      AGENTE7_RO_PASSWORD: ${AGENTE7_RO_PASSWORD:-agente7ro_dev_pw}
     volumes:
       - ./database:/database:ro
+      - ./agents/Agente_terceros_dpa-Grupo5/bd:/g5bd:ro
       - ./docker/scripts/db-init.sh:/db-init.sh:ro
     entrypoint: ["sh", "/db-init.sh"]
     networks: [internal]
@@ -181,6 +184,11 @@ services:
       GATEWAY_V1_URL: http://llm-gateway:8080/v1
       LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       N8N_USER_FOLDER: /n8n-home
+      # Gestitel (the group's own supported mode: config_bd.json activo=true + n8n credential "PIMS Postgres")
+      G5_DB_HOST: postgres
+      G5_DB_NAME: ${POSTGRES_DB:-gestitel}
+      G5_DB_USER: agente7
+      G5_DB_PASSWORD: ${AGENTE7_DB_PASSWORD:-agente7_dev_pw}
     volumes:
       - g5n8n:/n8n-home
       - g5datos:/app/g5/datos
