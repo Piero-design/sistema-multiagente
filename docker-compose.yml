@@ -71,6 +71,7 @@ services:
       DB_USER: orchestrator_rw
       DB_PASSWORD: ${ORCHESTRATOR_DB_PASSWORD:-orch_dev_pw}
       GATEWAY_URL: http://llm-gateway:8080
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-qdrant_dev_key}
       # Agent base URLs (services added in Step 7); an unreachable agent is reported as "caido".
       AGENT_G1_URL: http://agent-g1:8000
       AGENT_G2_URL: http://agent-g2:4318

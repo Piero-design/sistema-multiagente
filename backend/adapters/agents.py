@@ -107,12 +107,20 @@ class G2(_HttpAdapter):
                 reasons.append(f"alcance bloqueado por el propio agente ({scope.get('state')}): SCOPE_N8N_REVIEWED=false")
             if not s.get("configured"):
                 reasons.append("N8N_CHAT_URL no configurada / Chat Trigger no publicado")
-            if os.getenv("G2_NORM_INGESTED", "false").lower() != "true":
+            if not await self._qdrant_points():
                 reasons.append("norma ISO/IEC 27701:2025 no ingestada en Qdrant (RAG vacío)")
             return {"status": DEGRADADO if reasons else OPERATIVO, "reason": "; ".join(reasons) or None,
                     "detail": {"native": {k: s.get(k) for k in ("configured", "service")}}}
         except Exception as e:  # noqa: BLE001
             return _down(e)
+
+    async def _qdrant_points(self) -> int:
+        try:
+            r = await _get("http://qdrant:6333/collections/iso27701_2025",
+                           headers={"api-key": os.getenv("QDRANT_API_KEY", "")})
+            return r.json()["result"]["points_count"] if r.status_code == 200 else 0
+        except Exception:  # noqa: BLE001
+            return 0
 
     async def execute(self, req: ExecutionRequest):
         i = req["input"]
