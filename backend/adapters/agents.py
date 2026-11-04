@@ -379,7 +379,9 @@ class G7(_HttpAdapter):
     def get_capabilities(self):
         return [{"action": "catalogo", "description": "GET /api/controles/catalogo", "input": {}},
                 {"action": "ejecutar", "description": "POST /api/controles/ejecutar (skills generar-soa / verificar-controles)",
-                 "input": "payload nativo del agente"}]
+                 "input": "payload nativo del agente"},
+                {"action": "consultar", "description": "POST /api/controles/ejecutar (RAG / consulta semántica sobre directivas UNSA)",
+                 "input": {"operacion": "consultar", "solicitud": "str"}}]
 
     async def execute(self, req: ExecutionRequest):
         if req["action"] == "catalogo":

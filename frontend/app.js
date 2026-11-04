@@ -7,6 +7,7 @@ import { tercerosPage } from './pages/terceros.js';
 import { actividad, configuracion } from './pages/system.js?v=20261104e';
 import { revision } from './pages/revision.js';
 import { dsarPage } from './pages/dsar.js';
+import { controlesPage } from './pages/controles.js';
 
 const app = document.getElementById('app');
 
@@ -33,6 +34,7 @@ async function route() {
     const m = path.match(/^\/agentes\/(\w+)$/);
     if (path === '/') await dashboard(main);
     else if (m && m[1] === 'terceros') await tercerosPage(main);   // G5 has its own page (all of its functions)
+    else if (m && m[1] === 'controles') await controlesPage(main);  // G7 has its own specialized page
     else if (m) await agentPage(main, m[1]);
     else if (path === '/revision') await revision(main, route);
     else if (path === '/actividad') await actividad(main);

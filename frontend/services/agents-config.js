@@ -125,6 +125,9 @@ export const AGENTS = {
         { name: 'organizacion', label: 'Organización', type: 'text', demo: 'UNSA' },
         { name: 'rol', label: 'Rol en el tratamiento', type: 'select', options: ['responsable', 'encargado', 'ambos'], demo: 'responsable' }],
         build: (v) => ({ operacion: 'generar_soa', perfil: { rol: v.rol, organizacion: v.organizacion }, riesgos: [], evidencias: [] }) },
+      { id: 'consultar', label: 'Consultar normativa / RAG (Chat)', long: true, fields: [
+        { name: 'solicitud', label: 'Pregunta o consulta normativa sobre la privacidad en la UNSA', type: 'textarea', demo: '¿Cómo se tramita el ejercicio de derechos ARCO de los estudiantes en la UNSA según la normativa institucional?' }],
+        build: (v) => ({ operacion: 'consultar', solicitud: v.solicitud }) },
     ],
   },
   incidentes: {
