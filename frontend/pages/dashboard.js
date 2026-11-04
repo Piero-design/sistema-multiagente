@@ -1,6 +1,7 @@
 import { api } from '../services/api.js';
 import { h, badge, fmtTime, alertBox } from '../components/ui.js';
 import { AGENTS } from '../services/agents-config.js';
+import { flowsPanel } from './flows.js';
 
 export async function dashboard(root) {
   root.append(h('h1', {}, 'Panel general'), h('p', { class: 'sub' }, 'Estado real de los ocho agentes, del gateway LLM y de PostgreSQL.'));
@@ -38,6 +39,7 @@ export async function dashboard(root) {
       h('div', { class: 'card' }, act.events.length ? table(['Hora', 'Agente', 'Evento'],
         act.events.slice(0, 8).map((e) => [fmtTime(e.created_at), e.agent_id, `${e.kind}${e.message ? ' · ' + e.message : ''}`]))
         : h('span', { class: 'mute' }, 'Aún no hay actividad.'))));
+  await flowsPanel(root);
 }
 const kpi = (t, v) => h('div', { class: 'card' }, h('div', { class: 'small mute' }, t), h('div', { class: 'kpi', style: 'font-size:20px' }, String(v)));
 export const table = (head, rows) => h('table', {},

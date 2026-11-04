@@ -163,13 +163,17 @@ class G3(AgentAdapter):
                 if tool is None:
                     return [t.name for t in (await s.list_tools()).tools]
                 res = await s.call_tool(tool, args or {})
-                txt = "".join(getattr(c, "text", "") for c in res.content)
+                blocks = [getattr(c, "text", "") for c in res.content]
                 if getattr(res, "isError", False):
-                    raise RuntimeError(f"G3 tool error: {txt[:300]}")
-                try:
-                    return json.loads(txt)
-                except ValueError:
-                    return txt
+                    raise RuntimeError(f"G3 tool error: {''.join(blocks)[:300]}")
+
+                def parse(t):
+                    try:
+                        return json.loads(t)
+                    except ValueError:
+                        return t
+                # One content block per item (e.g. one envelope per handoff): keep them separate
+                return parse(blocks[0]) if len(blocks) == 1 else [parse(b) for b in blocks]
 
     async def health_check(self):
         try:

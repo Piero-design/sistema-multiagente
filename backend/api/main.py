@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from backend.adapters.agents import ADAPTERS
-from backend.orchestrator import orchestrator as orch
+from backend.orchestrator import flows, orchestrator as orch
 from backend.services import db
 
 app = FastAPI(title="Plataforma multiagente PIMS")
@@ -87,3 +87,28 @@ async def probe():
     async with httpx.AsyncClient(timeout=120) as c:
         r = await c.get(f"{GATEWAY}/probe")
     return r.json()
+
+
+class FlowBody(BaseModel):
+    params: dict = {}
+
+
+@app.post("/api/flows/{flow}", status_code=202)
+async def start_flow(flow: str, body: FlowBody):
+    try:
+        return {"flow_run_id": flows.start(flow, body.params)}
+    except KeyError:
+        raise HTTPException(404, "Flujo desconocido")
+
+
+@app.get("/api/flows")
+async def list_flows():
+    return {"available": list(flows.FLOWS), "history": flows.history(), "handoffs": flows.handoffs()}
+
+
+@app.get("/api/flows/{rid}")
+async def get_flow(rid: str):
+    r = flows.get(rid)
+    if not r:
+        raise HTTPException(404, "No existe")
+    return r

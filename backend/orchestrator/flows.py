@@ -1,0 +1,169 @@
+"""Multi-agent flows. Each step is a REAL execution of an agent through its adapter (persisted like any other).
+Only connections that the agents' code or catalogs really support are implemented:
+
+  dsar_handoffs        G3 -> G4 (evidence)  : G3 produces handoffs after a HUMAN decision; the orchestrator transports them.
+                                              G3 -> G5 / G6: the producer emits them but G5 has no receiver and G6 is out of scope
+                                              in this delivery, so they are stored with delivery_status = sin_receptor.
+  terceros_a_controles G5 -> G7             : G7's catalog names the Third-Parties agent as owner of A.1.2.7 etc.; G5's per-control
+                                              results become G7's `evidencias` input (Cumple -> implementado, Parcial -> parcial).
+  incidente_a_formacion G8 -> G1            : G8's lessons learned (references only, no personal data) become the question to G1.
+Data transformation happens here, at the boundary; no agent is modified."""
+from __future__ import annotations
+
+import asyncio
+import json
+import os
+import re
+import uuid
+
+import httpx
+
+from backend.orchestrator import orchestrator as orch
+from backend.services import db
+
+_tasks: set = set()
+
+
+class _Steps(list):
+    """Persists the executed steps as they happen, so the UI shows real progress."""
+
+    def __init__(self, rid: str):
+        super().__init__()
+        self.rid = rid
+
+    def append(self, item):
+        super().append(item)
+        try:
+            db.execute("UPDATE orchestrator.flow_run SET steps=%s::jsonb WHERE id=%s", (json.dumps(list(self)), self.rid))
+        except Exception:  # noqa: BLE001
+            pass
+
+
+async def _step(agent: str, action: str, payload: dict, steps: list, wait: int = 600) -> dict:
+    eid = orch.submit(agent, action, payload)
+    end = asyncio.get_event_loop().time() + wait
+    while asyncio.get_event_loop().time() < end:
+        st = orch.get_status(eid)
+        if st["status"] in ("succeeded", "failed"):
+            res = orch.get_result(eid)
+            steps.append({"agent": agent, "action": action, "execution_id": eid, "status": st["status"]})
+            if st["status"] == "failed":
+                raise RuntimeError(f"{agent}.{action} falló: {res.get('error')}")
+            return res["result"]["output"]
+        await asyncio.sleep(2)
+    raise TimeoutError(f"{agent}.{action}")
+
+
+def start(flow: str, params: dict) -> str:
+    if flow not in FLOWS:
+        raise KeyError(flow)
+    rid = str(uuid.uuid4())
+    db.execute("INSERT INTO orchestrator.flow_run (id, flow, status) VALUES (%s,%s,'running')", (rid, flow))
+    t = asyncio.create_task(_run(rid, flow, params))
+    _tasks.add(t)
+    t.add_done_callback(_tasks.discard)
+    return rid
+
+
+async def _run(rid: str, flow: str, params: dict) -> None:
+    steps = _Steps(rid)
+    try:
+        result = await FLOWS[flow](rid, params, steps)
+        db.execute("UPDATE orchestrator.flow_run SET status='succeeded', steps=%s::jsonb, result=%s::jsonb, "
+                   "finished_at=now() WHERE id=%s", (json.dumps(list(steps)), json.dumps(result, default=str), rid))
+    except Exception as e:  # noqa: BLE001
+        db.execute("UPDATE orchestrator.flow_run SET status='failed', steps=%s::jsonb, error=%s, finished_at=now() "
+                   "WHERE id=%s", (json.dumps(list(steps)), f"{type(e).__name__}: {e}"[:1000], rid))
+
+
+def get(rid: str) -> dict | None:
+    r = db.query("SELECT id::text, flow, status, steps, result, error, created_at, finished_at "
+                 "FROM orchestrator.flow_run WHERE id=%s", (rid,))
+    return r[0] if r else None
+
+
+def history(limit: int = 20) -> list[dict]:
+    return db.query("SELECT id::text, flow, status, created_at, finished_at, error FROM orchestrator.flow_run "
+                    "ORDER BY created_at DESC LIMIT %s", (limit,))
+
+
+def handoffs(limit: int = 50) -> list[dict]:
+    return db.query("SELECT id, from_agent, to_agent, delivery_status, delivery_detail, envelope->>'action' AS action, "
+                    "COALESCE(envelope->>'case_ref', envelope->>'case_id') AS case_ref, created_at FROM orchestrator.handoff ORDER BY id DESC LIMIT %s",
+                    (limit,))
+
+
+# ---------------------------------------------------------------- G3 -> G4 / G5 / G6
+async def dsar_handoffs(rid: str, p: dict, steps: list) -> dict:
+    case_id = p["case_id"]
+    out = await _step("dsar", "dsar_handoffs", {"case_id": case_id}, steps)
+    envs = out if isinstance(out, list) else ([out] if isinstance(out, dict) and out.get("to_agent") else [])
+    if not envs:
+        raise ValueError("El expediente no tiene handoffs: una persona debe verificar la identidad y decidir primero.")
+    report = []
+    for env in envs:
+        to = env.get("to_agent")
+        status, detail = "sin_receptor", {"motivo": "El agente destino no tiene receptor de handoffs en esta entrega"}
+        if env.get("requires_hitl"):
+            status, detail = "pendiente_humano", {"motivo": "El sobre exige revisión humana antes de actuar (requires_hitl)"}
+        if to == "evidencia":
+            # G4 evaluates evidence text; the envelope carries hashes/refs only (G3 never includes personal data values).
+            res = await _step("auditoria", "auditar", {"nombre_archivo": f"handoff-{env.get('case_ref') or env.get('case_id')}.json",
+                                                      "contenido": json.dumps(env, ensure_ascii=False, indent=2)}, steps)
+            status = "entregado"
+            detail = {"severidad": res.get("severidad"), "sha256": res.get("sha256"),
+                      "nota": "Dictamen propuesto por G4: requiere validación de un auditor humano"}
+        db.execute("INSERT INTO orchestrator.handoff (from_agent, to_agent, envelope, delivery_status, delivery_detail, "
+                   "flow_run_id) VALUES (%s,%s,%s::jsonb,%s,%s::jsonb,%s)",
+                   ("dsar", to, json.dumps(env, ensure_ascii=False), status, json.dumps(detail, ensure_ascii=False), rid))
+        report.append({"to": to, "action": env.get("action"), "delivery": status, **detail})
+    return {"case_id": case_id, "handoffs": report}
+
+
+# ---------------------------------------------------------------- G5 -> G7
+ESTADO_G5_A_G7 = {"Cumple": "implementado", "Parcial": "parcial"}
+
+
+async def terceros_a_controles(rid: str, p: dict, steps: list) -> dict:
+    org = p.get("organizacion", "unsa")
+    rol = p.get("rol", "ambos")
+    if "id_registro" in p:
+        rid5 = p["id_registro"]
+    else:
+        reg = await _step("terceros", "registro", {"organizacion": org}, steps)
+        if not reg.get("registros"):
+            raise ValueError("No hay expedientes de G5: audita un contrato primero.")
+        rid5 = reg["registros"][0]["id_registro"]
+    async with httpx.AsyncClient(timeout=30) as c:
+        d = (await c.get(f"{os.getenv('AGENT_G5_URL', 'http://agent-g5:5678')}/webhook/pims/registro/detalle",
+                         params={"id": rid5})).json()
+    ctrls = d["resultado"]["controles"]
+    base = {"perfil": {"rol": rol, "organizacion": p.get("nombre_organizacion", "UNSA")}, "riesgos": []}
+    before = await _step("controles", "ejecutar", {"operacion": "generar_soa", **base, "evidencias": []}, steps)
+    evid = [{"control": c["control"], "estado": ESTADO_G5_A_G7[c["estado"]],
+             "descripcion": f"[Agente de Terceros, expediente {rid5}] {c.get('evidencia') or c.get('observacion') or ''}"[:300]}
+            for c in ctrls if c["estado"] in ESTADO_G5_A_G7]
+    after = await _step("controles", "ejecutar", {"operacion": "generar_soa", **base, "evidencias": evid}, steps)
+    rows = lambda o: {f["control"]: f for f in o["datos"]["soa"]}  # noqa: E731
+    b, a = rows(before), rows(after)
+    changed = [{"control": k, "antes": b[k]["estado"], "despues": a[k]["estado"]} for k in a if a[k]["estado"] != b[k]["estado"]]
+    in_catalog = [c["control"] for c in ctrls if c["control"] in a]
+    return {"expediente_g5": rid5, "controles_g5": len(ctrls), "controles_g5_en_catalogo_g7": len(in_catalog),
+            "evidencias_enviadas_a_g7": len(evid), "controles_que_cambiaron_en_soa": changed,
+            "resumen_antes": before["datos"]["resumen"], "resumen_despues": after["datos"]["resumen"]}
+
+
+# ---------------------------------------------------------------- G8 -> G1
+async def incidente_a_formacion(rid: str, p: dict, steps: list) -> dict:
+    inc = await _step("incidentes", "analizar", {"reporte": p["reporte"]}, steps, wait=900)
+    text = str(inc.get("resultado") or "")
+    m = re.search(r"(?is)(lecciones aprendidas.*?)(?=\n#{1,3} |\Z)", text)
+    lessons = (m.group(1) if m else text)[:1800]
+    q = ("Un incidente reciente dejó estas lecciones aprendidas (solo referencias, sin datos personales):\n"
+         f"{lessons}\n\nPropón 3 capacitaciones concretas de concientización para el personal, indicando a quién va dirigida cada una.")
+    chat = await _step("formacion", "chat", {"mensaje": q}, steps)
+    return {"incidente_resumen": text[:400], "lecciones_enviadas_a_g1": lessons[:400], "recomendacion_g1": chat.get("text")}
+
+
+FLOWS = {"dsar_handoffs": dsar_handoffs, "terceros_a_controles": terceros_a_controles,
+         "incidente_a_formacion": incidente_a_formacion}

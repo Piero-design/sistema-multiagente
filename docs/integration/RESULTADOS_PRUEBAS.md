@@ -56,6 +56,20 @@ La salida de un LLM no es idéntica byte a byte. Se compararon estructura, campo
 - **Adaptación posible sin inventar datos:** cada ejecución de cualquier agente deja una fila de solo metadatos en `demo.core_securitylog` (texto libre y JSON; las tablas de negocio no se tocan). Test: la fila existe y no contiene datos de entrada.
 - Se comprobó que el script del profesor no trae comentarios, restricciones CHECK ni catálogos para los códigos de las tablas de negocio (solo las tablas de G5 los tienen), por lo que no se mapearon incidentes, auditorías ni solicitudes.
 
+## Interconexión entre agentes (modo `cloud`, `tests/integration/test_flows.py`: 4 pasan)
+
+Cada paso es una ejecución real de un agente; los flujos corren en el orquestador (`/api/flows`) y se pueden lanzar desde el Panel general.
+
+| Flujo | Qué se comprobó |
+|---|---|
+| G5 → G7 | El expediente de G5 (26 controles) se transforma en evidencias de G7. Con un contrato bueno (puntaje 54, riesgo medio) la SoA pasó de 0 a **3 controles implementados** (A.2.5.7, A.3.11, A.3.12). Con un contrato malo no cambia nada. El solapamiento entre ambos catálogos es de solo 3 controles. |
+| G8 → G1 | El incidente se analiza en G8; sus lecciones aprendidas llegan a G1, que propone capacitaciones. |
+| G3 → G4 / G5 / G6 | Tras una decisión humana, G3 genera 3 sobres: `evidencia` se entregó a G4 (severidad propuesta), `terceros` quedó `pendiente_humano` (exige revisión humana) e `inventario` quedó `sin_receptor` (G6 no integrado). Antes de la decisión humana el flujo rechaza (no hay handoffs). Todo se registra en `orchestrator.handoff`. |
+
+Defecto encontrado y corregido: la herramienta `dsar_handoffs` devuelve un bloque de contenido por sobre y el adaptador los concatenaba; ahora los conserva separados.
+
+Límites: la decisión humana de G3 en la prueba se simula con las funciones Python del propio agente dentro de su contenedor (no hay pantalla de decisión). G5 y G6 no tienen receptor de handoffs.
+
 ## Pendiente o no verificado
 
 - **Modo `ollama`**: solo `docker compose --profile ollama config`. Ver `docs/installation/OLLAMA_OTRA_PC.md`.
