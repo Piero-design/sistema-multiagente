@@ -1,5 +1,5 @@
 import { api } from '../services/api.js';
-import { h, badge, fmtTime, alertBox } from '../components/ui.js';
+import { h, badge, fmtTime, alertBox, spinner } from '../components/ui.js';
 import { table } from './dashboard.js';
 
 export async function actividad(root) {
@@ -17,7 +17,7 @@ export async function actividad(root) {
 }
 
 export async function configuracion(root) {
-  root.append(h('h1', {}, 'Configuración'), h('p', { class: 'sub' }, 'Solo lectura. La configuración se cambia en el archivo .env y reiniciando los servicios.'));
+  root.append(h('h1', {}, 'Configuración'), h('p', { class: 'sub' }, 'El estado del sistema es de solo lectura; cada equipo puede poner su clave de Gemini en el formulario de abajo. El resto se cambia en el archivo .env.'));
   const [sys, agents] = await Promise.all([api.system(), api.agents()]);
   const l = sys.llm;
   if (l.data_leaves_machine) root.append(alertBox('warn', 'Los datos salen de esta máquina: el modo es "nube" y cada consulta a un agente se envía al proveedor del modelo.'));
@@ -63,8 +63,8 @@ function teamKeyForm(l) {
     try {
       const r = await fetch(`/api/teams/${f.team.value}/key`, { method, headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ code: f.code.value, key: method === 'DELETE' ? '' : f.key.value }) });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.detail || 'No se pudo guardar');
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(typeof d.detail === 'string' ? d.detail : `No se pudo guardar (HTTP ${r.status}). Revisa el código del equipo y la clave.`);
       f.key.value = '';
       msg.replaceChildren(alertBox('info', method === 'DELETE' ? 'Clave quitada.' : `Clave de ${f.team.value.toUpperCase()} guardada y verificada. Recarga la página para ver el estado.`));
     } catch (e) { msg.replaceChildren(alertBox('bad', e.message)); }

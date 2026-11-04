@@ -4,7 +4,7 @@ import { ORDER } from './services/agents-config.js';
 import { dashboard } from './pages/dashboard.js';
 import { agentPage } from './pages/agent.js';
 import { tercerosPage } from './pages/terceros.js';
-import { actividad, configuracion } from './pages/system.js';
+import { actividad, configuracion } from './pages/system.js?v=20261104b';
 import { revision } from './pages/revision.js';
 import { dsarPage } from './pages/dsar.js';
 
