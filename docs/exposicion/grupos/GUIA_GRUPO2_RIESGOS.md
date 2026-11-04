@@ -32,7 +32,7 @@ El original está atado a **Gemini** (chat y embeddings). La integración genera
 No usa Gestitel. Su conocimiento vive en **Qdrant** (colección `iso27701_2025`, vectores de 3072 dimensiones con el modelo de embeddings actual). Cambiar de modelo obliga a re-ingestar.
 
 ## 12. Otros agentes
-G8 le entregaría causa raíz y lecciones aprendidas; G7 usa niveles de riesgo. Sin conexión automática hoy.
+**G6 → G2 (flujo `inventario_a_riesgos`):** el orquestador toma un sistema del inventario de G6 y le envía a G2 solo nombres de campos, categorías, finalidad y titulares (nunca valores); G2 devuelve una evaluación de riesgos de privacidad (cláusula 6.1.2) e indica qué información falta. La evaluación la valida una persona. Probado en la plataforma desplegada (51 s, dos pasos). G8 le entregaría causa raíz y lecciones aprendidas y G7 usa niveles de riesgo, pero esas conexiones no existen.
 
 ## 13. Problemas y soluciones
 - Plantillas reconstruidas, no el export real del grupo: el nodo `If` pedía una versión inexistente, los subflujos no tenían id y el formulario de ingesta no tenía `webhookId` → se corrigió **solo en las copias de despliegue**.

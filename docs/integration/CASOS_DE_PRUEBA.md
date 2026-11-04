@@ -40,14 +40,20 @@ Solo 3 controles coinciden entre ambos catálogos: **A.2.5.7** (divulgación de 
 1. `POST /api/flows/incidente_a_formacion` con `{"params": {"reporte": "Un funcionario envió por error una hoja de cálculo con DNI y notas de 300 estudiantes a una lista externa de correo."}}`.
 2. **Esperado:** G8 analiza el incidente (1–3 min), sus lecciones aprendidas se envían a G1 y este propone capacitaciones. Dos ejecuciones encadenadas (`incidentes.analizar` → `formacion.chat`).
 
-### B3. `dsar_handoffs` — G3 → G4 (y G5/G6 sin receptor), con decisión humana real
+### B2b. `inventario_a_riesgos` — G6 → G2
+Es el único flujo en el que participa G2. Requiere activos en G6 (`python scripts/seed_demo_data.py [url]`) y G2 desbloqueado.
+1. En el Panel general, tarjeta «G6 → G2» (organización `UNSA-DEMO`, sistema vacío) → **Ejecutar flujo**; o `POST /api/flows/inventario_a_riesgos` con `{"params": {"organizacion": "UNSA-DEMO", "sistema": ""}}`.
+2. **Esperado (observado, ~1 min):** dos ejecuciones encadenadas (`inventario.consultar_inventario` → `riesgos.chat`). El orquestador elige el sistema con más campos de datos personales (o el indicado), y envía a G2 **solo nombres de campos, categorías, finalidad y titulares, nunca valores**. G2 responde con una evaluación de riesgos de privacidad (probabilidad, impacto, nivel y tratamiento) citando la cláusula 6.1.2 de la ISO/IEC 27701:2025 e indica qué información falta, porque lo no declarado en G6 se envía como «no declarado».
+3. **Qué demuestra:** la salida de G6 alimenta a G2 con la transformación hecha en el orquestador. La evaluación es una propuesta que valida una persona; el texto del modelo varía entre corridas.
+
+### B3. `dsar_handoffs` — G3 → G4 / G6 (G5 pendiente de una persona), con decisión humana real
 G3 solo genera handoffs **después de una decisión humana**. Ahora esa decisión se toma en la web:
 
 1. En `/agentes/dsar` crea un caso con **Crear caso** o por API:
    `POST /api/agents/dsar/execute` con `{"action":"dsar_crear_caso","input":{"principal_id":"person-001","request_types":["erasure"],"policy_id":"PE-LEY29733","received_at":"2026-11-03","identity_status":"pending","identity_reference":"","request_text":"quiero que borren mis datos"}}`. Estado: `IDENTITY_PENDING`.
 2. Entra a **`/revision`** con `dpo` / `demo-dpo`. En «G3 · Solicitudes de derechos» aparece el caso: pulsa **Verificar identidad** y luego **Aprobar**. Si intentas aprobar antes de verificar, el agente lo rechaza.
 3. En el Panel general, «Flujos entre agentes» → G3 con el identificador del caso, o por API `POST /api/flows/dsar_handoffs` con `{"params":{"case_id":"DSAR-MCP-…"}}`.
-4. **Esperado:** el sobre `evidencia` se entrega a G4 (severidad propuesta); el de `terceros` queda `pendiente_humano`; el de `inventario` queda `sin_receptor`. Todo se guarda en `orchestrator.handoff`, y la decisión queda atribuida a `dpo` en `demo.core_securitylog`.
+4. **Esperado:** el sobre `evidencia` se entrega a G4 (severidad propuesta); el de `terceros` queda `pendiente_humano`; el de `inventario` lo recibe G6, que verifica el hash y responde la cobertura. Todo se guarda en `orchestrator.handoff`, y la decisión queda atribuida a `dpo` en `demo.core_securitylog`.
 
 ## B4. Aprobaciones humanas (`/revision`)
 

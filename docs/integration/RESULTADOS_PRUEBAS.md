@@ -66,6 +66,8 @@ Cada paso es una ejecución real de un agente; los flujos corren en el orquestad
 | G8 → G1 | El incidente se analiza en G8; sus lecciones aprendidas llegan a G1, que propone capacitaciones. |
 | G3 → G4 / G5 / G6 | Tras una decisión humana, G3 genera 3 sobres: `evidencia` se entregó a G4 (severidad propuesta), `terceros` quedó `pendiente_humano` (exige revisión humana) e `inventario` quedó `sin_receptor` (G6 no integrado). Antes de la decisión humana el flujo rechaza (no hay handoffs). Todo se registra en `orchestrator.handoff`. |
 
+| G6 → G2 | Flujo nuevo `inventario_a_riesgos`. Ejecutado a mano en la plataforma **desplegada** (no con pytest en local, porque ahí G2 sigue bloqueado): 51 s, pasos `inventario.consultar_inventario` → `riesgos.chat`; G2 evaluó el «Portal de admisión» (6 campos personales enviados, sin valores) citando la cláusula 6.1.2 e indicando lo no declarado. La prueba automática `test_g6_inventory_feeds_g2_risk_assessment_without_sending_values` está escrita pero **no se ha ejecutado**. G2 usó temporalmente la clave de G8. |
+
 Defecto encontrado y corregido: la herramienta `dsar_handoffs` devuelve un bloque de contenido por sobre y el adaptador los concatenaba; ahora los conserva separados.
 
 Límites: G5 y G6 no tienen receptor de handoffs.

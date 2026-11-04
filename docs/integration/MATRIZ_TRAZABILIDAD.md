@@ -23,7 +23,7 @@ Normas: **ISO/IEC 27701:2025** (A.1 responsables, A.2 encargados, A.3 seguridad)
 | ISO/IEC 27701:2025 **cláusula 6.1.2** (evaluación de riesgos de privacidad) | Metodología de evaluación | Norma indexada en Qdrant (OCR de 72 páginas); skill de evaluación | `test_g2_chat_uses_ingested_norm_when_unlocked` cita 6.1.2 (págs. 13–14) | Prueba omitida si el control de alcance está cerrado; OCR con 93,5 % de confianza media |
 | ISO/IEC 27701:2025 **6.1.3** y **8.2** | Tratamiento y evaluación | Recuperación desde Qdrant | Probado a mano (respuesta citó 6.1.3) | Sin prueba automática |
 | Alcance «Gestión de Riesgos» (GR-01 a GR-06), solo ISO 27701:2025 | Limita las respuestas | `scope-policy.json` + puerta de Express | `test_g2_out_of_scope_question_is_refused_by_the_agent` | La política cita un extracto de 20 páginas; aquí se indexó el documento completo |
-| G7 asigna **A.1.2.6** (DPIA) a «Agente de Riesgos» | Evaluación de impacto | Catálogo de G7 | — | No existe flujo G2 → G7 (salida en texto libre) |
+| G7 asigna **A.1.2.6** (DPIA) a «Agente de Riesgos» | Evaluación de impacto | Catálogo de G7 | — | No existe flujo G2 → G7 (salida en texto libre). Sí existe G6 → G2 (`inventario_a_riesgos`), que evalúa riesgos de privacidad (6.1.2) |
 
 ### Grupo 3 · Derechos de titulares (DSAR)
 | Norma / requisito | Qué respalda | Evidencia en el agente | Verificación | Observación |
