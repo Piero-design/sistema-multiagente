@@ -134,24 +134,39 @@ def normalize_rol(value: Any) -> str:
 def normalize_fuente(value: Any, descripcion: str = "") -> str:
     text = _strip_accents(str(value or "")).lower().strip()
     text = re.sub(r"[-_]+", " ", text)
-    if text in {"g5", "agente de terceros", "terceros", "dpa", "proveedores"}:
-        return "G5"
-    if text in {"g4", "agente de evidencia", "evidencia", "evidencias", "auditoria"}:
-        return "G4"
+    if text in {"g1", "agente de capacitacion", "capacitacion", "formacion"}:
+        return "G1"
     if text in {"g2", "agente de riesgos", "riesgos"}:
         return "G2"
+    if text in {"g3", "agente de arco", "arco", "derechos arco"}:
+        return "G3"
+    if text in {"g4", "agente de evidencia", "evidencia", "evidencias", "auditoria", "documental"}:
+        return "G4"
+    if text in {"g5", "agente de terceros", "terceros", "dpa", "proveedores"}:
+        return "G5"
+    if text in {"g6", "agente de activos", "activos", "inventario", "rat", "operaciones"}:
+        return "G6"
     if text in {"g7", "manual", "soa", "controles"}:
         return "manual"
+    if text in {"g8", "agente de incidentes", "incidentes", "csirt", "brechas"}:
+        return "G8"
 
-    # El flujo actual del orquestador no envía ``fuente``: la infiere del
-    # texto que G5 coloca en ``descripcion`` ("[Agente de Terceros, ...]").
+    # Inferencia heurística por descripción si no vino la fuente explícita:
     desc = _strip_accents(str(descripcion or "")).lower()
-    if "agente de terceros" in desc or "expediente" in desc and "terceros" in desc:
+    if "agente de terceros" in desc or ("expediente" in desc and "terceros" in desc) or "dpa" in desc:
         return "G5"
-    if "agente de evidencia" in desc or "auditoria de evidencia" in desc:
+    if "agente de evidencia" in desc or "auditoria de evidencia" in desc or "politica" in desc or "directiva" in desc:
         return "G4"
-    if "agente de riesgos" in desc:
+    if "agente de riesgos" in desc or "riesgo" in desc:
         return "G2"
+    if "capacitacion" in desc or "taller" in desc or "formacion" in desc:
+        return "G1"
+    if "arco" in desc or "derechos" in desc:
+        return "G3"
+    if "incidente" in desc or "csirt" in desc or "brecha" in desc:
+        return "G8"
+    if "inventario" in desc or "activos" in desc or "rat" in desc:
+        return "G6"
     return "manual"
 
 
