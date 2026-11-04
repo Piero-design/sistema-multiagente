@@ -590,6 +590,9 @@ function evaluarFilaControl(control, rol, riesgos, evidencias) {
       aplica = false;
       justificacion = "Excluido: la UNSA no actúa como encargada (controles A.2).";
     }
+  } else if (ambito === "A.5" || ambito === "A.6" || ambito === "A.7" || ambito === "A.8") {
+    aplica = true;
+    justificacion = "Control común de seguridad ISO/IEC 27001:2022: aplica a cualquier rol institucional.";
   }
 
   const vinculados = riesgos.filter(r => (r.controles || []).includes(control.id)).map(r => r.id);
@@ -664,9 +667,10 @@ function renderizarResultadosSoA(res) {
     }
   }
 
-  renderFilasSoA(res.datos ? res.datos.soa : []);
+  const filasCanonicas = res.datos ? (res.datos.soa_canonico || res.datos.soa) : [];
+  renderFilasSoA(filasCanonicas);
   renderItemsBrechas(res.datos ? res.datos.brechas : []);
-  initFiltrosSoA(res.datos ? res.datos.soa : []);
+  initFiltrosSoA(filasCanonicas);
 }
 
 function renderFilasSoA(filas) {
