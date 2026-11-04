@@ -235,6 +235,38 @@ def _risk_value(risk: Mapping[str, Any], *keys: str, default: Any = "") -> Any:
 
 
 def _risk_cells(risk: Mapping[str, Any], index: int) -> list[str]:
+    score_raw = _risk_value(
+        risk,
+        "riesgo_residual",
+        "residual_score",
+        "residual",
+        "nivel_residual",
+        "score",
+        "severidad",
+    )
+    severidad_raw = _text(
+        _risk_value(risk, "severidad", "severity", "residual_severity")
+    ).strip().upper()
+
+    score_num: float | None = None
+    try:
+        score_num = float(score_raw)
+    except (ValueError, TypeError):
+        score_num = None
+
+    # Etiquetar según umbral <= 2 (Aceptable) vs > 2 (No aceptable)
+    if score_num is not None:
+        if score_num <= 2.0:
+            etiqueta = f"{score_num:.1f} [ACEPTADO - TOLERANCIA INSTITUCIONAL]"
+        else:
+            etiqueta = f"{score_num:.1f} [NO ACEPTABLE - ACCIÓN REQUERIDA]"
+    elif severidad_raw in {"B", "BAJO", "BAJA", "LOW"}:
+        etiqueta = f"{score_raw} [ACEPTADO - TOLERANCIA INSTITUCIONAL]" if score_raw else "[ACEPTADO - TOLERANCIA INSTITUCIONAL]"
+    elif severidad_raw in {"A", "ALTO", "ALTA", "CRITICO", "CRITICA", "M", "MEDIO", "MEDIA"}:
+        etiqueta = f"{score_raw} [NO ACEPTABLE - ACCIÓN REQUERIDA]" if score_raw else "[NO ACEPTABLE - ACCIÓN REQUERIDA]"
+    else:
+        etiqueta = _text(score_raw)
+
     return [
         str(index),
         _text(_risk_value(risk, "activo", "nombre_activo", "asset", "asset_name", "nombre", "descripcion", "id")),
@@ -243,7 +275,7 @@ def _risk_cells(risk: Mapping[str, Any], index: int) -> list[str]:
         _text(_risk_value(risk, "vulnerabilidad", "vulnerability", "debilidad", "debilidad_explotada")),
         _text(_risk_value(risk, "nueva_consecuencia", "consecuencia", "impacto", "nuevo_impacto")),
         _text(_risk_value(risk, "nueva_probabilidad", "probabilidad", "likelihood", "nueva_prob")),
-        _text(_risk_value(risk, "riesgo_residual", "residual_score", "residual", "nivel_residual", "score", "severidad")),
+        etiqueta,
     ]
 
 

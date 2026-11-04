@@ -266,6 +266,13 @@ def exportar_docx():
             soa = datos.get("soa_canonico") or datos.get("soa") or []
             riesgos = datos.get("riesgos_residuales") or riesgos
 
+        # Red de seguridad: si la SoA existe pero no llegaron riesgos, cargarlos desde el repositorio
+        if not riesgos:
+            try:
+                riesgos = get_service().repository.load_risks()
+            except Exception:
+                riesgos = []
+
         if not isinstance(soa, (list, tuple)) or not soa:
             return _respuesta({"error": "La SoA está vacía; genere la SoA antes de exportar."}, status=400)
 

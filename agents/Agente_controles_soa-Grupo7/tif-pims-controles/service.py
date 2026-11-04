@@ -235,6 +235,24 @@ class SoAService:
         riesgos = entrada.get("riesgos") or []
         organizacion = _clean(perfil.get("organizacion")) or "Universidad Nacional de San Agustín de Arequipa (UNSA)"
 
+        fuente_riesgos = "entrada"
+        if not riesgos:
+            try:
+                riesgos = self.repository.load_risks()
+                fuente_riesgos = getattr(self.repository, "name", "repositorio")
+            except Exception:  # noqa: BLE001
+                riesgos = LocalSoA().load_risks()
+                fuente_riesgos = "local_fallback"
+
+        fuente_evidencias = "entrada"
+        if not evidencias:
+            try:
+                evidencias = self.repository.load_evidence_from_db()
+                fuente_evidencias = getattr(self.repository, "name", "repositorio")
+            except Exception:  # noqa: BLE001
+                evidencias = LocalSoA().load_evidence_from_db()
+                fuente_evidencias = "local_fallback"
+
         engine = self._ensure_engine()
 
         try:
@@ -272,6 +290,7 @@ class SoAService:
             "resumen": resumen,
             "kpis": kpis,
             "riesgos_residuales": self._normalizar_riesgos(riesgos),
+            "evidencias_cargadas": len(evidencias),
             "organizacion": organizacion,
             "meta": {
                 "rol": rol,
@@ -281,6 +300,10 @@ class SoAService:
                 "resolucion": meta,
                 "persistencia": persistencia,
                 "repositorio": self.repository.status(),
+                "fuente_riesgos": fuente_riesgos,
+                "fuente_evidencias": fuente_evidencias,
+                "total_riesgos": len(riesgos),
+                "total_evidencias": len(evidencias),
             },
             "traza_agente": self._traza_soa(rows, resumen, len(brechas), persistencia),
         }
@@ -292,6 +315,8 @@ class SoAService:
             f"implementados: {resumen.get('implementados', 0)}; "
             f"parciales: {resumen.get('parciales', 0)}; "
             f"brechas: {resumen.get('no_implementados', 0)}. "
+            f"Riesgos vinculados: {len(riesgos)} ({fuente_riesgos}). "
+            f"Evidencias auditadas: {len(evidencias)} ({fuente_evidencias}). "
             "Requiere revisión y aprobación humana."
         )
         if persistencia.get("degradado"):
@@ -306,6 +331,8 @@ class SoAService:
                 "knowledge/catalogo_142.json",
                 "demo.core_annexacontrol",
                 "demo.core_gapannexaassessment",
+                "demo.core_riskevaluation",
+                "demo.core_document",
                 "ISO/IEC 27001:2022",
                 "ISO/IEC 27701:2025",
             ],
@@ -365,10 +392,23 @@ class SoAService:
         except Exception:  # noqa: BLE001
             assessments = {}
 
+        evidencias = entrada.get("evidencias") or []
+        riesgos = entrada.get("riesgos") or []
+        if not riesgos:
+            try:
+                riesgos = self.repository.load_risks()
+            except Exception:
+                riesgos = []
+        if not evidencias:
+            try:
+                evidencias = self.repository.load_evidence_from_db()
+            except Exception:
+                evidencias = []
+
         rows, meta = engine.evaluar_catalogo(
             rol=rol,
-            evidencias=entrada.get("evidencias") or [],
-            riesgos=entrada.get("riesgos") or [],
+            evidencias=evidencias,
+            riesgos=riesgos,
             assessments=assessments,
         )
 

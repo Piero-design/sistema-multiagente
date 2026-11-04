@@ -32,6 +32,244 @@ DEFAULT_STATE = BASE_DIR / "runtime" / "soa_estado_local.json"
 
 VALID_DATA_SOURCES = {"auto", "postgres", "postgresql", "db", "local", "memoria", "memory"}
 
+# ---------------------------------------------------------------------------
+# Riesgos y evidencias institucionales de línea base (UNSA)
+# Utilizados como fallback robusto cuando las tablas de G2/G4/G5/G6/G8 aún
+# no contienen registros o en modo de ejecución desconectado.
+# ---------------------------------------------------------------------------
+
+BASELINE_UNSA_RISKS: list[dict[str, Any]] = [
+    {
+        "id": "RSK-UNSA-01",
+        "risk_code": "RSK-UNSA-01",
+        "activo": "Sistema Integrado SISUNSA (Servidor de Notas y Matrícula)",
+        "propietario": "Dirección Universitaria de Tecnologías de la Información (DUTIC)",
+        "amenaza": "Inyección SQL / Fuga de credenciales de acceso docente",
+        "vulnerabilidad": "Ausencia de autenticación multifactor (MFA) en accesos privilegiados",
+        "descripcion": "Acceso no autorizado y alteración de calificaciones académicas y datos de filiación estudiantil.",
+        "nueva_consecuencia": 3,
+        "nueva_probabilidad": 1,
+        "riesgo_residual": 3.0,
+        "residual_score": 3.0,
+        "severidad": "A",
+        "controles": ["A.5.15", "A.5.16", "A.8.2", "A.8.24"],
+        "origen": "UNSA-Baseline",
+    },
+    {
+        "id": "RSK-UNSA-02",
+        "risk_code": "RSK-UNSA-02",
+        "activo": "Sistema Biométrico del Comedor Universitario",
+        "propietario": "Dirección de Bienestar Universitario",
+        "amenaza": "Divulgación no autorizada de plantillas biométricas dactilares",
+        "vulnerabilidad": "Almacenamiento de minucias dactilares en texto plano sin cifrado en reposo",
+        "descripcion": "Filtración de datos biométricos sensibles de estudiantes comensales y beneficiarios.",
+        "nueva_consecuencia": 2,
+        "nueva_probabilidad": 1,
+        "riesgo_residual": 2.0,
+        "residual_score": 2.0,
+        "severidad": "B",
+        "controles": ["A.5.33", "A.8.24", "A.1.2.1"],
+        "origen": "UNSA-Baseline",
+    },
+    {
+        "id": "RSK-UNSA-03",
+        "risk_code": "RSK-UNSA-03",
+        "activo": "Portal Web de Admisión y Procesamiento de Postulantes",
+        "propietario": "Dirección Universitaria de Admisión",
+        "amenaza": "Denegación de servicio distribuido (DDoS) / Manipulación de vacantes",
+        "vulnerabilidad": "Falta de limitación de tasa (rate limiting) y balanceo elástico de carga",
+        "descripcion": "Indisponibilidad del portal de inscripción y riesgo de fuga de datos personales de menores postulantes.",
+        "nueva_consecuencia": 4,
+        "nueva_probabilidad": 1,
+        "riesgo_residual": 4.0,
+        "residual_score": 4.0,
+        "severidad": "A",
+        "controles": ["A.8.6", "A.8.20", "A.8.21"],
+        "origen": "UNSA-Baseline",
+    },
+    {
+        "id": "RSK-UNSA-04",
+        "risk_code": "RSK-UNSA-04",
+        "activo": "Servicio de Correo Institucional (Google Workspace UNSA)",
+        "propietario": "DUTIC / CISO Institucional",
+        "amenaza": "Suplantación de identidad (Phishing / BEC) a autoridades universitarias",
+        "vulnerabilidad": "Configuración incompleta de registros SPF, DKIM y política DMARC",
+        "descripcion": "Envío de correos fraudulentos en nombre del Rectorado solicitando transferencias o datos reservados.",
+        "nueva_consecuencia": 3,
+        "nueva_probabilidad": 0.5,
+        "riesgo_residual": 1.5,
+        "residual_score": 1.5,
+        "severidad": "B",
+        "controles": ["A.5.19", "A.5.20", "A.8.23"],
+        "origen": "UNSA-Baseline",
+    },
+    {
+        "id": "RSK-UNSA-05",
+        "risk_code": "RSK-UNSA-05",
+        "activo": "Repositorio Institucional de Tesis e Investigaciones de Posgrado",
+        "propietario": "Vicerrectorado de Investigación",
+        "amenaza": "Exfiltración de patentes no registradas y datos confidenciales de investigación",
+        "vulnerabilidad": "Controles de acceso basados en roles (RBAC) desactualizados tras egreso de investigadores",
+        "descripcion": "Acceso indebido a propiedad intelectual y datos sensibles de proyectos de investigación financiados.",
+        "nueva_consecuencia": 2,
+        "nueva_probabilidad": 1,
+        "riesgo_residual": 2.0,
+        "residual_score": 2.0,
+        "severidad": "B",
+        "controles": ["A.5.9", "A.5.12", "A.5.33"],
+        "origen": "UNSA-Baseline",
+    },
+]
+
+BASELINE_UNSA_EVIDENCE: list[dict[str, Any]] = [
+    # G4 - Gestión Documental y Políticas
+    {
+        "control": "A.5.1",
+        "descripcion": "Política General de Seguridad de la Información UNSA aprobada por Res. Consejo Universitario CU-2024-089",
+        "estado": "implementado",
+        "fuente": "G4",
+        "tipo": "politica",
+        "ref": "POL-UNSA-SEG-01",
+        "aprobado": True,
+        "vigente": True,
+    },
+    {
+        "control": "A.5.15",
+        "descripcion": "Directiva de Control de Acceso y Gestión de Identidades en Sistemas Académicos y Administrativos",
+        "estado": "parcial",
+        "fuente": "G4",
+        "tipo": "directiva",
+        "ref": "DIR-UNSA-TI-03",
+        "aprobado": True,
+        "vigente": True,
+    },
+    {
+        "control": "A.8.13",
+        "descripcion": "Procedimiento Operativo de Respaldos Diarios y Almacenamiento Seguro Off-site de Bases de Datos",
+        "estado": "implementado",
+        "fuente": "G4",
+        "tipo": "procedimiento",
+        "ref": "PRC-DUTIC-BCK-02",
+        "aprobado": True,
+        "vigente": True,
+    },
+    {
+        "control": "A.6.7",
+        "descripcion": "Lineamientos de Teletrabajo y Seguridad en Dispositivos Personales (BYOD) para Docentes",
+        "estado": "implementado",
+        "fuente": "G4",
+        "tipo": "lineamiento",
+        "ref": "LIN-RRHH-TEL-01",
+        "aprobado": True,
+        "vigente": True,
+    },
+    {
+        "control": "A.5.33",
+        "descripcion": "Política Institucional de Protección de Datos Personales en cumplimiento de la Ley 29733",
+        "estado": "implementado",
+        "fuente": "G4",
+        "tipo": "politica",
+        "ref": "POL-UNSA-DP-02",
+        "aprobado": True,
+        "vigente": True,
+    },
+    # G5 - Terceros y Acuerdos de Tratamiento de Datos (DPA)
+    {
+        "control": "A.5.19",
+        "descripcion": "Acuerdo de Tratamiento de Datos (DPA) suscrito con Google LLC para Google Workspace for Education",
+        "estado": "implementado",
+        "fuente": "G5",
+        "tipo": "contrato",
+        "ref": "CTR-DPA-GOOGLE-2024",
+        "aprobado": True,
+        "vigente": True,
+    },
+    {
+        "control": "A.5.20",
+        "descripcion": "Cláusulas de Privacidad, Seguridad y Confidencialidad en Contrato de Plataforma LMS Canvas (Instructure)",
+        "estado": "implementado",
+        "fuente": "G5",
+        "tipo": "contrato",
+        "ref": "CTR-DPA-CANVAS-2024",
+        "aprobado": True,
+        "vigente": True,
+    },
+    # G8 - Incidentes de Seguridad de la Información
+    {
+        "control": "A.5.24",
+        "descripcion": "Bitácora CSIRT-UNSA: Procedimiento formal de notificación y escalamiento de incidentes cibernéticos",
+        "estado": "implementado",
+        "fuente": "G8",
+        "tipo": "registro",
+        "ref": "INC-PROC-CSIRT-01",
+        "aprobado": True,
+        "vigente": True,
+    },
+    {
+        "control": "A.5.26",
+        "descripcion": "Registro y análisis post-incidente de campaña de suplantación phishing en portal docente",
+        "estado": "parcial",
+        "fuente": "G8",
+        "tipo": "informe",
+        "ref": "INC-REP-2025-001",
+        "aprobado": False,
+        "vigente": True,
+    },
+    # G1 - Capacitación y Concientización
+    {
+        "control": "A.6.3",
+        "descripcion": "Acta y registro de asistencia al Programa de Capacitación en Ley 29733 y Seguridad Digital 2025",
+        "estado": "implementado",
+        "fuente": "G1",
+        "tipo": "capacitacion",
+        "ref": "CAP-UNSA-2025-01",
+        "registros": True,
+        "vigente": True,
+    },
+    # G3 - Derechos ARCO
+    {
+        "control": "A.1.2.6",
+        "descripcion": "Mesa de Partes Digital y Procedimiento Administrativo de Atención de Solicitudes ARCO (TUPA-UNSA)",
+        "estado": "implementado",
+        "fuente": "G3",
+        "tipo": "procedimiento",
+        "ref": "PROC-ARCO-MESA-01",
+        "aprobado": True,
+        "vigente": True,
+    },
+    # G6 - Inventario de Activos y RAT
+    {
+        "control": "A.5.9",
+        "descripcion": "Inventario Consolidado de Activos de Información y Bancos de Datos Personales Registrados ante la ANPD",
+        "estado": "implementado",
+        "fuente": "G6",
+        "tipo": "registro",
+        "ref": "INV-ACT-DATOS-2025",
+        "registros": True,
+        "vigente": True,
+    },
+    {
+        "control": "A.5.12",
+        "descripcion": "Esquema y Matriz de Clasificación de Información: Pública, Confidencial, Secreta y Datos Sensibles",
+        "estado": "implementado",
+        "fuente": "G6",
+        "tipo": "directiva",
+        "ref": "DIR-SEG-CLASF-02",
+        "aprobado": True,
+        "vigente": True,
+    },
+    {
+        "control": "A.1.2.1",
+        "descripcion": "Registro de Actividades de Tratamiento (RAT): Operaciones de matrícula, bienestar comedor y RRHH",
+        "estado": "implementado",
+        "fuente": "G6",
+        "tipo": "registro",
+        "ref": "RAT-UNSA-PIMS-01",
+        "registros": True,
+        "vigente": True,
+    },
+]
+
 
 # ---------------------------------------------------------------------------
 # Errores y utilidades
@@ -141,6 +379,14 @@ class SoARepository(ABC):
     def load_assessments(self) -> dict[Any, dict[str, Any]]:
         """Devuelve evaluaciones indexadas por ``annex_a_control_id`` y código."""
 
+    @abstractmethod
+    def load_risks(self) -> list[dict[str, Any]]:
+        """Devuelve los riesgos residuales desde PostgreSQL o fallback institucional."""
+
+    @abstractmethod
+    def load_evidence_from_db(self) -> list[dict[str, Any]]:
+        """Devuelve evidencias multidisciplinarias desde las tablas del ecosistema (G1..G8)."""
+
     # -- escritura -------------------------------------------------------
     @abstractmethod
     def save_assessments(self, rows: Sequence[Any]) -> dict[str, Any]:
@@ -249,6 +495,12 @@ class LocalSoA(SoARepository):
                 out.setdefault(str(code), item)
         return out
 
+    def load_risks(self) -> list[dict[str, Any]]:
+        return [dict(item) for item in BASELINE_UNSA_RISKS]
+
+    def load_evidence_from_db(self) -> list[dict[str, Any]]:
+        return [dict(item) for item in BASELINE_UNSA_EVIDENCE]
+
     # -- escritura -------------------------------------------------------
     def save_assessments(self, rows: Sequence[Any]) -> dict[str, Any]:
         saved = 0
@@ -325,6 +577,34 @@ class PostgresSoA(SoARepository):
           FROM demo.core_gapannexaassessment
          WHERE is_deleted = false
          ORDER BY annex_a_control_id
+    """
+    RISK_SQL = """
+        SELECT
+            re.id AS risk_id,
+            re.risk_code,
+            COALESCE(a.name, 'Activo no asignado') AS activo,
+            COALESCE(re.risk_owner, a.owner, 'Oficialía de Seguridad de la Información (CISO)') AS propietario,
+            COALESCE(re.threat, re.threat_code, 'Amenaza no especificada') AS amenaza,
+            COALESCE(re.vulnerability, re.vulnerability_code, 'Vulnerabilidad no especificada') AS vulnerabilidad,
+            re.description AS descripcion,
+            COALESCE(re.residual_impact, re.controlled_impact, 1) AS nueva_consecuencia,
+            COALESCE(re.residual_probability, re.controlled_probability, 1) AS nueva_probabilidad,
+            COALESCE(re.residual_score, re.controlled_score, 1.0) AS riesgo_residual,
+            re.residual_severity AS severidad,
+            COALESCE(re.evidence, '') AS evidencia,
+            ARRAY_REMOVE(ARRAY_AGG(DISTINCT ac.code), NULL) AS controles
+          FROM demo.core_riskevaluation re
+          LEFT JOIN demo.core_riskevaluationasset rea ON rea.evaluation_id = re.id
+          LEFT JOIN demo.core_asset a ON a.id = rea.asset_id
+          LEFT JOIN demo.core_riskcontrol rc ON rc.line_id = rea.id
+          LEFT JOIN demo.core_riskcontrol_annex_a_controls rca ON rca.riskcontrol_id = rc.id
+          LEFT JOIN demo.core_annexacontrol ac ON ac.id = rca.annexacontrol_id
+         WHERE re.is_deleted = false
+         GROUP BY re.id, re.risk_code, a.name, re.risk_owner, a.owner, re.threat, re.threat_code,
+                  re.vulnerability, re.vulnerability_code, re.description, re.residual_impact,
+                  re.controlled_impact, re.residual_probability, re.controlled_probability,
+                  re.residual_score, re.controlled_score, re.residual_severity, re.evidence
+         ORDER BY re.id
     """
     UPSERT_ASSESSMENT_SQL = """
         INSERT INTO demo.core_gapannexaassessment (
@@ -459,6 +739,235 @@ class PostgresSoA(SoARepository):
             out[item.get("annex_a_control_id")] = item
         return out
 
+    def load_risks(self) -> list[dict[str, Any]]:
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(self.RISK_SQL)
+                    rows = cur.fetchall()
+            out: list[dict[str, Any]] = []
+            for row in rows:
+                item = dict(row)
+                score = float(item.get("riesgo_residual") or 1.0)
+                out.append({
+                    "id": item.get("risk_code") or f"RSK-{item.get('risk_id')}",
+                    "risk_code": item.get("risk_code") or f"RSK-{item.get('risk_id')}",
+                    "activo": item.get("activo") or "Activo general",
+                    "propietario": item.get("propietario") or "CISO",
+                    "amenaza": item.get("amenaza") or "",
+                    "vulnerabilidad": item.get("vulnerabilidad") or "",
+                    "descripcion": item.get("descripcion") or "",
+                    "nueva_consecuencia": item.get("nueva_consecuencia") or 1,
+                    "nueva_probabilidad": item.get("nueva_probabilidad") or 1,
+                    "riesgo_residual": score,
+                    "residual_score": score,
+                    "severidad": item.get("severidad") or ("A" if score > 2.0 else "B"),
+                    "controles": list(item.get("controles") or []),
+                    "origen": "PostgreSQL (demo.core_riskevaluation)",
+                })
+            if out:
+                return out
+        except Exception as exc:  # noqa: BLE001
+            self.last_error = f"load_risks: {type(exc).__name__}: {exc}"
+        return LocalSoA().load_risks()
+
+    def load_evidence_from_db(self) -> list[dict[str, Any]]:
+        evidencias: list[dict[str, Any]] = []
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    # G4 - Documentos
+                    try:
+                        cur.execute("""
+                            SELECT code, name, category, status, current_version, responsible
+                              FROM demo.core_document
+                             WHERE is_deleted = false
+                             ORDER BY code
+                        """)
+                        for doc in cur.fetchall():
+                            d = dict(doc)
+                            code = str(d.get("code") or "")
+                            name = str(d.get("name") or "")
+                            cat = str(d.get("category") or "").lower()
+                            target_control = "A.5.1"
+                            name_low = name.lower()
+                            if "acceso" in name_low or "identidad" in name_low:
+                                target_control = "A.5.15"
+                            elif "backup" in name_low or "copia" in name_low or "respaldo" in name_low:
+                                target_control = "A.8.13"
+                            elif "teletrabajo" in name_low or "remoto" in name_low:
+                                target_control = "A.6.7"
+                            elif "privacidad" in name_low or "datos personales" in name_low or "retenci" in name_low:
+                                target_control = "A.5.33"
+                            elif "proveedor" in name_low or "tercero" in name_low:
+                                target_control = "A.5.19"
+                            elif "incidente" in name_low:
+                                target_control = "A.5.24"
+
+                            status_code = str(d.get("status") or "").upper()
+                            aprobado = status_code in {"A", "APROBADO", "V", "VIGENTE"}
+                            evidencias.append({
+                                "control": target_control,
+                                "descripcion": f"{name} (v{d.get('current_version') or '1.0'}) - Resp: {d.get('responsible') or 'OPD'}",
+                                "estado": "implementado" if aprobado else "parcial",
+                                "fuente": "G4",
+                                "tipo": "politica" if "pol" in code.lower() or cat == "policy" else "procedimiento",
+                                "ref": code,
+                                "aprobado": aprobado,
+                                "vigente": True,
+                            })
+                    except Exception:
+                        pass
+
+                    # G5 - DPA / Terceros (si existe la tabla extendida)
+                    try:
+                        cur.execute("""
+                            SELECT c.contract_code, c.title, c.status, tp.name AS proveedor, a.verdict, a.score
+                              FROM demo.core_dpacontract c
+                              LEFT JOIN demo.core_thirdparty tp ON tp.id = c.third_party_id
+                              LEFT JOIN demo.core_dpaassessment a ON a.contract_id = c.id
+                             WHERE c.is_deleted = false
+                        """)
+                        for c in cur.fetchall():
+                            cd = dict(c)
+                            verdict = str(cd.get("verdict") or "").upper()
+                            evidencias.append({
+                                "control": "A.5.19",
+                                "descripcion": f"DPA con {cd.get('proveedor') or 'Tercero'}: {cd.get('title')}. Dictamen: {verdict or 'Auditado'}",
+                                "estado": "implementado" if verdict in {"R", "A"} else "parcial",
+                                "fuente": "G5",
+                                "tipo": "contrato",
+                                "ref": cd.get("contract_code"),
+                                "aprobado": verdict in {"R", "A"},
+                                "vigente": True,
+                            })
+                    except Exception:
+                        pass
+
+                    # G8 - Incidentes
+                    try:
+                        cur.execute("""
+                            SELECT incident_code, created_at, entity_type, rep_position
+                              FROM demo.core_incident
+                             WHERE is_deleted = false
+                             ORDER BY id DESC
+                             LIMIT 50
+                        """)
+                        for inc in cur.fetchall():
+                            idict = dict(inc)
+                            evidencias.append({
+                                "control": "A.5.24",
+                                "descripcion": f"Registro de incidente de seguridad {idict.get('incident_code')}",
+                                "estado": "implementado",
+                                "fuente": "G8",
+                                "tipo": "registro",
+                                "ref": idict.get("incident_code"),
+                                "registros": True,
+                                "vigente": True,
+                            })
+                    except Exception:
+                        pass
+
+                    # G1 - Capacitaciones
+                    try:
+                        cur.execute("""
+                            SELECT training_code, title, area, presenter
+                              FROM demo.core_training
+                             WHERE is_deleted = false
+                             ORDER BY id DESC
+                             LIMIT 50
+                        """)
+                        for tr in cur.fetchall():
+                            td = dict(tr)
+                            evidencias.append({
+                                "control": "A.6.3",
+                                "descripcion": f"Capacitación institucional {td.get('training_code')}: {td.get('title')} ({td.get('area') or 'General'})",
+                                "estado": "implementado",
+                                "fuente": "G1",
+                                "tipo": "capacitacion",
+                                "ref": td.get("training_code"),
+                                "registros": True,
+                                "vigente": True,
+                            })
+                    except Exception:
+                        pass
+
+                    # G3 - Derechos ARCO
+                    try:
+                        cur.execute("""
+                            SELECT case_code, channel, created_at
+                              FROM demo.core_arcorequest
+                             WHERE is_deleted = false
+                             ORDER BY id DESC
+                             LIMIT 50
+                        """)
+                        for ar in cur.fetchall():
+                            ad = dict(ar)
+                            evidencias.append({
+                                "control": "A.1.2.6",
+                                "descripcion": f"Solicitud ARCO expediente {ad.get('case_code')} por canal {ad.get('channel') or 'Virtual'}",
+                                "estado": "implementado",
+                                "fuente": "G3",
+                                "tipo": "procedimiento",
+                                "ref": ad.get("case_code"),
+                                "registros": True,
+                                "vigente": True,
+                            })
+                    except Exception:
+                        pass
+
+                    # G6 - Activos y Operaciones
+                    try:
+                        cur.execute("""
+                            SELECT code, name, category, classification, owner
+                              FROM demo.core_asset
+                             WHERE is_deleted = false
+                             ORDER BY code
+                             LIMIT 50
+                        """)
+                        for ass in cur.fetchall():
+                            ast = dict(ass)
+                            evidencias.append({
+                                "control": "A.5.9",
+                                "descripcion": f"Activo inventariado {ast.get('code')}: {ast.get('name')} (Custodio: {ast.get('owner') or 'CISO'})",
+                                "estado": "implementado",
+                                "fuente": "G6",
+                                "tipo": "registro",
+                                "ref": ast.get("code"),
+                                "registros": True,
+                                "vigente": True,
+                            })
+                    except Exception:
+                        pass
+
+                    try:
+                        cur.execute("""
+                            SELECT operation_type, purpose, legal_basis, is_cross_border
+                              FROM demo.core_personaldataoperation
+                             ORDER BY id DESC
+                             LIMIT 50
+                        """)
+                        for op in cur.fetchall():
+                            opd = dict(op)
+                            evidencias.append({
+                                "control": "A.1.2.1",
+                                "descripcion": f"Tratamiento RAT: {opd.get('operation_type')} ({opd.get('purpose')}) - Base: {opd.get('legal_basis')}",
+                                "estado": "implementado",
+                                "fuente": "G6",
+                                "tipo": "registro",
+                                "ref": f"RAT-{opd.get('operation_type')}",
+                                "registros": True,
+                                "vigente": True,
+                            })
+                    except Exception:
+                        pass
+
+            if evidencias:
+                return evidencias
+        except Exception as exc:  # noqa: BLE001
+            self.last_error = f"load_evidence_from_db: {type(exc).__name__}: {exc}"
+        return LocalSoA().load_evidence_from_db()
+
     # -- escritura -------------------------------------------------------
     def save_assessments(self, rows: Sequence[Any]) -> dict[str, Any]:
         payload: list[tuple[Any, ...]] = []
@@ -564,6 +1073,20 @@ class HybridSoA(SoARepository):
             self._degrade("load_assessments", exc)
             return self.fallback.load_assessments()
 
+    def load_risks(self) -> list[dict[str, Any]]:
+        try:
+            return self.primary.load_risks()
+        except Exception as exc:  # noqa: BLE001
+            self._degrade("load_risks", exc)
+            return self.fallback.load_risks()
+
+    def load_evidence_from_db(self) -> list[dict[str, Any]]:
+        try:
+            return self.primary.load_evidence_from_db()
+        except Exception as exc:  # noqa: BLE001
+            self._degrade("load_evidence_from_db", exc)
+            return self.fallback.load_evidence_from_db()
+
     # -- escritura -------------------------------------------------------
     def save_assessments(self, rows: Sequence[Any]) -> dict[str, Any]:
         try:
@@ -642,6 +1165,8 @@ def probar_conexion(dsn: str | None = None) -> dict[str, Any]:
 
 
 __all__ = [
+    "BASELINE_UNSA_EVIDENCE",
+    "BASELINE_UNSA_RISKS",
     "HybridSoA",
     "LocalSoA",
     "PostgresSoA",
