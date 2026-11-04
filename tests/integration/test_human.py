@@ -88,3 +88,14 @@ def test_g5_two_gate_approval_order_is_enforced_by_the_agent():
                 f"and detail->>'target'='{target}' and detail->>'outcome' like '%HTTP 200%'") == "2"
     assert psql("select count(*) from demo.core_securitylog where action='human_decision' and module='terceros' "
                 f"and detail->>'target'='{target}' and detail->>'outcome' like '%HTTP 409%'") == "1"
+
+
+def test_g5_deletion_is_a_dpo_only_human_action_and_rejects_paths():
+    body = {"tipo": "expediente", "id": "DPA-NO-EXISTE_000000"}
+    assert httpx.post(f"{BASE}/api/human/terceros/eliminar", json=body, timeout=30).status_code == 401
+    assert post("/api/human/terceros/eliminar", body, login("legal")).status_code == 403
+    dpo = login("dpo")
+    for bad in ({"tipo": "expediente", "id": "../../datos/config_modelo"}, {"tipo": "perfil", "id": "../unsa"},
+                {"tipo": "otro", "id": "x"}):
+        assert post("/api/human/terceros/eliminar", bad, dpo).status_code == 400, bad
+    assert post("/api/human/terceros/eliminar", body, dpo).status_code == 404       # nothing to delete

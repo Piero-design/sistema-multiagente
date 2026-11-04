@@ -27,7 +27,7 @@ IDS = {
     "claude": "PimsClaudeCode00", "carpetas": "PimsCrearCarpeta", "auditar": "PimsAuditar00000",
     "perfilar": "PimsPerfilar0000", "aprobar": "PimsAprobaciones", "renovar": "PimsRenovaciones",
     "consultas": "PimsConsultas000", "admin": "PimsAdministrar0", "pagina": "PimsPaginaWeb000",
-    "chat": "PimsChat00000000", "bd": "PimsBaseDatos000",
+    "chat": "PimsChat00000000", "bd": "PimsBaseDatos000", "eliminar": "PimsEliminar0000",
 }
 # Credencial Postgres de n8n (rol agente7). La crea n8n/configurar_bd.py con este id fijo.
 CREDENCIAL_BD = {"id": "PimsPostgresBD01", "name": "PIMS Postgres"}
@@ -412,6 +412,41 @@ return [{ json: { ok: j.ok !== false, omitido: true, error: j.error || null } }]
     f.unir("¿Base activa?", "Postgres", 0)
     f.unir("¿Base activa?", "Sin base", 1)
     f.unir("Postgres", "Resultado")
+    return f
+
+
+def flujo_eliminar():
+    f = Flujo("eliminar", "PIMS · Eliminar archivos (requiere Execute Command)",
+              "POST /webhook/pims/eliminar {tipo: expediente, id} o {tipo: perfil, organizacion}. Borra los archivos del "
+              "expediente (.json, .md, .contrato.txt y su chat) o del perfil de la organización (perfil y archivos del "
+              "perfilador; la configuración y los documentos se conservan) con n8n/scripts/eliminar.js. Es una acción "
+              "humana: en la plataforma solo la invoca el backend con una sesión de DPO.")
+    f.webhook("Webhook eliminar", (0, 0), "POST", "pims/eliminar")
+    f.code("Preparar eliminación", (220, 0), r"""
+const b = $input.first().json.body || {};
+const tipo = String(b.tipo || '');
+const id = String(tipo === 'perfil' ? (b.organizacion || b.id || '') : (b.id || ''));
+let error = null;
+if (tipo === 'expediente') { if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,139}$/.test(id) || id.includes('..')) error = "Falta 'id' del expediente o no es válido."; }
+else if (tipo === 'perfil') { if (!idValido(id) || id.startsWith('_')) error = "Falta 'organizacion' o no es un id válido."; }
+else error = "'tipo' debe ser expediente o perfil.";
+if (error) return [{ json: { ok: false, codigo: 400, respuesta: { ok: false, error } } }];
+return [{ json: { ok: true, comando: `node "${R('n8n', 'scripts', 'eliminar.js')}" "${RAIZ}" ${tipo} "${id}"` } }];
+""")
+    f.si("¿Petición válida?", (440, 0), "={{ $json.ok }}")
+    f.nodo("Ejecutar", "n8n-nodes-base.executeCommand", 1, {"executeOnce": True, "command": "={{ $json.comando }}"},
+           (660, -100), onError="continueRegularOutput")
+    f.code("Resultado", (880, -100), r"""
+const j = $input.first().json;
+let r = { ok: false, error: j.error ? `Execute Command no disponible: ${String(j.error.message || j.error)}` : (j.stderr || 'sin salida') };
+try { if (j.stdout) r = JSON.parse(j.stdout); } catch (e) { /* se queda el error */ }
+return [{ json: { codigo: r.ok ? 200 : (r.codigo || 400), respuesta: r } }];
+""")
+    f.responder("Responder", (1100, 0))
+    f.cadena("Webhook eliminar", "Preparar eliminación", "¿Petición válida?")
+    f.unir("¿Petición válida?", "Ejecutar", 0)
+    f.unir("¿Petición válida?", "Responder", 1)
+    f.cadena("Ejecutar", "Resultado", "Responder")
     return f
 
 
@@ -1612,9 +1647,11 @@ return [{ json: { codigo: 200, respuesta: { ok: true, mensajes: conv ? conv.mens
 
 
 FLUJOS = [flujo_leer, flujo_guardar, flujo_claude, flujo_carpetas, flujo_modelo, flujo_bd, flujo_auditar,
-          flujo_perfilar, flujo_aprobar, flujo_renovar, flujo_consultas, flujo_admin, flujo_pagina, flujo_chat]
+          flujo_perfilar, flujo_aprobar, flujo_renovar, flujo_consultas, flujo_admin, flujo_pagina, flujo_chat,
+          flujo_eliminar]
 ORDEN_ARCHIVO = {"leer": "01", "guardar": "02", "claude": "03", "carpetas": "04", "modelo": "05", "bd": "06", "auditar": "10",
-                 "perfilar": "11", "aprobar": "12", "renovar": "13", "consultas": "20", "admin": "21", "pagina": "30", "chat": "14"}
+                 "perfilar": "11", "aprobar": "12", "renovar": "13", "consultas": "20", "admin": "21", "pagina": "30", "chat": "14",
+                 "eliminar": "22"}
 
 
 def main():

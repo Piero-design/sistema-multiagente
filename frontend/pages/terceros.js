@@ -1,7 +1,7 @@
 // G5 · Terceros y DPA (Agente 7). Page of its own: it brings back the functions of the agent's original page
 // (audit with a file, organization context, expedientes with download, profile, renewals, chat) through the
 // platform API. Human decisions (DPO/Legal approval, profile validation) stay in «Revisión humana».
-import { api } from '../services/api.js';
+import { api, authed, session } from '../services/api.js';
 import { h, badge, fmtTime, alertBox, spinner } from '../components/ui.js';
 import { AGENTS } from '../services/agents-config.js';
 import { table } from './dashboard.js';
@@ -36,6 +36,19 @@ function dlCSV(name, rows, cols) {
   const lines = [cols.map(([, t]) => csvCell(t)).join(',')].concat(rows.map((r) => cols.map(([k]) => csvCell(r[k])).join(',')));
   download(name, '﻿' + lines.join('\r\n'), 'text/csv;charset=utf-8');
 }
+// ---- deletion: a human decision (signed-in DPO, from «Revisión humana»); the backend records who deleted what ----
+async function eliminar(tipo, id, onDone) {
+  const que = tipo === 'expediente' ? `el expediente ${id} (informe, JSON, copia del contrato y su chat)` : `el perfil de «${id}» (los documentos y la configuración se conservan)`;
+  if (!session.token) { alert('Para eliminar, inicia sesión como DPO en «Revisión humana» y vuelve a esta página.'); return; }
+  if (!confirm(`¿Eliminar ${que}?
+
+Se borran los archivos del agente y no se puede deshacer. Descárgalo antes si lo necesitas.`)) return;
+  try { const r = await authed('/api/human/terceros/eliminar', { tipo, id }); alert(`Eliminado: ${(r.eliminados || []).length} archivo(s).`); onDone?.(); }
+  catch (err) { alert(`No se pudo eliminar: ${err.message}`); }
+}
+const deleteButton = (tipo, id, onDone, label = 'Eliminar') =>
+  h('button', { class: 'ghost', style: 'color:var(--bad)', title: 'Requiere sesión de DPO', onclick: () => eliminar(tipo, id, onDone) }, label);
+
 const downloadButtons = (id, det) => h('span', { class: 'row' },
   h('button', { class: 'ghost', onclick: () => dlMD(`${id}.md`, det.informe) }, 'Descargar informe (.md)'),
   h('button', { class: 'ghost', onclick: () => dlJSON(`${id}.json`, det.resultado) }, 'Descargar expediente (.json)'));
@@ -97,13 +110,15 @@ const busy = (box, t) => box.replaceChildren(card(spinner(t)));
 const fail = (box, err) => box.replaceChildren(alertBox('bad', String(err.message || err)));
 
 // ---- expediente view (summary + report + downloads) ----
-function expedienteView(det) {
+function expedienteView(det, onDeleted) {
   const r = det.resultado || {}, reg = r._registro || {}, p = r.puntaje_proveedor || {}, c = reg.contexto || {};
   const res = r.resumen || {};
   const fuente = { perfil: 'perfil de la organización', bd: 'base de datos del PIMS', ambos: 'perfil + base de datos' }[c.fuente] || 'perfil de la organización';
   return h('div', {},
     h('div', { class: 'row', style: 'justify-content:space-between' },
-      h('h2', {}, `${(r.tercero || {}).nombre || reg.id_registro} · ${reg.id_registro || ''}`), downloadButtons(reg.id_registro || 'expediente', det)),
+      h('h2', {}, `${(r.tercero || {}).nombre || reg.id_registro} · ${reg.id_registro || ''}`),
+      h('span', { class: 'row' }, downloadButtons(reg.id_registro || 'expediente', det),
+        reg.id_registro ? deleteButton('expediente', reg.id_registro, onDeleted) : null)),
     h('div', { class: 'kpis', style: 'margin:10px 0' },
       h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Puntaje'), h('div', { class: 'kpi' }, p.valor ?? '—'), h('div', { class: 'small' }, p.banda || '')),
       h('div', { class: 'card' }, h('div', { class: 'small mute' }, 'Dictamen'), h('div', { style: 'font-weight:700' }, r.dictamen || '—')),
@@ -154,7 +169,7 @@ async function tabAuditar(box, orgs) {
           (st.errores || []).length ? card(h('h2', {}, 'Errores'), h('pre', {}, st.errores.join('\n'))) : null);
       } else {
         out.replaceChildren(e.simulated ? alertBox('sim', 'Modo simulado (LLM_MODE=mock)') : null,
-          (st.advertencias || []).map((a) => alertBox('warn', a)), card(expedienteView(st.expediente || {})));
+          (st.advertencias || []).map((a) => alertBox('warn', a)), card(expedienteView(st.expediente || {}, () => out.replaceChildren(alertBox('info', 'Expediente eliminado.')))));
       }
     } catch (err) { fail(out, err); }
     btn.disabled = false;
@@ -191,9 +206,10 @@ async function tabExpedientes(box, orgs) {
           h('span', {}, r.id_registro, h('br'), h('span', { class: 'small mute' }, `${r.organizacion} · ${r.fecha || ''}`)),
           r.proveedor || '—', `${r.puntaje ?? '—'} · ${r.banda || ''}`, r.dictamen || '', r.estado || '',
           h('span', { class: 'row' },
-            h('button', { class: 'ghost', onclick: async () => { busy(view, 'Abriendo…'); try { view.replaceChildren(card(expedienteView(await detalle(r.id_registro)))); view.scrollIntoView(); } catch (err) { fail(view, err); } } }, 'Ver'),
+            h('button', { class: 'ghost', onclick: async () => { busy(view, 'Abriendo…'); try { view.replaceChildren(card(expedienteView(await detalle(r.id_registro), () => { view.replaceChildren(); load(); }))); view.scrollIntoView(); } catch (err) { fail(view, err); } } }, 'Ver'),
             h('button', { class: 'ghost', onclick: async () => { try { const d = await detalle(r.id_registro); dlMD(`${r.id_registro}.md`, d.informe); } catch (err) { fail(view, err); } } }, '.md'),
-            h('button', { class: 'ghost', onclick: async () => { try { const d = await detalle(r.id_registro); dlJSON(`${r.id_registro}.json`, d.resultado); } catch (err) { fail(view, err); } } }, '.json'))]))
+            h('button', { class: 'ghost', onclick: async () => { try { const d = await detalle(r.id_registro); dlJSON(`${r.id_registro}.json`, d.resultado); } catch (err) { fail(view, err); } } }, '.json'),
+            deleteButton('expediente', r.id_registro, () => { view.replaceChildren(); load(); }))]))
           : h('p', { class: 'mute' }, 'Sin expedientes.')));
     } catch (err) { fail(list, err); }
   }
@@ -219,7 +235,8 @@ async function tabOrganizacion(box, orgs, reload) {
           perfil.texto ? h('div', {},
             h('p', { class: 'small' }, `Estado: `, h('strong', {}, val.estado || '—'), ` · formato ${val.valido ? 'válido' : 'con errores'} · ${val.documentos ?? '?'} documento(s) de base`),
             !String(val.estado || '').startsWith('Validado') ? alertBox('warn', 'El perfil está en borrador: lo valida el DPO en «Revisión humana».') : null,
-            h('span', { class: 'row' }, h('button', { class: 'ghost', onclick: () => dlMD(`perfil_${id}.md`, perfil.texto) }, 'Descargar perfil (.md)')),
+            h('span', { class: 'row' }, h('button', { class: 'ghost', onclick: () => dlMD(`perfil_${id}.md`, perfil.texto) }, 'Descargar perfil (.md)'),
+              deleteButton('perfil', id, load, 'Eliminar perfil')),
             h('details', {}, h('summary', {}, 'Ver perfil'), markdown(perfil.texto)))
             : h('p', { class: 'mute' }, 'Esta organización todavía no tiene perfil.'),
           h('div', { class: 'row', style: 'margin-top:10px' },
