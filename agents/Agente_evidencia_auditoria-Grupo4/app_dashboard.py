@@ -1347,6 +1347,12 @@ print("Hash SHA-256:", dictamen["sha256"])</pre>
     return HTMLResponse(content=html_content)
 
 
+
+
+# Additional native planning capability (M1).
+from audit_modes import router as audit_modes_router
+app.include_router(audit_modes_router)
+
 if __name__ == "__main__":
     puerto = int(os.environ.get("PORT", 8000))
     print(f"\n" + "=" * 75)

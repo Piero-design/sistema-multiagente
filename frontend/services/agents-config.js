@@ -40,10 +40,17 @@ export const AGENTS = {
     route: '/agentes/auditoria', title: 'Evidencia y auditoría', group: 4,
     about: 'Evalúa una evidencia contra los controles de ISO/IEC 27701 y propone un dictamen. Es una propuesta: la valida un auditor humano.',
     actions: [
-      { id: 'auditar', label: 'Evaluar evidencia', long: true, fields: [
+      { id: 'planificar', label: 'M1 · Planificar', fields: [
+        { name: 'rol', label: 'Rol de la organización', type: 'select', options: ['responsable', 'encargado', 'ambos'], demo: 'responsable' },
+        { name: 'alcance', label: 'Alcance de auditoría', type: 'textarea', demo: 'Tratamiento de datos de estudiantes: información, derechos, proveedores e incidentes.' }], build: (v) => v },
+      { id: 'auditar', label: 'M2 · Evaluar evidencia', long: true, fields: [
         { name: 'nombre_archivo', label: 'Nombre de la evidencia', type: 'text', demo: 'politica_privacidad.txt' },
         { name: 'contenido', label: 'Contenido (texto)', type: 'textarea', demo: 'Política de privacidad v1.0. No define plazos de conservación ni procedimiento de notificación de brechas.' }],
         build: (v) => v },
+      { id: 'consolidar', label: 'M3 · Consolidar', fields: [
+        { name: 'execution_ids', label: 'Identificadores de evaluaciones M2 (separados por coma o salto de línea). Copia los ID del historial inferior.', type: 'textarea', demo: '' }],
+        build: (v) => ({ execution_ids: v.execution_ids.split(/[\s,]+/).filter(Boolean) }) },
+
       { id: 'hash', label: 'Calcular SHA-256', fields: [{ name: 'contenido', label: 'Texto', type: 'textarea', demo: 'texto de ejemplo' }], build: (v) => v },
     ],
   },
