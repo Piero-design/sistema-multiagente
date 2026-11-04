@@ -21,6 +21,11 @@ const FLOWS = [
     about: 'G6 prepara su inventario como documento de evidencia (sin valores de datos personales) y G4 lo evalúa. Registra antes activos en la página de G6. La severidad es una propuesta para un auditor humano.',
     fields: [{ name: 'organizacion', label: 'Organización (datos de demostración)', type: 'text', value: 'UNSA-DEMO' }],
     params: (v) => ({ organizacion: v.organizacion }) },
+  { id: 'inventario_a_riesgos', title: 'G6 → G2 · Inventario alimenta la evaluación de riesgos',
+    about: 'Toma del inventario de G6 el sistema con más campos de datos personales (o el que indiques) y envía a G2 solo nombres de campos, finalidad y titulares, nunca valores. G2 propone los riesgos de privacidad (ISO/IEC 27701, cláusula 6.1.2) e indica qué información falta. Registra antes activos en la página de G6; la evaluación la valida una persona.',
+    fields: [{ name: 'organizacion', label: 'Organización (datos de demostración)', type: 'text', value: 'UNSA-DEMO' },
+      { name: 'sistema', label: 'Sistema a evaluar (opcional; vacío = el de más datos personales)', type: 'text', value: '' }],
+    params: (v) => ({ organizacion: v.organizacion, sistema: v.sistema }) },
   { id: 'dsar_handoffs', title: 'G3 → G4 / G6 · Handoffs de un caso decidido',
     about: 'Transporta los handoffs que G3 genera después de una decisión humana. El de evidencia se entrega a G4; el de terceros queda pendiente de una persona; el de inventario lo recibe G6, que verifica el hash y responde la cobertura. Una persona debe haber verificado la identidad y decidido el caso (ver CASOS_DE_PRUEBA.md, B3).',
     fields: [{ name: 'case_id', label: 'Identificador del caso (DSAR-MCP-…)', type: 'text', value: '' }],
@@ -38,6 +43,10 @@ function render(f) {
         : h('p', { class: 'mute' }, 'Ningún control cambió: el último expediente de G5 no cumple (ni parcialmente) los controles que G7 conoce.'));
   } else if (f.flow === 'incidente_a_formacion') {
     box.append(h('h2', {}, 'Recomendación de G1'), h('div', { class: 'md' }, r.recomendacion_g1 || ''));
+  } else if (f.flow === 'inventario_a_riesgos') {
+    const e = r.enviado_a_g2 || {};
+    box.append(table(['Sistema evaluado', 'Campos personales enviados', 'Finalidad declarada'], [[r.sistema_evaluado, (e.campos_personales || []).join(', '), e.finalidad]]),
+      h('h2', {}, 'Evaluación de G2'), h('div', { class: 'md' }, r.evaluacion_g2 || ''), h('p', { class: 'small mute' }, r.nota));
   } else if (f.flow === 'inventario_a_auditoria') {
     box.append(table(['Documento', 'Enviado por G6', 'Severidad propuesta por G4'], [[r.documento, String(r.enviado_por_g6), r.severidad_propuesta_g4]]),
       h('p', { class: 'small mute' }, r.nota));

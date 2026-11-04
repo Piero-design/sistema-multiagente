@@ -91,3 +91,17 @@ def test_g6_inventory_exported_as_evidence_to_g4():
     assert f["status"] == "succeeded", f["error"]
     assert [s["agent"] for s in f["steps"]] == ["inventario", "auditoria"]
     assert f["result"]["enviado_por_g6"] is False and f["result"]["severidad_propuesta_g4"]
+
+
+def test_g6_inventory_feeds_g2_risk_assessment_without_sending_values():
+    run("inventario", "registrar_activos", {"organizacion": "UNSA-DEMO", "fuentes": [{
+        "id": "registro-academico-fuente-1", "nombre": "Esquema de Registro Academico (ficticio)", "sistema": "Registro Academico", "formato": "csv",
+        "contenido": "dni,nombres,correo_institucional,promedio_ponderado\nx,x,x,x",
+        "contexto": {"finalidad": "Gestionar la trayectoria academica (ficticia)", "titulares": ["Estudiantes"], "responsable": "Registro Academico (ficticio)"}}]})
+    f = flow("inventario_a_riesgos", {"organizacion": "UNSA-DEMO"})
+    assert f["status"] == "succeeded", f["error"]
+    assert [s["agent"] for s in f["steps"]] == ["inventario", "riesgos"]
+    r = f["result"]
+    assert r["enviado_a_g2"]["campos_personales"] and r["sistema_evaluado"]
+    assert len(r["evaluacion_g2"] or "") > 300                         # G2 answered with a real assessment
+    assert "valor" not in " ".join(r["enviado_a_g2"]["campos_personales"]).lower()

@@ -8,6 +8,8 @@ Only connections that the agents' code or catalogs really support are implemente
                                               the orchestrator hands it to G4's audit.
   terceros_a_controles G5 -> G7             : G7's catalog names the Third-Parties agent as owner of A.1.2.7 etc.; G5's per-control
                                               results become G7's `evidencias` input (Cumple -> implementado, Parcial -> parcial).
+  inventario_a_riesgos G6 -> G2             : the inventoried system (field NAMES, categories, declared purpose, data subjects; never values)
+                                              becomes the question G2 answers about privacy risk (ISO/IEC 27701 6.1.2).
   incidente_a_formacion G8 -> G1            : G8's lessons learned (references only, no personal data) become the question to G1.
 Data transformation happens here, at the boundary; no agent is modified."""
 from __future__ import annotations
@@ -196,5 +198,45 @@ async def inventario_a_auditoria(rid: str, p: dict, steps: list) -> dict:
             "nota": "Dictamen propuesto por G4: requiere validación de un auditor humano"}
 
 
-FLOWS = {"inventario_a_auditoria": inventario_a_auditoria, "dsar_handoffs": dsar_handoffs, "terceros_a_controles": terceros_a_controles,
+# ---------------------------------------------------------------- G6 -> G2
+def _declared(ctx: dict, key: str) -> str:
+    v = (ctx.get(key) or {}).get("valor")
+    v = ", ".join(v) if isinstance(v, list) else v
+    return v if v and v != "Por determinar" else "no declarado"
+
+
+async def inventario_a_riesgos(rid: str, p: dict, steps: list) -> dict:
+    org = p.get("organizacion", "UNSA-DEMO")
+    inv = (await _step("inventario", "consultar_inventario", {"organizacion": org}, steps)).get("data") or {}
+    activos = inv.get("activos") or []
+    if not activos:
+        raise ValueError("El inventario está vacío: registra activos en G6 primero.")
+    want = (p.get("sistema") or "").strip().lower()
+    pool = [a for a in activos if want in str(a.get("sistema", "")).lower()] if want else activos
+    if not pool:
+        raise ValueError(f"Ningún activo del inventario coincide con «{p['sistema']}».")
+    pii = lambda a: [c for c in a.get("campos", []) if c.get("es_pii")]  # noqa: E731
+    a = max(pool, key=lambda x: len(pii(x)))                     # the system exposing the most personal-data fields
+    ctx = a.get("contexto") or {}
+    campos = [f"{c['nombre']} ({c.get('categoria')})" for c in pii(a)] or ["ningún campo clasificado como dato personal todavía"]
+    resumen = {"sistema": a.get("sistema"), "campos_personales": campos, "total_campos": len(a.get("campos", [])),
+               "finalidad": _declared(ctx, "finalidad"), "titulares": _declared(ctx, "titulares"), "responsable": _declared(ctx, "responsable"),
+               "base_juridica": _declared(ctx, "base_juridica"), "retencion": _declared(ctx, "retencion"),
+               "almacenamiento": _declared(ctx, "almacenamiento"), "transferencias": _declared(ctx, "transferencias"),
+               "validado_por_persona": not a.get("requiere_validacion", True)}
+    q = ("Necesito una evaluación de riesgos de privacidad (ISO/IEC 27701:2025, cláusula 6.1.2) de este sistema de información "
+         "de una universidad. Solo conozco los NOMBRES de los campos, no sus valores.\n"
+         f"- Sistema: {resumen['sistema']}\n- Campos de datos personales: {', '.join(campos)} (de {resumen['total_campos']} campos)\n"
+         f"- Finalidad: {resumen['finalidad']}\n- Titulares: {resumen['titulares']}\n- Responsable: {resumen['responsable']}\n"
+         f"- Base jurídica: {resumen['base_juridica']}; retención: {resumen['retencion']}; almacenamiento: {resumen['almacenamiento']}; "
+         f"transferencias: {resumen['transferencias']}\n"
+         "Lo que figura como «no declarado» es información que falta. Identifica los 5 riesgos de privacidad más relevantes, con "
+         "probabilidad, impacto y nivel de cada uno, y propón un tratamiento. Indica qué información faltante cambiaría la evaluación.")
+    chat = await _step("riesgos", "chat", {"message": q, "sessionId": f"flujo-{rid[:8]}-g6-g2"}, steps, wait=900)
+    return {"activo": a.get("id"), "sistema_evaluado": resumen["sistema"], "enviado_a_g2": resumen,
+            "evaluacion_g2": chat.get("answer") or chat.get("text") or chat.get("output"),
+            "nota": "Evaluación propuesta por G2 a partir de nombres de campos y contexto declarado: la valida una persona. No se enviaron valores de datos."}
+
+
+FLOWS = {"inventario_a_riesgos": inventario_a_riesgos, "inventario_a_auditoria": inventario_a_auditoria, "dsar_handoffs": dsar_handoffs, "terceros_a_controles": terceros_a_controles,
          "incidente_a_formacion": incidente_a_formacion}
