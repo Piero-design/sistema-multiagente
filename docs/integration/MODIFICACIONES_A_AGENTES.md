@@ -19,6 +19,9 @@ Ningún archivo dentro de `agents/` fue modificado. Toda adaptación vive fuera,
 | 2 | Copias adaptadas de los workflows (ver abajo) | `docker/agents/g2_adapt_workflows.py` | Los originales están atados a Gemini. |
 | 2 | Reenvío TCP 4318 → 127.0.0.1:4317 | `g2_entrypoint.sh` | Express escucha solo en loopback por código. |
 
+| Todos (gateway) | El gateway conserva y reinyecta la `thought_signature` de Gemini en las llamadas a herramientas | `llm-gateway/gateway.py` | Los clientes OpenAI de n8n la descartan y Gemini 3 responde 400. |
+| 2 | El adaptador envía `webMode: off` | `backend/adapters/agents.py` | Evita la búsqueda web (Tavily) y que los datos salgan de la plataforma. |
+
 ## Grupo 2: cambios en las copias de los workflows (los JSON originales quedan intactos)
 
 1. Nodo de chat `lmChatGoogleGemini` → `lmChatOpenAi`, con `baseURL` del gateway y `LLM_MODEL`.
@@ -33,5 +36,4 @@ Ningún archivo dentro de `agents/` fue modificado. Toda adaptación vive fuera,
 ## Hallazgos que no son modificaciones
 
 - El servidor MCP de G3 es determinista y no llama a ningún LLM; la regla "la nube solo recibe hechos minimizados" afecta a su capa `assistant/llm`, que ese servidor no usa.
-- En salidas de G3 y G4 hay texto con caracteres corruptos (por ejemplo "pol�tica") que vienen de los datos de los grupos.
 - Se desconoce si las plantillas de G2 se corresponden con el export real del grupo.

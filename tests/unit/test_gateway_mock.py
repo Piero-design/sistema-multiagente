@@ -35,3 +35,14 @@ def test_metrics_count_calls():
     c = _client()
     c.post("/api/chat", json={"messages": [{"role": "user", "content": "x"}]})
     assert c.get("/metrics").json()["requests"] >= 1
+
+
+def test_gemini_thought_signature_is_reattached():
+    import gateway
+    gateway._sigs.clear()
+    out = {"choices": [{"message": {"tool_calls": [{"id": "c1", "extra_content": {"google": {"thought_signature": "SIG"}}}]}}]}
+    gateway._remember_signatures(out)
+    msgs = [{"role": "assistant", "tool_calls": [{"id": "c1"}, {"id": "other"}]}]
+    res = gateway._restore_signatures(msgs)
+    assert res[0]["tool_calls"][0]["extra_content"]["google"]["thought_signature"] == "SIG"
+    assert res[0]["tool_calls"][1]["extra_content"]["google"]["thought_signature"] == "skip_thought_signature_validator"

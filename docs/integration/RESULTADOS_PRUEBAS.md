@@ -27,12 +27,31 @@ Ejecuciones reales por el orquestador: G1 chat, G3 plazos (valores deterministas
 
 La salida de un LLM no es idéntica byte a byte. Se compararon estructura, campos requeridos y partes deterministas (plazos, hash, puntaje calculado por código).
 
+## Ronda ampliada de pruebas funcionales (modo `cloud`, llamadas reales al modelo)
+
+`tests/integration/test_agents_behavior.py`: **15 pasan** (5 min 12 s) más 2 de G2 que se omiten si el control de alcance del grupo está cerrado.
+
+| Agente | Qué se verificó |
+|---|---|
+| G1 | El chat devuelve texto. |
+| G3 | Un caso sin identidad verificada queda `IDENTITY_PENDING`, exige revisión humana y no genera handoffs; pedir el borrador de un caso no aprobado es rechazado por el agente; plazo de información = 8 días hábiles; la consulta de norma devuelve fragmentos con fuente; las herramientas de decisión humana no son invocables. |
+| G4 | Estructura del dictamen, hash SHA-256 correcto, etiqueta del proveedor sustituida; contenido vacío rechazado. |
+| G5 | Puntaje calculado por el código; el expediente queda "Pendiente DPO" (nunca se aprueba solo); un contrato con instrucciones inyectadas no alcanza puntaje 100 y sigue pendiente. |
+| G7 | Reglas de aplicabilidad por rol (A.1 solo responsable, A.2 solo encargado, A.3 todos); entrada inválida rechazada sin inventar; RAG con embeddings por el gateway. |
+| G8 | Análisis de brecha completo (menciona las 48 h); reporte corto rechazado; no se afirma ningún envío. |
+| Aislamiento | Con G4 detenido la plataforma sigue viva, G4 aparece `caído` con motivo, los demás siguen operativos y el fallo queda registrado. |
+| G2 (control de alcance abierto temporalmente, con tu autorización) | Pregunta sobre la norma: respondió citando la cláusula 6.1.2 (páginas 13–14) recuperada de Qdrant; evaluación de riesgos de un sistema de matrícula: respuesta estructurada; pregunta fuera de tema ("receta de pizza"): rechazada por el agente con `OUT_OF_SCOPE`. Después se restauró el control a cerrado. |
+
+### Defectos encontrados y corregidos al probar
+
+1. **Gemini 3.x exige la `thought_signature` en las llamadas a herramientas** y los clientes tipo OpenAI de n8n la descartan: el segundo turno del agente de G2 recibía HTTP 400. El gateway ahora guarda la firma de cada respuesta y la reinyecta (con la firma de omisión documentada como respaldo). Cubierto por un test unitario.
+2. **Búsqueda web automática de G2:** el chat intentaba usar Tavily (falta la clave y además enviaría datos fuera). El adaptador ahora envía `webMode: off`.
+
 ## Pendiente o no verificado
 
 - **Modo `ollama`**: solo `docker compose --profile ollama config`. Ver `docs/installation/OLLAMA_OTRA_PC.md`.
-- **G2**: la norma está indexada (271 vectores de 3072 dimensiones) y los workflows activos, pero el chat no se probó porque el control de alcance del grupo sigue bloqueado por decisión humana.
+- **G2** queda bloqueado por defecto (control de alcance del grupo). El chat se probó con el control abierto de forma temporal; para dejarlo operativo: `G2_SCOPE_N8N_REVIEWED=true` en `.env`.
 - Las reglas de aprobación humana de G3, G5 y G8 se verifican a nivel de **capacidades expuestas** (ninguna acción de aprobar/decidir/enviar); no se probó contra los endpoints nativos de decisión.
 - No hay test de la regla de G3 "la nube solo recibe hechos minimizados": su servidor MCP no usa LLM.
 - Handoffs de G3 a otros agentes: no se transportan todavía; la tabla `orchestrator.handoff` existe pero está sin uso.
 - Las acciones humanas (verificar identidad y decidir en G3; DPO/Legal en G5; aprobar acciones en G8) no están en la interfaz unificada.
-- Campos de respuesta de G2 `/api/chat` no verificados contra un servicio vivo.

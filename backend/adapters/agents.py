@@ -124,7 +124,7 @@ class G2(_HttpAdapter):
 
     async def execute(self, req: ExecutionRequest):
         i = req["input"]
-        r = await _post(f"{self.base}/api/chat", json={"message": i["message"],
+        r = await _post(f"{self.base}/api/chat", json={"message": i["message"], "webMode": "off",
                                                       "sessionId": i.get("sessionId", "plataforma-0001")})
         if r.status_code >= 400:
             raise RuntimeError(f"G2 HTTP {r.status_code}: {r.text[:300]}")

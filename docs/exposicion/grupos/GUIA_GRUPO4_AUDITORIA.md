@@ -34,7 +34,6 @@ Recibe el handoff `archivar_expediente` de G3 (control A.3.14) y evidencia de G8
 
 ## 13. Problemas y soluciones
 - La severidad se obtiene por búsqueda de frases, no por un esquema validado: se documenta como limitación.
-- Caracteres corruptos en algunos textos de la skill ("pol�tica"), que vienen de sus archivos.
 
 ## 14. Guion
 "Nuestro agente no certifica: propone. Evalúa una evidencia con la skill de auditoría y entrega un dictamen para el auditor. Aquí cargamos una política incompleta y el agente la marca como no conformidad mayor, calculando además el hash para trazabilidad."

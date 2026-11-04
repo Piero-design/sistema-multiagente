@@ -17,10 +17,10 @@ No hay `SKILL.md`: el contenido vive en los prompts de los workflows (skill de e
 Pregunta → Express (control de alcance) → Chat Trigger → agente → (a) skill de evaluación para el procedimiento y formato, (b) búsqueda en Qdrant en la norma, (c) skill de artefactos si piden PDF/diagrama → respuesta.
 
 ## 7. Integración y demostración
-`/agentes/riesgos` envía la consulta por `POST /api/chat` de Express. **Estado honesto:** la plataforma lo muestra `degradado` porque el propio agente sigue bloqueado hasta que alguien confirme `SCOPE_N8N_REVIEWED=true`; no lo activamos nosotros. La demo muestra el motivo real y, si el equipo lo activa, la consulta de riesgos.
+`/agentes/riesgos` envía la consulta por `POST /api/chat` de Express. **Estado honesto:** la plataforma lo muestra `degradado` porque el propio agente sigue bloqueado hasta que alguien confirme `SCOPE_N8N_REVIEWED=true`; no lo activamos nosotros. La demo muestra el motivo real y, una vez que el equipo active el control, la consulta de riesgos (probada con el control abierto de forma temporal).
 
 ## 8. Ejemplo
-Entrada: "Evalúa los riesgos de privacidad de un sistema de matrícula en línea que almacena DNI y correos de estudiantes." Salida esperada: evaluación con el formato del skill y citas de la norma si la recupera de Qdrant. *(No probado de extremo a extremo por el bloqueo de alcance.)*
+Entrada: "Evalúa los riesgos de privacidad de un sistema de matrícula en línea que almacena DNI y correos de estudiantes." Salida obtenida en la prueba real: evaluación estructurada (contexto, activos, partes interesadas, rol de responsable) apoyada en las cláusulas 6.1.2 y 6.1.3. Pregunta de control: «¿qué exige la norma para la evaluación de riesgos?» → cita la cláusula 6.1.2 (páginas 13–14) recuperada de Qdrant. Una pregunta fuera de tema («receta de pizza») es rechazada por el propio agente (`OUT_OF_SCOPE`).
 
 ## 9. Original frente a integrada
 La UI React original se conserva en su carpeta. La integrada solo invoca el chat; PDF/DOCX, subidas y diagramas siguen en la original.
@@ -39,6 +39,8 @@ G8 le entregaría causa raíz y lecciones aprendidas; G7 usa niveles de riesgo. 
 - Express escucha solo en loopback → reenvío TCP en el contenedor.
 - La norma con licencia es un escaneo sin texto → OCR (Tesseract, confianza media 93,5 %, texto derivado, fuera del repo); se indexaron 271 vectores. No se contrastaron las cláusulas contra las imágenes.
 - Cuota de embeddings del proveedor → lotes y límite por minuto en el gateway.
+- Gemini 3 exige la «thought signature» en las llamadas a herramientas y n8n la descarta (HTTP 400 en el segundo turno) → el gateway la conserva y la reinyecta.
+- El chat intentaba una búsqueda web automática → el adaptador la desactiva (`webMode: off`).
 
 ## 14. Guion
 "Nuestro agente evalúa riesgos de privacidad apoyándose en la norma. En la plataforma común lo ejecutamos detrás del mismo gateway que los demás. Un detalle que mostramos con transparencia: nuestro diseño exige una revisión humana antes de habilitar el agente, y la plataforma respeta ese bloqueo en lugar de saltárselo."

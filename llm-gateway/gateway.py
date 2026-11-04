@@ -114,6 +114,30 @@ async def _embed(model: str | None, inputs: list, extra: dict | None = None) -> 
     return {**last, "data": data}
 
 
+_sigs: dict = {}   # tool_call id -> provider extra_content (Gemini "thought_signature")
+GEMINI = "generativelanguage.googleapis.com" in BASE
+_SKIP_SIG = {"google": {"thought_signature": "skip_thought_signature_validator"}}
+
+
+def _restore_signatures(messages: list) -> list:
+    """Gemini 3 requires the thought_signature of each tool call to come back in the next turn.
+    OpenAI-style clients (LangChain/n8n) drop it, so the gateway remembers it and re-attaches it."""
+    for m in messages or []:
+        for tc in (m.get("tool_calls") or []) if m.get("role") == "assistant" else []:
+            if not tc.get("extra_content"):
+                tc["extra_content"] = _sigs.get(tc.get("id")) or _SKIP_SIG
+    return messages
+
+
+def _remember_signatures(out: dict) -> None:
+    for ch in out.get("choices", []):
+        for tc in (ch.get("message") or {}).get("tool_calls") or []:
+            if tc.get("id") and tc.get("extra_content"):
+                _sigs[tc["id"]] = tc["extra_content"]
+                if len(_sigs) > 2000:
+                    _sigs.pop(next(iter(_sigs)))
+
+
 def _mock_text(messages) -> str:
     last = ""
     for m in messages or []:
@@ -142,7 +166,11 @@ async def _chat(payload: dict) -> dict:
             else:
                 payload = {**payload, "model": _model(payload.get("model"))}
                 payload = {k: v for k, v in payload.items() if v is not None}
+                if GEMINI and payload.get("messages"):
+                    payload["messages"] = _restore_signatures(payload["messages"])
                 out = await _post("/chat/completions", payload)
+                if GEMINI:
+                    _remember_signatures(out)
         _track(t0, out.get("usage"))
         return out
     except Exception as e:  # noqa: BLE001
